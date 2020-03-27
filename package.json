@@ -1,0 +1,37 @@
+{
+  "name": "chat-adapter-prototype",
+  "version": "0.0.0-0",
+  "description": "",
+  "main": "lib/index.js",
+  "private": true,
+  "author": "William Wong <compulim@hotmail.com> (http://compulim.info/)",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.9.0",
+    "@babel/plugin-transform-runtime": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-typescript": "^7.9.0",
+    "babel-plugin-istanbul": "^6.0.0",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
+    "concurrently": "^5.1.0",
+    "jest": "^25.2.3",
+    "p-defer": "^3.0.0",
+    "prettier": "^2.0.2",
+    "source-map-loader": "^0.2.4",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11",
+    "webpack-stats-plugin": "^0.3.1"
+  },
+  "dependencies": {
+    "core-js": "^3.6.4",
+    "redux": "^4.0.5"
+  },
+  "scripts": {
+    "build": "npm run build:babel && npm run build:webpack",
+    "build:babel": "babel src/ --copy-files --extensions .js,.ts,.tsx --no-copy-ignored --out-dir lib/ --verbose ",
+    "build:webpack": "webpack",
+    "test": "jest --watch"
+  }
+}

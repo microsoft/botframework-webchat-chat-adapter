@@ -1,0 +1,33 @@
+{
+  "env": {
+    "test": {
+      "plugins": [
+        "babel-plugin-istanbul"
+      ]
+    }
+  },
+  "plugins": [
+    [
+      "babel-plugin-transform-inline-environment-variables",
+      {
+        "include": [
+          "npm_package_version"
+        ]
+      }
+    ],
+    "@babel/plugin-proposal-object-rest-spread",
+    "@babel/plugin-transform-runtime"
+  ],
+  "presets": [
+    "@babel/preset-typescript",
+    [
+      "@babel/preset-env",
+      {
+        "forceAllTransforms": true,
+        "modules": "commonjs"
+      }
+    ]
+  ],
+  "sourceMaps": "inline",
+  "sourceRoot": "chat-adapter:///"
+}
