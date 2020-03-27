@@ -30,8 +30,12 @@
   },
   "scripts": {
     "build": "npm run build:babel && npm run build:webpack",
-    "build:babel": "babel src/ --copy-files --extensions .js,.ts,.tsx --no-copy-ignored --out-dir lib/ --verbose ",
+    "build:babel": "babel src/ --copy-files --extensions .js,.ts,.tsx --no-copy-ignored --out-dir lib/ --verbose",
     "build:webpack": "webpack",
+    "prestart": "npm run build:babel",
+    "start": "concurrently --kill-others --names \"babel,webpack\" \"npm run start:babel\" \"npm run start:webpack\"",
+    "start:babel": "npm run build:babel -- --skip-initial-build --watch",
+    "start:webpack": "npm run build:webpack -- --watch",
     "test": "jest --watch"
   }
 }
