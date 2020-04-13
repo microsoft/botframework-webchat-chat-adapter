@@ -9,23 +9,46 @@ enum ConnectionStatus {
   Connected
 }
 
-interface Adapter {
-  activity$: Observable<IActivity>;
-  connectionStatus$: Observable<ConnectionStatus>;
+type EgressActivityOptions = {
+  progress: (activity: IActivity) => void;
+};
+
+type IterateActivitiesOptions = {
+  signal?: AbortSignal;
+};
+
+interface Adapter extends AdapterAPI {
+  activities: (options?: IterateActivitiesOptions) => AsyncIterable<IActivity>;
   end: () => void;
-  postActivity: (activity: IActivity) => Observable<string>;
 }
 
-interface AdapterAPI {
-  postActivity: (activity: IActivity) => Observable<string>;
+interface AdapterAPI extends EgressAdapterAPI, IngressAdapterAPI {}
+
+interface EgressAdapterAPI {
+  egressActivity: (activity: IActivity, options: EgressActivityOptions) => Promise<void>;
+}
+
+interface IngressAdapterAPI {
+  ingressActivity: (activity: IActivity) => void;
 }
 
 type AdapterCreator = (options?: AdapterOptions) => Adapter;
 type AdapterEnhancer = (next: AdapterCreator) => AdapterCreator;
 
 interface AdapterOptions {
-  mockActivity$: Observable<IActivity>;
-  mockConnectionStatus$: Observable<IActivity>;
+  mockActivity$?: Observable<IActivity>;
+  mockConnectionStatus$?: Observable<IActivity>;
 }
 
-export { Adapter, AdapterCreator, AdapterEnhancer, AdapterOptions, AdapterAPI, ConnectionStatus }
+export type {
+  Adapter,
+  AdapterAPI,
+  AdapterCreator,
+  AdapterEnhancer,
+  AdapterOptions,
+  ConnectionStatus,
+  EgressActivityOptions,
+  EgressAdapterAPI,
+  IngressAdapterAPI,
+  IterateActivitiesOptions
+};

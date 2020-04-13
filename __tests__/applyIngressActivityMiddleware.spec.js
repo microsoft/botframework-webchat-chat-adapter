@@ -1,113 +1,172 @@
-const createDeferred = require('p-defer');
-const Observable = require('core-js/features/observable');
+const asyncIterableToArray = require('./__jest__/asyncIterableToArray');
 
-const { default: applyIncomingActivityMiddleware } = require('../src/applyIngressActivityMiddleware');
-const { default: createIC3Adapter } = require('../src/createChatAdapter');
+const { default: createChatAdapter } = require('../src/createChatAdapter');
+const { default: applyIngressActivityMiddleware } = require('../src/applyIngressActivityMiddleware');
 
-test('basic without any middleware', async () => {
-  let mockActivityObserver;
-  const mockActivity$ = new Observable(observer => {
-    mockActivityObserver = observer;
+test('no middleware', async () => {
+  const adapter = createChatAdapter({}, applyIngressActivityMiddleware());
 
-    return () => {};
-  });
+  const activityIterable = adapter.activities();
 
-  const adapter = createIC3Adapter({ mockActivity$ });
-  const waitableActivities = waitableObservable(adapter.activity$);
+  adapter.ingressActivity(1);
+  adapter.end();
 
-  // Wait for 1 to return as 1.
-  // We are using Promise.all because the expectation need to be set up before we call next(). Otherwise, the expectation will miss the next() call.
-  await Promise.all([waitableActivities.next(1), mockActivityObserver.next(1)]);
-  await Promise.all([waitableActivities.complete(), mockActivityObserver.complete()]);
-
-  expect(waitableActivities.values()).toEqual([1]);
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([1]);
 });
 
-test('with a single sync middleware', async () => {
-  let mockActivityObserver;
-  const mockActivity$ = new Observable(observer => {
-    mockActivityObserver = observer;
-
-    return () => {};
-  });
-
-  const adapter = createIC3Adapter(
-    { mockActivity$ },
-    applyIncomingActivityMiddleware(() => next => activity => next(activity * 10))
+test('1 sync middleware for augmentation', async () => {
+  const adapter = createChatAdapter(
+    {},
+    applyIngressActivityMiddleware(() => next => activity => {
+      next(activity * 10);
+      adapter.end();
+    })
   );
 
-  const waitableActivities = waitableObservable(adapter.activity$);
+  const activityIterable = adapter.activities();
 
-  // Wait for 1 to return as 10.
-  // We are using Promise.all because the expectation need to be set up before we call next(). Otherwise, the expectation will miss the next() call.
-  await Promise.all([waitableActivities.next(10), mockActivityObserver.next(1)]);
-  await Promise.all([waitableActivities.complete(), mockActivityObserver.complete()]);
+  adapter.ingressActivity(1);
 
-  expect(waitableActivities.values()).toEqual([10]);
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([10]);
 });
 
-test('with a single async middleware', async () => {
-  let mockActivityObserver;
-  const mockActivity$ = new Observable(observer => {
-    mockActivityObserver = observer;
-
-    return () => {};
-  });
-
-  const adapter = createIC3Adapter(
-    { mockActivity$ },
-    applyIncomingActivityMiddleware(() => next => activity => setImmediate(() => next(activity * 10)))
-  );
-
-  const waitableActivities = waitableObservable(adapter.activity$);
-
-  // Wait for 1 to return as 10.
-  // We are using Promise.all because the expectation need to be set up before we call next(). Otherwise, the expectation will miss the next() call.
-  await Promise.all([waitableActivities.next(10), mockActivityObserver.next(1)]);
-  await Promise.all([waitableActivities.complete(), mockActivityObserver.complete()]);
-
-  expect(waitableActivities.values()).toEqual([10]);
-});
-
-function waitableObservable(observable) {
-  const completeDeferred = createDeferred();
-  const errorDeferred = createDeferred();
-  let nextDeferreds = [];
-  const values = [];
-  const subscription = observable.subscribe({
-    complete: completeDeferred.resolve,
-    error: errorDeferred.resolve,
-    next: value => {
-      nextDeferreds = nextDeferreds.reduce((nextDeferreds, deferred) => {
-        if (deferred.predicate(value)) {
-          deferred.resolve();
-
-          return nextDeferreds;
-        }
-
-        return [...nextDeferreds, deferred];
-      }, []);
-
-      values.push(value);
-    }
-  });
-
-  return {
-    complete: () => completeDeferred.promise,
-    error: () => errorDeferred.promise,
-    next: predicateOrValue => {
-      const deferred = createDeferred();
-
-      nextDeferreds.push({
-        ...deferred,
-        predicate:
-          typeof predicateOrValue === 'function' ? predicateOrValue : value => Object.is(predicateOrValue, value),
-        predicateOrValue
+test('1 async middleware for augmentation', async () => {
+  const adapter = createChatAdapter(
+    {},
+    applyIngressActivityMiddleware(() => next => activity => {
+      setImmediate(() => {
+        next(activity * 10);
+        adapter.end();
       });
+    })
+  );
 
-      return deferred.promise;
-    },
-    unsubscribe: () => subscription.unsubscribe(),
-    values: () => values
-  };
-}
+  const activityIterable = adapter.activities();
+
+  adapter.ingressActivity(1);
+
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([10]);
+});
+
+test('1 sync middleware to emit 2 activities', async () => {
+  const adapter = createChatAdapter(
+    {},
+    applyIngressActivityMiddleware(({ ingressActivity }) => next => activity => {
+      next(activity * 10);
+      ingressActivity(activity * 100);
+      adapter.end();
+    })
+  );
+
+  const activityIterable = adapter.activities();
+
+  adapter.ingressActivity(1);
+
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([10, 100]);
+});
+
+test('1 async middleware to emit 2 activities', async () => {
+  const adapter = createChatAdapter(
+    {},
+    applyIngressActivityMiddleware(({ ingressActivity }) => next => activity => {
+      next(activity * 10);
+
+      setImmediate(() => {
+        ingressActivity(activity * 100);
+        adapter.end();
+      });
+    })
+  );
+
+  const activityIterable = adapter.activities();
+
+  adapter.ingressActivity(1);
+
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([10, 100]);
+});
+
+test('middleware to filter out certain activities', async () => {
+  const adapter = createChatAdapter(
+    {},
+    applyIngressActivityMiddleware(() => next => activity => {
+      activity % 2 && next(activity);
+    })
+  );
+
+  const activityIterable = adapter.activities();
+
+  adapter.ingressActivity(1);
+  adapter.ingressActivity(2);
+  adapter.ingressActivity(3);
+  adapter.end();
+
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([1, 3]);
+});
+
+test('2 sync middleware', async () => {
+  const adapter = createChatAdapter(
+    {},
+    applyIngressActivityMiddleware(
+      () => next => activity => {
+        next(activity + 1);
+      },
+      () => next => activity => {
+        next(activity * 10);
+      }
+    )
+  );
+
+  const activityIterable = adapter.activities();
+
+  adapter.ingressActivity(1);
+  adapter.end();
+
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([20]);
+});
+
+test('2 async middleware', async () => {
+  const adapter = createChatAdapter(
+    {},
+    applyIngressActivityMiddleware(
+      () => next => activity => {
+        setImmediate(() => next(activity + 1));
+      },
+      () => next => activity => {
+        setImmediate(() => {
+          next(activity * 10);
+          adapter.end();
+        });
+      }
+    )
+  );
+
+  const activityIterable = adapter.activities();
+
+  adapter.ingressActivity(1);
+
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([20]);
+});
+
+test('2 middleware with latter emitting activity to former', async () => {
+  const adapter = createChatAdapter(
+    {},
+    applyIngressActivityMiddleware(
+      () => next => activity => {
+        next(activity + 100);
+      },
+      ({ ingressActivity }) => next => activity => {
+        next(activity);
+
+        // Calling ingressActivity() will put an activity to the ingress queue and run through the whole middleware chain from start.
+        activity % 2 && ingressActivity(activity + 1);
+      }
+    )
+  );
+
+  const activityIterable = adapter.activities();
+
+  adapter.ingressActivity(1);
+  adapter.end();
+
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([101, 102]);
+});

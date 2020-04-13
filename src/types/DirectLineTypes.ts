@@ -1,3 +1,3 @@
 interface IActivity {}
 
-export { IActivity };
+export type { IActivity };
