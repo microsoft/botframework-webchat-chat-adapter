@@ -20,12 +20,16 @@ interface Adapter<TActivity> extends AdapterAPI<TActivity> {
 
 interface AdapterAPI<TActivity> extends EgressAdapterAPI<TActivity>, IngressAdapterAPI<TActivity> {}
 
+type EgressFunction<TActivity> = (activity: TActivity, options?: EgressOptions<TActivity>) => Promise<void>;
+
 interface EgressAdapterAPI<TActivity> {
-  egress: (activity: TActivity, options?: EgressOptions<TActivity>) => Promise<void>;
+  egress: EgressFunction<TActivity>;
 }
 
+type IngressFunction<TActivity> = (activity: TActivity) => void;
+
 interface IngressAdapterAPI<TActivity> {
-  ingress: (activity: TActivity) => void;
+  ingress: IngressFunction<TActivity>;
 }
 
 type AdapterCreator<TActivity> = (options?: AdapterOptions) => Adapter<TActivity>;
@@ -40,8 +44,10 @@ export type {
   AdapterEnhancer,
   AdapterOptions,
   ConnectionStatus,
-  EgressOptions,
   EgressAdapterAPI,
+  EgressFunction,
+  EgressOptions,
   IngressAdapterAPI,
+  IngressFunction,
   IterateActivitiesOptions
 };
