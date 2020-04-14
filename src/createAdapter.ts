@@ -47,8 +47,8 @@ export default function createAdapter<TActivity>(
       };
     },
 
-    egress: (activity: TActivity, options: EgressOptions<TActivity>): Promise<void> => {
-      throw new Error('not implemented');
+    egress: (): Promise<void> => {
+      return Promise.reject(new Error('There are no enhancers registered for egress().'));
     },
 
     end: () => {
