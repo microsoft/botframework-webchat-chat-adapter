@@ -1,7 +1,7 @@
 import { compose } from 'redux';
 
-import { AdapterAPI, AdapterEnhancer, IngressFunction } from './types/ChatAdapterTypes';
-import createAdapterAPI from './createAdapterAPI';
+import { AdapterAPI, AdapterEnhancer, IngressFunction } from './types/AdapterTypes';
+import extractAdapterAPI from './extractAdapterAPI';
 
 type IngressMiddleware<TActivity> = (
   adapterAPI: AdapterAPI<TActivity>
@@ -16,7 +16,7 @@ export default function applyIngressMiddleware<TActivity>(
 ): AdapterEnhancer<TActivity> {
   return nextEnhancer => options => {
     const adapter = nextEnhancer(options);
-    const api = createAdapterAPI<TActivity>(adapter);
+    const api = extractAdapterAPI<TActivity>(adapter);
     const chain = middlewares.map(middleware => middleware(api));
     const ingress = compose<IngressFunction<TActivity>>(...chain)(api.ingress);
 

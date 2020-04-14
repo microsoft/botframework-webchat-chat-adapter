@@ -30,6 +30,8 @@
     "abort-controller": "^3.0.0",
     "abort-controller-es5": "^1.0.1",
     "core-js": "^3.6.4",
+    "event-target-shim": "^5.0.1",
+    "event-target-shim-es5": "^1.0.1",
     "redux": "^4.0.5"
   },
   "scripts": {

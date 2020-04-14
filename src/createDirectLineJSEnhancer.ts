@@ -1,26 +1,28 @@
 import AbortController from 'abort-controller-es5';
 import Observable from 'core-js/features/observable';
 
-import { Adapter, AdapterCreator, AdapterEnhancer, AdapterOptions, ConnectionStatus } from './types/ChatAdapterTypes';
+import { Adapter, AdapterCreator, AdapterEnhancer, AdapterOptions, ConnectionStatus } from './types/AdapterTypes';
 import { IDirectLineActivity } from './types/DirectLineTypes';
 import shareObservable from './utils/shareObservable';
 
-export interface IDirectLineJS<TActivity> {
-  activity$: Observable<TActivity>;
+export interface IDirectLineJS {
+  activity$: Observable<IDirectLineActivity>;
   connectionStatus$: Observable<ConnectionStatus>;
   end: () => void;
-  postActivity: (activity: TActivity) => Observable<string>;
+  postActivity: (activity: IDirectLineActivity) => Observable<string>;
 }
 
 export default function createDirectLineJSEnhancer(): AdapterEnhancer<IDirectLineActivity> {
-  return (next: AdapterCreator<IDirectLineActivity>) => (options: AdapterOptions) => {
-    let adapter: Adapter<IDirectLineActivity>;
+  return (next: AdapterCreator<IDirectLineActivity>) => (
+    options: AdapterOptions
+  ): Adapter<IDirectLineActivity> & IDirectLineJS => {
+    const adapter = next(options);
 
     return {
+      ...adapter,
+
       activity$: shareObservable(
         new Observable(observer => {
-          adapter = next(options);
-
           const abortController = new AbortController();
 
           (async function () {
@@ -35,19 +37,21 @@ export default function createDirectLineJSEnhancer(): AdapterEnhancer<IDirectLin
             }
           })();
 
-          return () => {
-            adapter.end();
-            adapter = null;
-
-            abortController.abort();
-          };
+          return () => abortController.abort();
         })
       ),
 
       connectionStatus$: new Observable(observer => {
-        observer.error('not implemented');
+        const errorListener = () => observer.next(1);
+        const openListener = () => observer.next(2);
 
-        throw new Error('not implemented');
+        adapter.addEventListener('error', errorListener);
+        adapter.addEventListener('open', openListener);
+
+        return () => {
+          adapter.removeEventListener('error', errorListener);
+          adapter.removeEventListener('open', openListener);
+        };
       }),
 
       postActivity(activity: IDirectLineActivity) {
@@ -64,37 +68,7 @@ export default function createDirectLineJSEnhancer(): AdapterEnhancer<IDirectLin
         });
       },
 
-      activities: (...args) => {
-        if (!adapter) {
-          throw new Error('Before calling activities(), you must subscribe to activity$ first.');
-        }
-
-        return adapter.activities(...args);
-      },
-
-      egress: (...args) => {
-        if (!adapter) {
-          throw new Error('Before calling egress(), you must subscribe to activity$ first.');
-        }
-
-        return adapter.egress(...args);
-      },
-
-      end: (...args) => {
-        if (!adapter) {
-          throw new Error('Before calling end(), you must subscribe to activity$ first.');
-        }
-
-        return adapter.end(...args);
-      },
-
-      ingress: (...args) => {
-        if (!adapter) {
-          throw new Error('Before calling ingress(), you must subscribe to activity$ first.');
-        }
-
-        return adapter.ingress(...args);
-      }
+      end: () => adapter.close()
     };
   };
 }

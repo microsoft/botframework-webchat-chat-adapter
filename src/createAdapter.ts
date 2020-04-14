@@ -1,6 +1,7 @@
 import createDeferred, { DeferredPromise } from 'p-defer';
+import EventTarget from 'event-target-shim-es5';
 
-import { Adapter, AdapterOptions, AdapterEnhancer, EgressOptions } from './types/ChatAdapterTypes';
+import { Adapter, AdapterOptions, AdapterEnhancer } from './types/AdapterTypes';
 import promiseRaceMap from './utils/promiseRaceMap';
 import rejectOnAbort from './utils/rejectOnAbort';
 
@@ -13,12 +14,9 @@ export default function createAdapter<TActivity>(
   let ingressQueue: TActivity[] = [];
   let nextIterateDeferred: DeferredPromise<void>;
   const closeDeferred = createDeferred();
+  const eventTarget = new EventTarget();
 
   return enhancer((options: AdapterOptions) => ({
-    // TODO: Implement this adapter using IC3SDK.
-    //       Don't implement using RxJS@5 because it's obsoleted. Implement using ES Observable from core-js.
-    //       Also, don't use any operators from RxJS package. It make the logic unreadable and very difficult to debug.
-
     activities: ({ signal } = {}) => {
       const aborted = rejectOnAbort(signal);
 
@@ -47,9 +45,14 @@ export default function createAdapter<TActivity>(
       };
     },
 
+    addEventListener: eventTarget.addEventListener.bind(eventTarget),
+    removeEventListener: eventTarget.removeEventListener.bind(eventTarget),
+
     close: () => {
       closeDeferred.resolve();
     },
+
+    dispatchEvent: eventTarget.dispatchEvent.bind(eventTarget),
 
     egress: (): Promise<void> => {
       return Promise.reject(new Error('There are no enhancers registered for egress().'));
