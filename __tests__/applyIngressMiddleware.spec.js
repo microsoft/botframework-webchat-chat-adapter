@@ -9,7 +9,7 @@ test('no middleware', async () => {
   const activityIterable = adapter.activities();
 
   adapter.ingress(1);
-  adapter.end();
+  adapter.close();
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([1]);
 });
@@ -19,7 +19,7 @@ test('1 sync middleware for augmentation', async () => {
     {},
     applyIngressMiddleware(() => next => activity => {
       next(activity * 10);
-      adapter.end();
+      adapter.close();
     })
   );
 
@@ -36,7 +36,7 @@ test('1 async middleware for augmentation', async () => {
     applyIngressMiddleware(() => next => activity => {
       setImmediate(() => {
         next(activity * 10);
-        adapter.end();
+        adapter.close();
       });
     })
   );
@@ -54,7 +54,7 @@ test('1 sync middleware to emit 2 activities', async () => {
     applyIngressMiddleware(({ ingress }) => next => activity => {
       next(activity * 10);
       ingress(activity * 100);
-      adapter.end();
+      adapter.close();
     })
   );
 
@@ -73,7 +73,7 @@ test('1 async middleware to emit 2 activities', async () => {
 
       setImmediate(() => {
         ingress(activity * 100);
-        adapter.end();
+        adapter.close();
       });
     })
   );
@@ -98,7 +98,7 @@ test('middleware to filter out certain activities', async () => {
   adapter.ingress(1);
   adapter.ingress(2);
   adapter.ingress(3);
-  adapter.end();
+  adapter.close();
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([1, 3]);
 });
@@ -119,7 +119,7 @@ test('2 sync middleware', async () => {
   const activityIterable = adapter.activities();
 
   adapter.ingress(1);
-  adapter.end();
+  adapter.close();
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([20]);
 });
@@ -134,7 +134,7 @@ test('2 async middleware', async () => {
       () => next => activity => {
         setImmediate(() => {
           next(activity * 10);
-          adapter.end();
+          adapter.close();
         });
       }
     )
@@ -166,7 +166,7 @@ test('2 middleware with latter emitting activity to former', async () => {
   const activityIterable = adapter.activities();
 
   adapter.ingress(1);
-  adapter.end();
+  adapter.close();
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([101, 102]);
 });

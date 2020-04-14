@@ -18,7 +18,7 @@ test('egress to echo back as ingress', async () => {
 
   await adapter.egress(1);
 
-  adapter.end();
+  adapter.close();
 
   await expect(asyncIterableToArray(activitiesIterable)).resolves.toEqual([120]);
 });

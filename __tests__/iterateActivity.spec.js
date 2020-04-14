@@ -4,14 +4,14 @@ const asyncIterableToArray = require('./__jest__/asyncIterableToArray');
 
 const { default: createAdapter } = require('../src/createAdapter');
 
-test('iterate 3 activities and end should complete gracefully', async () => {
+test('iterate 3 activities and close should complete gracefully', async () => {
   const adapter = createAdapter();
   const activityIterable = adapter.activities();
 
   adapter.ingress(1);
   adapter.ingress(2);
   adapter.ingress(3);
-  adapter.end();
+  adapter.close();
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([1, 2, 3]);
 });

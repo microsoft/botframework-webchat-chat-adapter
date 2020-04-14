@@ -15,7 +15,7 @@ type IterateActivitiesOptions = {
 
 interface Adapter<TActivity> extends AdapterAPI<TActivity> {
   activities: (options?: IterateActivitiesOptions) => AsyncIterable<TActivity>;
-  end: () => void;
+  close: () => void;
 }
 
 interface AdapterAPI<TActivity> extends EgressAdapterAPI<TActivity>, IngressAdapterAPI<TActivity> {}

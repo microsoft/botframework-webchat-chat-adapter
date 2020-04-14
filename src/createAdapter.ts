@@ -12,7 +12,7 @@ export default function createAdapter<TActivity>(
 ): Adapter<TActivity> {
   let ingressQueue: TActivity[] = [];
   let nextIterateDeferred: DeferredPromise<void>;
-  const endDeferred = createDeferred();
+  const closeDeferred = createDeferred();
 
   return enhancer((options: AdapterOptions) => ({
     // TODO: Implement this adapter using IC3SDK.
@@ -28,7 +28,7 @@ export default function createAdapter<TActivity>(
             if (!ingressQueue.length) {
               const result = await promiseRaceMap({
                 abort: aborted,
-                end: endDeferred.promise,
+                end: closeDeferred.promise,
                 next: (nextIterateDeferred || (nextIterateDeferred = createDeferred())).promise
               });
 
@@ -47,12 +47,12 @@ export default function createAdapter<TActivity>(
       };
     },
 
-    egress: (): Promise<void> => {
-      return Promise.reject(new Error('There are no enhancers registered for egress().'));
+    close: () => {
+      closeDeferred.resolve();
     },
 
-    end: () => {
-      endDeferred.resolve();
+    egress: (): Promise<void> => {
+      return Promise.reject(new Error('There are no enhancers registered for egress().'));
     },
 
     ingress: activity => {
