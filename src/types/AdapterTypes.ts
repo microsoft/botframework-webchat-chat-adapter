@@ -1,8 +1,8 @@
 // We should use "readyState" instead
-enum ConnectionStatus {
-  Uninitialized,
-  Connecting,
-  Connected
+enum ReadyState {
+  Uninitialized = 0,
+  Connecting = 1,
+  Connected = 2
 }
 
 type EgressOptions<TActivity> = {
@@ -51,7 +51,7 @@ export type {
   AdapterCreator,
   AdapterEnhancer,
   AdapterOptions,
-  ConnectionStatus,
+  ReadyState,
   EgressAdapterAPI,
   EgressFunction,
   EgressOptions,

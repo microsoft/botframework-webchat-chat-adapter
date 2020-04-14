@@ -1,11 +1,8 @@
-import { compose } from 'redux';
+import { Adapter, AdapterEnhancer, AdapterOptions, IngressFunction } from './types/AdapterTypes';
 
-import { AdapterAPI, AdapterEnhancer, IngressFunction } from './types/AdapterTypes';
-import extractAdapterAPI from './extractAdapterAPI';
+import createApplyMiddleware, { Middleware } from './internals/createApplyMiddleware';
 
-type IngressMiddleware<TActivity> = (
-  adapterAPI: AdapterAPI<TActivity>
-) => (next: IngressFunction<TActivity>) => IngressFunction<TActivity>;
+type IngressMiddleware<TActivity> = Middleware<TActivity, IngressFunction<TActivity>>;
 
 // This will convert multiple middlewares into a single enhancer.
 // Enhancer is another middleware for the constructor of adapter. Essentially HOC for adapter.
@@ -14,17 +11,16 @@ type IngressMiddleware<TActivity> = (
 export default function applyIngressMiddleware<TActivity>(
   ...middlewares: IngressMiddleware<TActivity>[]
 ): AdapterEnhancer<TActivity> {
-  return nextEnhancer => options => {
-    const adapter = nextEnhancer(options);
-    const api = extractAdapterAPI<TActivity>(adapter);
-    const chain = middlewares.map(middleware => middleware(api));
-    const ingress = compose<IngressFunction<TActivity>>(...chain)(api.ingress);
-
-    return {
+  return createApplyMiddleware<TActivity, IngressFunction<TActivity>>(
+    (
+      options: AdapterOptions,
+      chain: (final: IngressFunction<TActivity>) => IngressFunction<TActivity>,
+      adapter: Adapter<TActivity>
+    ) => ({
       ...adapter,
-      ingress: (activity: TActivity) => ingress(activity)
-    };
-  };
+      ingress: (activity: TActivity) => chain(adapter.ingress)(activity)
+    })
+  )(...middlewares);
 }
 
 export type { IngressMiddleware };

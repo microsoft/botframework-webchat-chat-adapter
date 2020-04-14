@@ -1,11 +1,8 @@
-import { compose } from 'redux';
+import { Adapter, AdapterEnhancer, AdapterOptions, DispatchEventFunction } from './types/AdapterTypes';
 
-import { AdapterAPI, AdapterEnhancer, DispatchEventFunction } from './types/AdapterTypes';
-import extractAdapterAPI from './extractAdapterAPI';
+import createApplyMiddleware, { Middleware } from './internals/createApplyMiddleware';
 
-type DispatchEventMiddleware<TActivity> = (
-  adapterAPI: AdapterAPI<TActivity>
-) => (next: DispatchEventFunction) => DispatchEventFunction;
+type DispatchEventMiddleware<TActivity> = Middleware<TActivity, DispatchEventFunction>;
 
 // This will convert multiple middlewares into a single enhancer.
 // Enhancer is another middleware for the constructor of adapter. Essentially HOC for adapter.
@@ -14,17 +11,16 @@ type DispatchEventMiddleware<TActivity> = (
 export default function applyDispatchEventMiddleware<TActivity>(
   ...middlewares: DispatchEventMiddleware<TActivity>[]
 ): AdapterEnhancer<TActivity> {
-  return nextEnhancer => options => {
-    const adapter = nextEnhancer(options);
-    const api = extractAdapterAPI<TActivity>(adapter);
-    const chain = middlewares.map(middleware => middleware(api));
-    const dispatchEvent = compose<DispatchEventFunction>(...chain)(api.dispatchEvent);
-
-    return {
+  return createApplyMiddleware<TActivity, DispatchEventFunction>(
+    (
+      options: AdapterOptions,
+      chain: (final: DispatchEventFunction) => DispatchEventFunction,
+      adapter: Adapter<TActivity>
+    ) => ({
       ...adapter,
-      dispatchEvent: (event: Event) => dispatchEvent(event)
-    };
-  };
+      dispatchEvent: (event: Event) => chain(adapter.dispatchEvent)(event)
+    })
+  )(...middlewares);
 }
 
 export type { DispatchEventMiddleware };

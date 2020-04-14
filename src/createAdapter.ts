@@ -1,3 +1,5 @@
+/// <reference path="./types/external.d.ts" />
+
 import createDeferred, { DeferredPromise } from 'p-defer';
 import EventTarget from 'event-target-shim-es5';
 
