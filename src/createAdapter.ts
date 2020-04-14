@@ -1,12 +1,12 @@
 import createDeferred, { DeferredPromise } from 'p-defer';
 
-import { Adapter, AdapterOptions, AdapterEnhancer, EgressActivityOptions } from './types/ChatAdapterTypes';
+import { Adapter, AdapterOptions, AdapterEnhancer, EgressOptions } from './types/ChatAdapterTypes';
 import promiseRaceMap from './utils/promiseRaceMap';
 import rejectOnAbort from './utils/rejectOnAbort';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any> = next => options => next(options);
 
-export default function createChatAdapter<TActivity>(
+export default function createAdapter<TActivity>(
   options: AdapterOptions = {},
   enhancer: AdapterEnhancer<TActivity> = DEFAULT_ENHANCER
 ): Adapter<TActivity> {
@@ -47,7 +47,7 @@ export default function createChatAdapter<TActivity>(
       };
     },
 
-    egressActivity: (activity: TActivity, options: EgressActivityOptions<TActivity>): Promise<void> => {
+    egress: (activity: TActivity, options: EgressOptions<TActivity>): Promise<void> => {
       throw new Error('not implemented');
     },
 
@@ -55,7 +55,7 @@ export default function createChatAdapter<TActivity>(
       endDeferred.resolve();
     },
 
-    ingressActivity: activity => {
+    ingress: activity => {
       ingressQueue.push(activity);
       nextIterateDeferred && nextIterateDeferred.resolve();
     }

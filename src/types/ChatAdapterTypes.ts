@@ -5,7 +5,7 @@ enum ConnectionStatus {
   Connected
 }
 
-type EgressActivityOptions<TActivity> = {
+type EgressOptions<TActivity> = {
   progress: (activity: TActivity) => void;
 };
 
@@ -21,11 +21,11 @@ interface Adapter<TActivity> extends AdapterAPI<TActivity> {
 interface AdapterAPI<TActivity> extends EgressAdapterAPI<TActivity>, IngressAdapterAPI<TActivity> {}
 
 interface EgressAdapterAPI<TActivity> {
-  egressActivity: (activity: TActivity, options?: EgressActivityOptions<TActivity>) => Promise<void>;
+  egress: (activity: TActivity, options?: EgressOptions<TActivity>) => Promise<void>;
 }
 
 interface IngressAdapterAPI<TActivity> {
-  ingressActivity: (activity: TActivity) => void;
+  ingress: (activity: TActivity) => void;
 }
 
 type AdapterCreator<TActivity> = (options?: AdapterOptions) => Adapter<TActivity>;
@@ -40,7 +40,7 @@ export type {
   AdapterEnhancer,
   AdapterOptions,
   ConnectionStatus,
-  EgressActivityOptions,
+  EgressOptions,
   EgressAdapterAPI,
   IngressAdapterAPI,
   IterateActivitiesOptions

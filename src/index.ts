@@ -1,3 +1,3 @@
-import createChatAdapter from './createChatAdapter';
+import createChatAdapter from './createAdapter';
 
 export default createChatAdapter;

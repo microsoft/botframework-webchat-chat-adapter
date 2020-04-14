@@ -1,23 +1,23 @@
 const asyncIterableToArray = require('./__jest__/asyncIterableToArray');
 
-const { default: createChatAdapter } = require('../src/createChatAdapter');
-const { default: applyIngressActivityMiddleware } = require('../src/applyIngressActivityMiddleware');
+const { default: createAdapter } = require('../src/createAdapter');
+const { default: applyIngressMiddleware } = require('../src/applyIngressMiddleware');
 
 test('no middleware', async () => {
-  const adapter = createChatAdapter({}, applyIngressActivityMiddleware());
+  const adapter = createAdapter({}, applyIngressMiddleware());
 
   const activityIterable = adapter.activities();
 
-  adapter.ingressActivity(1);
+  adapter.ingress(1);
   adapter.end();
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([1]);
 });
 
 test('1 sync middleware for augmentation', async () => {
-  const adapter = createChatAdapter(
+  const adapter = createAdapter(
     {},
-    applyIngressActivityMiddleware(() => next => activity => {
+    applyIngressMiddleware(() => next => activity => {
       next(activity * 10);
       adapter.end();
     })
@@ -25,15 +25,15 @@ test('1 sync middleware for augmentation', async () => {
 
   const activityIterable = adapter.activities();
 
-  adapter.ingressActivity(1);
+  adapter.ingress(1);
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([10]);
 });
 
 test('1 async middleware for augmentation', async () => {
-  const adapter = createChatAdapter(
+  const adapter = createAdapter(
     {},
-    applyIngressActivityMiddleware(() => next => activity => {
+    applyIngressMiddleware(() => next => activity => {
       setImmediate(() => {
         next(activity * 10);
         adapter.end();
@@ -43,36 +43,36 @@ test('1 async middleware for augmentation', async () => {
 
   const activityIterable = adapter.activities();
 
-  adapter.ingressActivity(1);
+  adapter.ingress(1);
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([10]);
 });
 
 test('1 sync middleware to emit 2 activities', async () => {
-  const adapter = createChatAdapter(
+  const adapter = createAdapter(
     {},
-    applyIngressActivityMiddleware(({ ingressActivity }) => next => activity => {
+    applyIngressMiddleware(({ ingress }) => next => activity => {
       next(activity * 10);
-      ingressActivity(activity * 100);
+      ingress(activity * 100);
       adapter.end();
     })
   );
 
   const activityIterable = adapter.activities();
 
-  adapter.ingressActivity(1);
+  adapter.ingress(1);
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([10, 100]);
 });
 
 test('1 async middleware to emit 2 activities', async () => {
-  const adapter = createChatAdapter(
+  const adapter = createAdapter(
     {},
-    applyIngressActivityMiddleware(({ ingressActivity }) => next => activity => {
+    applyIngressMiddleware(({ ingress }) => next => activity => {
       next(activity * 10);
 
       setImmediate(() => {
-        ingressActivity(activity * 100);
+        ingress(activity * 100);
         adapter.end();
       });
     })
@@ -80,33 +80,33 @@ test('1 async middleware to emit 2 activities', async () => {
 
   const activityIterable = adapter.activities();
 
-  adapter.ingressActivity(1);
+  adapter.ingress(1);
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([10, 100]);
 });
 
 test('middleware to filter out certain activities', async () => {
-  const adapter = createChatAdapter(
+  const adapter = createAdapter(
     {},
-    applyIngressActivityMiddleware(() => next => activity => {
+    applyIngressMiddleware(() => next => activity => {
       activity % 2 && next(activity);
     })
   );
 
   const activityIterable = adapter.activities();
 
-  adapter.ingressActivity(1);
-  adapter.ingressActivity(2);
-  adapter.ingressActivity(3);
+  adapter.ingress(1);
+  adapter.ingress(2);
+  adapter.ingress(3);
   adapter.end();
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([1, 3]);
 });
 
 test('2 sync middleware', async () => {
-  const adapter = createChatAdapter(
+  const adapter = createAdapter(
     {},
-    applyIngressActivityMiddleware(
+    applyIngressMiddleware(
       () => next => activity => {
         next(activity + 1);
       },
@@ -118,16 +118,16 @@ test('2 sync middleware', async () => {
 
   const activityIterable = adapter.activities();
 
-  adapter.ingressActivity(1);
+  adapter.ingress(1);
   adapter.end();
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([20]);
 });
 
 test('2 async middleware', async () => {
-  const adapter = createChatAdapter(
+  const adapter = createAdapter(
     {},
-    applyIngressActivityMiddleware(
+    applyIngressMiddleware(
       () => next => activity => {
         setImmediate(() => next(activity + 1));
       },
@@ -142,30 +142,30 @@ test('2 async middleware', async () => {
 
   const activityIterable = adapter.activities();
 
-  adapter.ingressActivity(1);
+  adapter.ingress(1);
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([20]);
 });
 
 test('2 middleware with latter emitting activity to former', async () => {
-  const adapter = createChatAdapter(
+  const adapter = createAdapter(
     {},
-    applyIngressActivityMiddleware(
+    applyIngressMiddleware(
       () => next => activity => {
         next(activity + 100);
       },
-      ({ ingressActivity }) => next => activity => {
+      ({ ingress }) => next => activity => {
         next(activity);
 
-        // Calling ingressActivity() will put an activity to the ingress queue and run through the whole middleware chain from start.
-        activity % 2 && ingressActivity(activity + 1);
+        // Calling ingress() will put an activity to the ingress queue and run through the whole middleware chain from start.
+        activity % 2 && ingress(activity + 1);
       }
     )
   );
 
   const activityIterable = adapter.activities();
 
-  adapter.ingressActivity(1);
+  adapter.ingress(1);
   adapter.end();
 
   await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([101, 102]);

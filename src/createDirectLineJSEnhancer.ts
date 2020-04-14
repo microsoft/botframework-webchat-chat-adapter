@@ -56,7 +56,7 @@ export default function createDirectLineJSEnhancer(): AdapterEnhancer<IDirectLin
         }
 
         return new Observable(async observer => {
-          await adapter.egressActivity(activity, {
+          await adapter.egress(activity, {
             progress: ({ id }) => observer.next(id)
           });
 
@@ -72,12 +72,12 @@ export default function createDirectLineJSEnhancer(): AdapterEnhancer<IDirectLin
         return adapter.activities(...args);
       },
 
-      egressActivity: (...args) => {
+      egress: (...args) => {
         if (!adapter) {
-          throw new Error('Before calling egressActivity(), you must subscribe to activity$ first.');
+          throw new Error('Before calling egress(), you must subscribe to activity$ first.');
         }
 
-        return adapter.egressActivity(...args);
+        return adapter.egress(...args);
       },
 
       end: (...args) => {
@@ -88,12 +88,12 @@ export default function createDirectLineJSEnhancer(): AdapterEnhancer<IDirectLin
         return adapter.end(...args);
       },
 
-      ingressActivity: (...args) => {
+      ingress: (...args) => {
         if (!adapter) {
-          throw new Error('Before calling ingressActivity(), you must subscribe to activity$ first.');
+          throw new Error('Before calling ingress(), you must subscribe to activity$ first.');
         }
 
-        return adapter.ingressActivity(...args);
+        return adapter.ingress(...args);
       }
     };
   };
