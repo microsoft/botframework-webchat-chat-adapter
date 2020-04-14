@@ -47,7 +47,7 @@ export default function createChatAdapter<TActivity>(
       };
     },
 
-    egressActivity: (activity: TActivity, options: EgressActivityOptions): Promise<void> => {
+    egressActivity: (activity: TActivity, options: EgressActivityOptions<TActivity>): Promise<void> => {
       throw new Error('not implemented');
     },
 
