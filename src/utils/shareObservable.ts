@@ -1,3 +1,5 @@
+/// <reference path="../types/external.d.ts" />
+
 import Observable, { Observer, Subscription } from 'core-js/features/observable';
 
 export default function shareObservable<T>(observable: Observable<T>): Observable<T> {

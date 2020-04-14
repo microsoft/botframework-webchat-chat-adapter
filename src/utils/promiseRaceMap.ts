@@ -1,3 +1,5 @@
+/// <reference path="../types/external.d.ts" />
+
 import entries from 'core-js/features/object/entries';
 
 export default function promiseRaceMap(map: { [key: string]: Promise<any> }): Promise<any> {
