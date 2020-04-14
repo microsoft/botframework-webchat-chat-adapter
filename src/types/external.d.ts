@@ -39,5 +39,5 @@ declare module 'event-target-shim-es5' {
 }
 
 declare module 'core-js/features/object/entries' {
-  export default function entries(map: { [key: string]: Promise<any> }): [[string, Promise<any>]];
+  export default function entries(map: { [key: string]: any } | any): [[string, any]];
 }

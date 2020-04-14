@@ -1,17 +1,23 @@
+/// <reference path="../types/external.d.ts" />
+
 import entries from 'core-js/features/object/entries';
 
 import { Adapter, AdapterCreator, AdapterOptions, IterateActivitiesOptions } from '../types/AdapterTypes';
 
-function reservedKey(key) {
+function reservedKey(key: string) {
   return key === '__proto__' || key === 'constructor' || key === 'prototype';
 }
+
+type LazyAdapter<TActivity> = Adapter<TActivity> & {
+  [key: string]: any;
+};
 
 // Only create adapter when activities is being iterated.
 export default function createLazy<TActivity>() {
   return (next: AdapterCreator<TActivity>) => (options: AdapterOptions): Adapter<TActivity> => {
-    let adapter;
+    let adapter: Adapter<TActivity>;
 
-    const lazy = {
+    const lazy: LazyAdapter<TActivity> = {
       activities: (options?: IterateActivitiesOptions) => {
         if (!adapter) {
           adapter = next(options);
@@ -38,9 +44,7 @@ export default function createLazy<TActivity>() {
         throw new Error('You must call activities() first.');
       },
 
-      egress: () => {
-        throw new Error('You must call activities() first.');
-      },
+      egress: () => Promise.reject(new Error('You must call activities() first.')),
 
       ingress: () => {
         throw new Error('You must call activities() first.');
