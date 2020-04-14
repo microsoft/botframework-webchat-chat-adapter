@@ -3,11 +3,11 @@ import { compose } from 'redux';
 import { AdapterAPI, AdapterEnhancer } from './types/ChatAdapterTypes';
 import createAdapterAPI from './createAdapterAPI';
 
-type IngressUpdater<TActivity> = (activity: TActivity) => void;
+type IngressMiddlewareChain<TActivity> = (activity: TActivity) => void;
 
 type IngressMiddleware<TActivity> = (
   adapterAPI: AdapterAPI<TActivity>
-) => (next: IngressUpdater<TActivity>) => IngressUpdater<TActivity>;
+) => (next: IngressMiddlewareChain<TActivity>) => IngressMiddlewareChain<TActivity>;
 
 // This will convert multiple middlewares into a single enhancer.
 // Enhancer is another middleware for the constructor of adapter. Essentially HOC for adapter.
@@ -20,7 +20,7 @@ export default function applyIngressMiddleware<TActivity>(
     const adapter = nextEnhancer(options);
     const api = createAdapterAPI<TActivity>(adapter);
     const chain = middlewares.map(middleware => middleware(api));
-    const ingress = compose<IngressUpdater<TActivity>>(...chain)(api.ingress);
+    const ingress = compose<IngressMiddlewareChain<TActivity>>(...chain)(api.ingress);
 
     return {
       ...adapter,
@@ -29,4 +29,4 @@ export default function applyIngressMiddleware<TActivity>(
   };
 }
 
-export type { IngressMiddleware, IngressUpdater };
+export type { IngressMiddleware, IngressMiddlewareChain };
