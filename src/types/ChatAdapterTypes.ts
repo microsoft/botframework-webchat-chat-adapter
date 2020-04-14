@@ -1,7 +1,3 @@
-import Observable from 'core-js/features/observable';
-
-import { IActivity } from './DirectLineTypes';
-
 // We should use "readyState" instead
 enum ConnectionStatus {
   Uninitialized,
@@ -9,36 +5,33 @@ enum ConnectionStatus {
   Connected
 }
 
-type EgressActivityOptions = {
-  progress: (activity: IActivity) => void;
+type EgressActivityOptions<TActivity> = {
+  progress: (activity: TActivity) => void;
 };
 
 type IterateActivitiesOptions = {
   signal?: AbortSignal;
 };
 
-interface Adapter extends AdapterAPI {
-  activities: (options?: IterateActivitiesOptions) => AsyncIterable<IActivity>;
+interface Adapter<TActivity> extends AdapterAPI<TActivity> {
+  activities: (options?: IterateActivitiesOptions) => AsyncIterable<TActivity>;
   end: () => void;
 }
 
-interface AdapterAPI extends EgressAdapterAPI, IngressAdapterAPI {}
+interface AdapterAPI<TActivity> extends EgressAdapterAPI<TActivity>, IngressAdapterAPI<TActivity> {}
 
-interface EgressAdapterAPI {
-  egressActivity: (activity: IActivity, options: EgressActivityOptions) => Promise<void>;
+interface EgressAdapterAPI<TActivity> {
+  egressActivity: (activity: TActivity, options?: EgressActivityOptions<TActivity>) => Promise<void>;
 }
 
-interface IngressAdapterAPI {
-  ingressActivity: (activity: IActivity) => void;
+interface IngressAdapterAPI<TActivity> {
+  ingressActivity: (activity: TActivity) => void;
 }
 
-type AdapterCreator = (options?: AdapterOptions) => Adapter;
-type AdapterEnhancer = (next: AdapterCreator) => AdapterCreator;
+type AdapterCreator<TActivity> = (options?: AdapterOptions) => Adapter<TActivity>;
+type AdapterEnhancer<TActivity> = (next: AdapterCreator<TActivity>) => AdapterCreator<TActivity>;
 
-interface AdapterOptions {
-  mockActivity$?: Observable<IActivity>;
-  mockConnectionStatus$?: Observable<IActivity>;
-}
+interface AdapterOptions {}
 
 export type {
   Adapter,

@@ -1,27 +1,33 @@
 import { compose } from 'redux';
 
-import { IActivity } from './types/DirectLineTypes';
 import { AdapterAPI, AdapterEnhancer } from './types/ChatAdapterTypes';
 
-type IngressActivityUpdater = (activity: IActivity) => void;
+type IngressActivityUpdater<TActivity> = (activity: TActivity) => void;
 
-type IngressActivityMiddleware = (
-  adapterAPI: AdapterAPI
-) => (next: IngressActivityUpdater) => IngressActivityUpdater;
+type IngressActivityMiddleware<TActivity> = (
+  adapterAPI: AdapterAPI<TActivity>
+) => (next: IngressActivityUpdater<TActivity>) => IngressActivityUpdater<TActivity>;
 
 // This will convert multiple middlewares into a single enhancer.
 // Enhancer is another middleware for the constructor of adapter. Essentially HOC for adapter.
 // We can chain multiple enhancer together, and plug-in multiple features to a single adapter.
 // In the future, if we decided to change Adapter, middleware written by user can still be reused. We won't introduce breaking changes.
-export default function applyIngressActivityMiddleware(...middlewares: IngressActivityMiddleware[]): AdapterEnhancer {
+export default function applyIngressActivityMiddleware<TActivity>(
+  ...middlewares: IngressActivityMiddleware<TActivity>[]
+): AdapterEnhancer<TActivity> {
   return nextEnhancer => options => {
     const adapter = nextEnhancer(options);
-    const chain = middlewares.map(middleware => middleware({ ingressActivity: adapter.ingressActivity }));
-    const ingressActivity = compose<IngressActivityUpdater>(...chain)(adapter.ingressActivity.bind(adapter));
+    const chain = middlewares.map(middleware =>
+      middleware({
+        egressActivity: adapter.egressActivity,
+        ingressActivity: adapter.ingressActivity
+      })
+    );
+    const ingressActivity = compose<IngressActivityUpdater<TActivity>>(...chain)(adapter.ingressActivity.bind(adapter));
 
     return {
       ...adapter,
-      ingressActivity: (activity: IActivity) => ingressActivity(activity)
+      ingressActivity: (activity: TActivity) => ingressActivity(activity)
     };
   };
 }

@@ -1,20 +1,20 @@
 import AbortController from 'abort-controller-es5';
 import Observable from 'core-js/features/observable';
 
-import { AdapterCreator, AdapterEnhancer, AdapterOptions, ConnectionStatus } from './types/ChatAdapterTypes';
-import { IActivity } from './types/DirectLineTypes';
+import { Adapter, AdapterCreator, AdapterEnhancer, AdapterOptions, ConnectionStatus } from './types/ChatAdapterTypes';
+import { IDirectLineActivity } from './types/DirectLineTypes';
 import shareObservable from './utils/shareObservable';
 
-export interface IDirectLineJS {
-  activity$: Observable<IActivity>;
+export interface IDirectLineJS<TActivity> {
+  activity$: Observable<TActivity>;
   connectionStatus$: Observable<ConnectionStatus>;
   end: () => void;
-  postActivity: (activity: IActivity) => Observable<string>;
+  postActivity: (activity: TActivity) => Observable<string>;
 }
 
-export default function createDirectLineJSEnhancer(): AdapterEnhancer {
-  return (next: AdapterCreator) => (options: AdapterOptions) => {
-    let adapter;
+export default function createDirectLineJSEnhancer(): AdapterEnhancer<IDirectLineActivity> {
+  return (next: AdapterCreator<IDirectLineActivity>) => (options: AdapterOptions) => {
+    let adapter: Adapter<IDirectLineActivity>;
 
     return {
       activity$: shareObservable(
@@ -50,14 +50,18 @@ export default function createDirectLineJSEnhancer(): AdapterEnhancer {
         throw new Error('not implemented');
       }),
 
-      postActivity(activity: IActivity) {
+      postActivity(activity: IDirectLineActivity) {
         if (!adapter) {
           throw new Error('Before calling postActivity(), you must subscribe to activity$ first.');
         }
 
-        const { id } = adapter.egressActivity(activity);
+        return new Observable(async observer => {
+          await adapter.egressActivity(activity, {
+            progress: ({ id }) => observer.next(id)
+          });
 
-        return Observable.from([id]);
+          observer.complete();
+        });
       },
 
       activities: (...args) => {

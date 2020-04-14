@@ -1,3 +1,6 @@
-interface IActivity {}
+interface IDirectLineActivity {
+  id?: string;
+  value?: any;
+}
 
-export type { IActivity };
+export type { IDirectLineActivity };
