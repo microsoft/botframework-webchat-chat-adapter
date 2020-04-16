@@ -187,3 +187,12 @@ test('calling API too early should throw', async () => {
     )
   ).toThrow('while constructing');
 });
+
+test('passing API without returning function should throw', async () => {
+  expect(() =>
+    createAdapter(
+      {},
+      applyIngressMiddleware(() => {})
+    )
+  ).toThrow('must return a function');
+});

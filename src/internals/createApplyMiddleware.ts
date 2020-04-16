@@ -1,6 +1,6 @@
 import { compose } from 'redux';
 
-import { MiddlewareAPI, AdapterEnhancer } from '../types/AdapterTypes';
+import { Adapter, AdapterEnhancer, MiddlewareAPI } from '../types/AdapterTypes';
 import extractAdapterAPI from '../extractAdapterAPI';
 
 type Middleware<TActivity, TFunction> = (adapterAPI: MiddlewareAPI<TActivity>) => (next: TFunction) => TFunction;
@@ -10,7 +10,7 @@ type Middleware<TActivity, TFunction> = (adapterAPI: MiddlewareAPI<TActivity>) =
 // We can chain multiple enhancer together, and plug-in multiple features to a single adapter.
 // In the future, if we decided to change Adapter, middleware written by user can still be reused. We won't introduce breaking changes.
 export default function createApplyMiddleware<TActivity, TAdapterAPI, TFunction>(
-  getFunction: (api: MiddlewareAPI<TActivity>) => TFunction,
+  getFunction: (api: Adapter<TActivity>) => TFunction,
   functionSetter: (fn: TFunction) => TAdapterAPI
 ) {
   return (...middlewares: Middleware<TActivity, TFunction>[]): AdapterEnhancer<TActivity> => {
@@ -33,6 +33,10 @@ export default function createApplyMiddleware<TActivity, TAdapterAPI, TFunction>
 
       const api: MiddlewareAPI<TActivity> = { ...extractAdapterAPI(adapter), ...functionSetter(proxied) };
       const chain = middlewares.map(middleware => middleware(api));
+
+      if (chain.some(fn => typeof fn !== 'function')) {
+        throw new Error('All middlewares must return a function after caling with middleware API.');
+      }
 
       fn = compose<TFunction>(...chain)(getFunction(adapter));
 
