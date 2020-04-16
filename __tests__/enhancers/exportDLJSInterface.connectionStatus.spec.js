@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 const observableToArray = require('../__jest__/observableToArray');
 
 const { default: createAdapter } = require('../../src/createAdapter');

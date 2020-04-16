@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 const { default: createAdapter } = require('../src/createAdapter');
 
 test('dispatchEvent should call addEventListener', async () => {

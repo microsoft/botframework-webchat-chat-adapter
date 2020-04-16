@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 const { compose } = require('redux');
 
 const { default: createAdapter } = require('../../src/createAdapter');

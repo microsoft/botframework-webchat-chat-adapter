@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 const { compose } = require('redux');
 
 const observableToArray = require('../__jest__/observableToArray');

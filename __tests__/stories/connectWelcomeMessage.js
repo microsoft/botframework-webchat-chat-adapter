@@ -1,9 +1,5 @@
-/**
- * @jest-environment jsdom
- */
-
-const asyncIterableToArray = require('../__jest__/asyncIterableToArray');
 const { compose } = require('redux');
+const asyncIterableToArray = require('../__jest__/asyncIterableToArray');
 
 const { default: createAdapter, applySetReadyStateMiddleware, OPEN } = require('../../src/index');
 
@@ -15,17 +11,10 @@ test('Connect will send welcome message', async () => {
       applySetReadyStateMiddleware(({ ingress, setReadyState: setReadyStateAPI }) => {
         setReadyState = setReadyStateAPI;
 
-        return next => {
-          return readyState => {
-            readyState === OPEN && ingress('welcome');
-            next(readyState);
-          };
+        return next => readyState => {
+          readyState === OPEN && ingress('welcome');
+          next(readyState);
         };
-      }),
-      applySetReadyStateMiddleware(({ setReadyState: setReadyStateAPI }) => {
-        // setReadyState = setReadyStateAPI;
-
-        return next => readyState => next(readyState);
       })
     )
   );

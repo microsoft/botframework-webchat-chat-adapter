@@ -15,6 +15,8 @@ test('ingress to signal online', async () => {
   );
 
   expect(adapter.readyState).toBe(CONNECTING);
+
   adapter.ingress(1);
+
   expect(adapter.readyState).toBe(OPEN);
 });
