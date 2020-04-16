@@ -13,7 +13,7 @@ export default function createLazy<TActivity>() {
   return (next: AdapterCreator<TActivity>) => (adapterOptions: AdapterOptions): Adapter<TActivity> => {
     let adapter: Adapter<TActivity>;
 
-    const lazy: LazyAdapter<TActivity> ={
+    const lazy: LazyAdapter<TActivity> = {
       activities: (options?: IterateActivitiesOptions) => {
         // The next time this function is called, it will be calling the adapter.activities() instead.
         adapter = next(adapterOptions);
