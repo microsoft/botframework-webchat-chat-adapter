@@ -21,6 +21,5 @@
       }
     ]
   ],
-  "sourceMaps": "inline",
-  "sourceRoot": "chat-adapter:///"
+  "sourceMaps": "inline"
 }

@@ -17,7 +17,7 @@ module.exports = {
     '<rootDir>/__tests__/__jest__/setupDotEnv.js',
     '<rootDir>/__tests__/__jest__/setupGlobalAgent.js'
   ],
-  testEnvironment: 'node',
+  // testEnvironment: 'node',
   testPathIgnorePatterns: ['<rootDir>/__tests__/__jest__/']
   // transform: {
   //   '\\.[jt]sx?$': './babel-jest-config.js'

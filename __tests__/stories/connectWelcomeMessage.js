@@ -3,22 +3,36 @@
  */
 
 const asyncIterableToArray = require('../__jest__/asyncIterableToArray');
+const { compose } = require('redux');
 
-const { default: createAdapter } = require('../../src/createAdapter');
-const { default: applyDispatchEventMiddleware } = require('../../src/applyDispatchEventMiddleware');
+const { default: createAdapter, applySetReadyStateMiddleware, OPEN } = require('../../src/index');
 
 test('Connect will send welcome message', async () => {
+  let setReadyState;
   const adapter = createAdapter(
     {},
-    applyDispatchEventMiddleware(({ ingress }) => next => event => {
-      event.type === 'open' && ingress('welcome');
-      next(event);
-    })
+    compose(
+      applySetReadyStateMiddleware(({ ingress, setReadyState: setReadyStateAPI }) => {
+        setReadyState = setReadyStateAPI;
+
+        return next => {
+          return readyState => {
+            readyState === OPEN && ingress('welcome');
+            next(readyState);
+          };
+        };
+      }),
+      applySetReadyStateMiddleware(({ setReadyState: setReadyStateAPI }) => {
+        // setReadyState = setReadyStateAPI;
+
+        return next => readyState => next(readyState);
+      })
+    )
   );
 
   const activities = adapter.activities();
 
-  adapter.dispatchEvent(new Event('open'));
+  setReadyState(OPEN);
   adapter.close();
 
   await expect(asyncIterableToArray(activities)).resolves.toEqual(['welcome']);

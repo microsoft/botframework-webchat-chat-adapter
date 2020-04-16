@@ -2,10 +2,8 @@ const { compose } = require('redux');
 
 const asyncIterableToArray = require('../__jest__/asyncIterableToArray');
 
-const { default: createAdapter } = require('../../src/createAdapter');
+const { default: createAdapter, applyEgressMiddleware, applyIngressMiddleware, CONNECTING, OPEN } = require('../../src/index');
 const { default: createLazyEnhancer } = require('../../src/enhancers/lazy');
-const { default: applyIngressMiddleware } = require('../../src/applyIngressMiddleware');
-const { default: applyEgressMiddleware } = require('../../src/applyEgressMiddleware');
 
 describe('lazy', () => {
   let adapter;
@@ -14,6 +12,7 @@ describe('lazy', () => {
   let custom;
   let egress;
   let ingress;
+  let setReadyState;
 
   beforeEach(() => {
     cstr = jest.fn();
@@ -29,8 +28,9 @@ describe('lazy', () => {
       {},
       compose(
         createLazyEnhancer(),
-        applyIngressMiddleware(({ ingress: ingressAPI }) => {
+        applyIngressMiddleware(({ ingress: ingressAPI, setReadyState: setReadyStateAPI }) => {
           ingress = ingressAPI;
+          setReadyState = setReadyStateAPI;
 
           return next => activity => next(activity);
         }),
@@ -88,6 +88,14 @@ describe('lazy', () => {
       await expect(asyncIterableToArray(activities, 2)).resolves.toEqual([1, 2]);
       await expect(asyncIterableToArray(activities2, 2)).resolves.toEqual([1, 2]);
     });
+
+    test('call setReadyState() should set readyState', () => {
+      expect(adapter.readyState).toBe(CONNECTING);
+
+      setReadyState(OPEN);
+
+      expect(adapter.readyState).toBe(OPEN);
+    });
   });
 
   describe('before calling activities()', () => {
@@ -117,6 +125,14 @@ describe('lazy', () => {
 
     test('should throw on dispatchEvent()', () => {
       expect(() => adapter.dispatchEvent()).toThrow();
+    });
+
+    test('should throw on setReadyState()', () => {
+      expect(() => adapter.setReadyState()).toThrow();
+    });
+
+    test('should return 0 on readyState', () => {
+      expect(adapter).toHaveProperty('readyState', 0);
     });
 
     test('should throw on custom()', () => {

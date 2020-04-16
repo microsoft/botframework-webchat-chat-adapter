@@ -1,8 +1,12 @@
 // We should use "readyState" instead
 enum ReadyState {
-  Uninitialized = 0,
-  Connecting = 1,
-  Connected = 2
+  // Uninitialized = 0,
+  // Connecting = 1,
+  // Connected = 2
+
+  CONNECTING = 0,
+  OPEN = 1,
+  CLOSED = 2
 }
 
 type EgressOptions<TActivity> = {
@@ -13,31 +17,43 @@ type IterateActivitiesOptions = {
   signal?: AbortSignal;
 };
 
-interface Adapter<TActivity> extends AdapterAPI<TActivity>, EventTarget {
+interface Adapter<TActivity> extends MiddlewareAPI<TActivity>, EventTarget {
   activities: (options?: IterateActivitiesOptions) => AsyncIterable<TActivity>;
   addEventListener: (name: string, listener: EventListener) => void;
   close: () => void;
+  dispatchEvent: (event: Event) => boolean;
+  readyState: ReadyState;
   removeEventListener: (name: string, listener: EventListener) => void;
 }
 
-interface AdapterAPI<TActivity> extends EgressAdapterAPI<TActivity>, DispatchEventAdapterAPI, IngressAdapterAPI<TActivity> {}
+interface MiddlewareAPI<TActivity>
+  extends EgressMiddlewareAPI<TActivity>,
+    // DispatchEventAdapterAPI,
+    IngressMiddlewareAPI<TActivity>,
+    SetReadyStateMiddlewareAPI {}
 
 type EgressFunction<TActivity> = (activity: TActivity, options?: EgressOptions<TActivity>) => Promise<void>;
 
-interface EgressAdapterAPI<TActivity> {
+interface EgressMiddlewareAPI<TActivity> {
   egress: EgressFunction<TActivity>;
 }
 
-type DispatchEventFunction = (event: Event) => boolean;
+// type DispatchEventFunction = (event: Event) => boolean;
 
-interface DispatchEventAdapterAPI {
-  dispatchEvent: DispatchEventFunction;
-}
+// interface DispatchEventAdapterAPI {
+//   dispatchEvent: DispatchEventFunction;
+// }
 
 type IngressFunction<TActivity> = (activity: TActivity) => void;
 
-interface IngressAdapterAPI<TActivity> {
+interface IngressMiddlewareAPI<TActivity> {
   ingress: IngressFunction<TActivity>;
+}
+
+type SetReadyStateFunction = (readyState: ReadyState) => void;
+
+interface SetReadyStateMiddlewareAPI {
+  setReadyState: SetReadyStateFunction;
 }
 
 type AdapterCreator<TActivity> = (options?: AdapterOptions) => Adapter<TActivity>;
@@ -47,17 +63,24 @@ interface AdapterOptions {}
 
 export type {
   Adapter,
-  AdapterAPI,
+  MiddlewareAPI,
   AdapterCreator,
   AdapterEnhancer,
   AdapterOptions,
-  ReadyState,
-  EgressAdapterAPI,
+  EgressMiddlewareAPI,
   EgressFunction,
   EgressOptions,
-  DispatchEventAdapterAPI,
-  DispatchEventFunction,
-  IngressAdapterAPI,
+  // DispatchEventAdapterAPI,
+  // DispatchEventFunction,
+  IngressMiddlewareAPI,
   IngressFunction,
-  IterateActivitiesOptions
+  IterateActivitiesOptions,
+  SetReadyStateMiddlewareAPI,
+  SetReadyStateFunction
 };
+
+// const CLOSED = ReadyState.CLOSED;
+// const CONNECTING = ReadyState.CONNECTING;
+// const OPEN = ReadyState.OPEN;
+
+export { ReadyState };

@@ -2,7 +2,7 @@
 
 import entries from 'core-js/features/object/entries';
 
-import { Adapter, AdapterCreator, AdapterOptions, IterateActivitiesOptions } from '../types/AdapterTypes';
+import { Adapter, AdapterCreator, AdapterOptions, IterateActivitiesOptions, ReadyState } from '../types/AdapterTypes';
 
 type LazyAdapter<TActivity> = Adapter<TActivity> & {
   [key: string]: any;
@@ -19,7 +19,11 @@ export default function createLazy<TActivity>() {
         adapter = next(options);
 
         entries(adapter).forEach(([key, value]) => {
-          lazy[key] = typeof value === 'function' ? value.bind(lazy) : value;
+          if (key !== 'readyState') {
+            Object.defineProperty(lazy, key, {
+              get: () => (typeof value === 'function' ? value.bind(adapter) : value)
+            });
+          }
         });
 
         return adapter.activities(options);
@@ -43,7 +47,13 @@ export default function createLazy<TActivity>() {
         throw new Error('You must call activities() first.');
       },
 
+      readyState: ReadyState.CONNECTING,
+
       removeEventListener: () => {
+        throw new Error('You must call activities() first.');
+      },
+
+      setReadyState: () => {
         throw new Error('You must call activities() first.');
       }
     };

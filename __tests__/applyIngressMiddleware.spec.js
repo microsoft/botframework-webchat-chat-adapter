@@ -53,7 +53,8 @@ test('1 sync middleware to emit 2 activities', async () => {
     {},
     applyIngressMiddleware(({ ingress }) => next => activity => {
       next(activity * 10);
-      ingress(activity * 100);
+      next(activity * 100);
+
       adapter.close();
     })
   );
@@ -72,7 +73,8 @@ test('1 async middleware to emit 2 activities', async () => {
       next(activity * 10);
 
       setImmediate(() => {
-        ingress(activity * 100);
+        next(activity * 100);
+
         adapter.close();
       });
     })
@@ -168,5 +170,20 @@ test('2 middleware with latter emitting activity to former', async () => {
   adapter.ingress(1);
   adapter.close();
 
-  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([101, 102]);
+  await expect(asyncIterableToArray(activityIterable)).resolves.toEqual([101, 202]);
+});
+
+test('calling API too early should throw', async () => {
+  expect(() =>
+    createAdapter(
+      {},
+      applyIngressMiddleware(({ ingress }) => {
+        ingress();
+
+        return next => activity => {
+          next(activity + 100);
+        };
+      })
+    )
+  ).toThrow('while constructing');
 });
