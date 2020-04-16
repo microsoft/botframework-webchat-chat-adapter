@@ -102,7 +102,7 @@ test('2 observables at different time', async () => {
   const sharedObservable = shareObservable(observable);
 
   // We are only getting first 2 items from the observable.
-  const array1Promise = observableToArray(sharedObservable, 2);
+  const array1Promise = observableToArray(sharedObservable, { count: 2 });
 
   expect(unsubscribe).toHaveBeenCalledTimes(0);
 

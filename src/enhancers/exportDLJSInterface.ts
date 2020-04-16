@@ -51,6 +51,7 @@ export default function exportDLJSInterface(): AdapterEnhancer<IDirectLineActivi
 
       connectionStatus$: new Observable(observer => {
         observer.next(ConnectionStatus.Uninitialized);
+        observer.next(ConnectionStatus.Connecting);
 
         const errorListener = () => observer.next(ConnectionStatus.Connecting);
         const openListener = () => observer.next(ConnectionStatus.Connected);
