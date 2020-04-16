@@ -5,18 +5,16 @@ import is from 'core-js/features/object/is';
 
 import rejectOnAbort from './rejectOnAbort';
 
-export type AsyncIterableQueueOptions = { signal?: AbortSignal };
-
 export type AsyncIterableQueue<T> = {
   end(): void;
   iterable: AsyncIterable<T>;
-  push(value: T | typeof END): void;
+  push(value: T): void;
   watermark(): number;
 };
 
-const END = Symbol();
+export type AsyncIterableQueueOptions = { signal?: AbortSignal };
 
-export { END };
+const END = Symbol();
 
 export default function createAsyncIterableQueue<T>(options: AsyncIterableQueueOptions = {}): AsyncIterableQueue<T> {
   const aborted = rejectOnAbort(options.signal);

@@ -3,7 +3,7 @@
 import EventTarget from 'event-target-shim-es5';
 
 import { Adapter, AdapterOptions, AdapterEnhancer } from './types/AdapterTypes';
-import createAsyncIterableQueue, { AsyncIterableQueue, END } from './utils/createAsyncIterableQueue';
+import createAsyncIterableQueue, { AsyncIterableQueue } from './utils/createAsyncIterableQueue';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any> = next => options => next(options);
 
@@ -33,7 +33,7 @@ export default function createAdapter<TActivity>(
     removeEventListener: eventTarget.removeEventListener.bind(eventTarget),
 
     close: () => {
-      ingressQueues.forEach(ingressQueue => ingressQueue.push(END));
+      ingressQueues.forEach(ingressQueue => ingressQueue.end());
       ingressQueues.splice(0, Infinity);
     },
 
