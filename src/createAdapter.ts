@@ -33,23 +33,22 @@ export default function createAdapter<TActivity>(
         return queue.iterable;
       },
 
-      // EventTarget
-      addEventListener: eventTarget.addEventListener.bind(eventTarget),
-      dispatchEvent: eventTarget.dispatchEvent.bind(eventTarget),
-      removeEventListener: eventTarget.removeEventListener.bind(eventTarget),
-
       close: () => {
         ingressQueues.forEach(ingressQueue => ingressQueue.end());
         ingressQueues.splice(0, Infinity);
       },
 
+      // Egress middleware API
       egress: (): Promise<void> => {
         return Promise.reject(new Error('There are no enhancers registered for egress().'));
       },
 
+      // Ingress middleware API
       ingress: activity => {
         ingressQueues.forEach(ingressQueue => ingressQueue.push(activity));
       },
+
+      // setReadyState middleware API
 
       // This field is just a placeholder for TypeScript.
       // It will be replaced with Object.defineProperty below.
@@ -70,7 +69,12 @@ export default function createAdapter<TActivity>(
           readyStatePropertyValue = readyState;
           eventTarget.dispatchEvent(createEvent(readyState === ReadyState.OPEN ? 'open' : 'error'));
         }
-      }
+      },
+
+      // EventTarget
+      addEventListener: eventTarget.addEventListener.bind(eventTarget),
+      dispatchEvent: eventTarget.dispatchEvent.bind(eventTarget),
+      removeEventListener: eventTarget.removeEventListener.bind(eventTarget)
     };
 
     return adapter;
@@ -88,8 +92,8 @@ export default function createAdapter<TActivity>(
     }
   });
 
-  // TODO: Can we enable this one to hide some API from the public interface?
-  // Object.defineProperty(final, 'setReadyState', { value: undefined });
+  // We should hide setReadyState, it is only available for middleware API.
+  delete final.setReadyState;
 
   return final;
 }
