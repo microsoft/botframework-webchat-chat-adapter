@@ -38,4 +38,38 @@ test('iterate 1 activity and abort should throw "aborted" error', async () => {
   expect(results).toEqual([1]);
 });
 
-test.todo('multiple interation should have their own queue');
+test('iterate activities partially', async () => {
+  const adapter = createAdapter();
+  const abortController = new AbortController();
+  const activityIterable1 = adapter.activities({ signal: abortController.signal });
+
+  adapter.ingress(1);
+  adapter.ingress(2);
+
+  await expect(asyncIterableToArray(activityIterable1, 2)).resolves.toEqual([1, 2]);
+
+  abortController.abort();
+
+  const activityIterable2 = adapter.activities();
+
+  adapter.ingress(3);
+  adapter.ingress(4);
+  adapter.ingress(5);
+  adapter.close();
+
+  await expect(asyncIterableToArray(activityIterable2)).resolves.toEqual([3, 4, 5]);
+});
+
+test('2 iterations at the same time', async () => {
+  const adapter = createAdapter();
+  const activityIterable1 = adapter.activities();
+  const activityIterable2 = adapter.activities();
+
+  adapter.ingress(1);
+  adapter.ingress(2);
+  adapter.ingress(3);
+  adapter.close();
+
+  await expect(asyncIterableToArray(activityIterable1)).resolves.toEqual([1, 2, 3]);
+  await expect(asyncIterableToArray(activityIterable2)).resolves.toEqual([1, 2, 3]);
+});

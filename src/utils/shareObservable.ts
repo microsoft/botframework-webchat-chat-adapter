@@ -11,9 +11,9 @@ export default function shareObservable<T>(observable: Observable<T>): Observabl
 
     if (!subscription) {
       subscription = observable.subscribe({
-        complete: () => observers.forEach(observer.complete.bind(observer)),
-        error: () => observers.forEach(observer.error.bind(observer)),
-        next: () => observers.forEach(observer.next.bind(observer))
+        complete: () => [...observers].forEach(observer => observer.complete()),
+        error: (error: Error) => [...observers].forEach(observer => observer.error(error)),
+        next: (value: T) => [...observers].forEach(observer => observer.next(value))
       });
     }
 
@@ -21,7 +21,11 @@ export default function shareObservable<T>(observable: Observable<T>): Observabl
       const observerIndex = observers.indexOf(observer);
 
       ~observerIndex && observers.splice(observerIndex, 1);
-      !observers.length && subscription.unsubscribe();
+
+      if (!observers.length) {
+        subscription.unsubscribe();
+        subscription = undefined;
+      }
     };
   });
 }

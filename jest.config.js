@@ -1,6 +1,7 @@
 module.exports = {
   collectCoverageFrom: [
     '<rootDir>/src/**/*.{js,jsx,ts,tsx}',
+    '!<rootDir>/src/**/*.d.ts',
     '!<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
     '!<rootDir>/src/**/*.json',
     '!<rootDir>/node_modules/**',
@@ -10,7 +11,7 @@ module.exports = {
   globals: {
     npm_package_version: '0.0.0-0.jest'
   },
-  moduleDirectories: ['node_modules', 'packages'],
+  moduleDirectories: ['node_modules'],
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx'],
   setupFilesAfterEnv: [
     '<rootDir>/__tests__/__jest__/setupDotEnv.js',

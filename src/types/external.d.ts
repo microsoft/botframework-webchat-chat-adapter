@@ -5,6 +5,14 @@ declare module 'abort-controller-es5' {
   }
 }
 
+declare module 'core-js/features/object/entries' {
+  export default function entries(map: { [key: string]: any } | any): [[string, any]];
+}
+
+declare module 'core-js/features/object/is' {
+  export default function is(x: any, y: any): boolean;
+}
+
 declare module 'core-js/features/observable' {
   export default class Observable<T> {
     constructor(observerCallback: (observer: Observer<T>) => void) {}
@@ -38,6 +46,12 @@ declare module 'event-target-shim-es5' {
   export type EventListener = (event: Event) => void;
 }
 
-declare module 'core-js/features/object/entries' {
-  export default function entries(map: { [key: string]: any } | any): [[string, any]];
+declare module 'p-defer-es5' {
+  export default function createDeferred<T>(): DeferredPromise<T>;
+
+  export type DeferredPromise<T> = {
+    promise: Promise<T>;
+    reject: (error: Error) => void;
+    resolve: (value: T) => void;
+  };
 }

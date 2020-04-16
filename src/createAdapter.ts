@@ -1,11 +1,9 @@
 /// <reference path="./types/external.d.ts" />
 
-import createDeferred, { DeferredPromise } from 'p-defer';
 import EventTarget from 'event-target-shim-es5';
 
 import { Adapter, AdapterOptions, AdapterEnhancer } from './types/AdapterTypes';
-import promiseRaceMap from './utils/promiseRaceMap';
-import rejectOnAbort from './utils/rejectOnAbort';
+import createAsyncIterableQueue, { AsyncIterableQueue, END } from './utils/createAsyncIterableQueue';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any> = next => options => next(options);
 
@@ -13,45 +11,30 @@ export default function createAdapter<TActivity>(
   options: AdapterOptions = {},
   enhancer: AdapterEnhancer<TActivity> = DEFAULT_ENHANCER
 ): Adapter<TActivity> {
-  let ingressQueue: TActivity[] = [];
-  let nextIterateDeferred: DeferredPromise<void>;
-  const closeDeferred = createDeferred();
   const eventTarget = new EventTarget();
+  const ingressQueues: AsyncIterableQueue<TActivity>[] = [];
 
   return enhancer((options: AdapterOptions) => ({
-    activities: ({ signal } = {}) => {
-      const aborted = rejectOnAbort(signal);
+    activities: ({ signal } = {}): AsyncIterable<TActivity> => {
+      const queue = createAsyncIterableQueue<TActivity>({ signal });
 
-      return {
-        async *[Symbol.asyncIterator]() {
-          for (;;) {
-            if (!ingressQueue.length) {
-              const result = await promiseRaceMap({
-                abort: aborted,
-                end: closeDeferred.promise,
-                next: (nextIterateDeferred || (nextIterateDeferred = createDeferred())).promise
-              });
+      ingressQueues.push(queue);
 
-              if ('abort' in result) {
-                throw new Error('aborted');
-              } else if ('end' in result) {
-                break;
-              }
+      signal && signal.addEventListener('abort', () => {
+        const index = ingressQueues.indexOf(queue);
 
-              nextIterateDeferred = null;
-            }
+        ~index || ingressQueues.splice(index, 1);
+      });
 
-            yield ingressQueue.shift();
-          }
-        }
-      };
+      return queue.iterable;
     },
 
     addEventListener: eventTarget.addEventListener.bind(eventTarget),
     removeEventListener: eventTarget.removeEventListener.bind(eventTarget),
 
     close: () => {
-      closeDeferred.resolve();
+      ingressQueues.forEach(ingressQueue => ingressQueue.push(END));
+      ingressQueues.splice(0, Infinity);
     },
 
     dispatchEvent: eventTarget.dispatchEvent.bind(eventTarget),
@@ -61,8 +44,7 @@ export default function createAdapter<TActivity>(
     },
 
     ingress: activity => {
-      ingressQueue.push(activity);
-      nextIterateDeferred && nextIterateDeferred.resolve();
+      ingressQueues.forEach(ingressQueue => ingressQueue.push(activity));
     }
   }))(options);
 }
