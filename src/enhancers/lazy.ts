@@ -51,10 +51,6 @@ export default function createLazy<TActivity>() {
 
       removeEventListener: () => {
         throw new Error('You must call activities() first.');
-      },
-
-      setReadyState: () => {
-        throw new Error('You must call activities() first.');
       }
     };
 

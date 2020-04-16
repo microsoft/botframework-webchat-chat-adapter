@@ -1,9 +1,4 @@
-// We should use "readyState" instead
 enum ReadyState {
-  // Uninitialized = 0,
-  // Connecting = 1,
-  // Connected = 2
-
   CONNECTING = 0,
   OPEN = 1,
   CLOSED = 2
@@ -17,7 +12,7 @@ type IterateActivitiesOptions = {
   signal?: AbortSignal;
 };
 
-interface Adapter<TActivity> extends MiddlewareAPI<TActivity>, EventTarget {
+interface Adapter<TActivity> extends ExposedMiddlewareAPI<TActivity>, EventTarget {
   activities: (options?: IterateActivitiesOptions) => AsyncIterable<TActivity>;
   addEventListener: (name: string, listener: EventListener) => void;
   close: () => void;
@@ -26,23 +21,17 @@ interface Adapter<TActivity> extends MiddlewareAPI<TActivity>, EventTarget {
   removeEventListener: (name: string, listener: EventListener) => void;
 }
 
-interface MiddlewareAPI<TActivity>
-  extends EgressMiddlewareAPI<TActivity>,
-    // DispatchEventAdapterAPI,
-    IngressMiddlewareAPI<TActivity>,
-    SetReadyStateMiddlewareAPI {}
+// The ExposeMiddlewareAPI are middleware APIs that are also exposed on the Adapter.
+// The MiddlewareAPI include middleware APIs that are not exposed on the Adapter.
+// These non-exposed APIs only exists while the middleware is executing and is available only to middleware developers.
+interface ExposedMiddlewareAPI<TActivity> extends EgressMiddlewareAPI<TActivity>, IngressMiddlewareAPI<TActivity> {}
+interface MiddlewareAPI<TActivity> extends ExposedMiddlewareAPI<TActivity>, SetReadyStateMiddlewareAPI {}
 
 type EgressFunction<TActivity> = (activity: TActivity, options?: EgressOptions<TActivity>) => Promise<void>;
 
 interface EgressMiddlewareAPI<TActivity> {
   egress: EgressFunction<TActivity>;
 }
-
-// type DispatchEventFunction = (event: Event) => boolean;
-
-// interface DispatchEventAdapterAPI {
-//   dispatchEvent: DispatchEventFunction;
-// }
 
 type IngressFunction<TActivity> = (activity: TActivity) => void;
 
@@ -70,17 +59,11 @@ export type {
   EgressMiddlewareAPI,
   EgressFunction,
   EgressOptions,
-  // DispatchEventAdapterAPI,
-  // DispatchEventFunction,
   IngressMiddlewareAPI,
   IngressFunction,
   IterateActivitiesOptions,
   SetReadyStateMiddlewareAPI,
   SetReadyStateFunction
 };
-
-// const CLOSED = ReadyState.CLOSED;
-// const CONNECTING = ReadyState.CONNECTING;
-// const OPEN = ReadyState.OPEN;
 
 export { ReadyState };
