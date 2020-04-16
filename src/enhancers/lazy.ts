@@ -10,13 +10,13 @@ type LazyAdapter<TActivity> = Adapter<TActivity> & {
 
 // Only create adapter when activities is being iterated.
 export default function createLazy<TActivity>() {
-  return (next: AdapterCreator<TActivity>) => (options: AdapterOptions): Adapter<TActivity> => {
+  return (next: AdapterCreator<TActivity>) => (adapterOptions: AdapterOptions): Adapter<TActivity> => {
     let adapter: Adapter<TActivity>;
 
-    const lazy: LazyAdapter<TActivity> = {
+    const lazy: LazyAdapter<TActivity> ={
       activities: (options?: IterateActivitiesOptions) => {
         // The next time this function is called, it will be calling the adapter.activities() instead.
-        adapter = next(options);
+        adapter = next(adapterOptions);
 
         entries(adapter).forEach(([key, value]) => {
           if (key !== 'readyState') {

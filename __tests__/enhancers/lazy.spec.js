@@ -2,7 +2,13 @@ const { compose } = require('redux');
 
 const asyncIterableToArray = require('../__jest__/asyncIterableToArray');
 
-const { default: createAdapter, applyEgressMiddleware, applyIngressMiddleware, CONNECTING, OPEN } = require('../../src/index');
+const {
+  default: createAdapter,
+  applyEgressMiddleware,
+  applyIngressMiddleware,
+  CONNECTING,
+  OPEN
+} = require('../../src/index');
 const { default: createLazyEnhancer } = require('../../src/enhancers/lazy');
 
 describe('lazy', () => {
@@ -34,7 +40,11 @@ describe('lazy', () => {
 
           return next => activity => next(activity);
         }),
-        applyEgressMiddleware(() => () => egress),
+        applyEgressMiddleware(() => next => (...args) => {
+          egress(...args);
+
+          return next(...args);
+        }),
         next => options => {
           cstr();
 
@@ -104,39 +114,35 @@ describe('lazy', () => {
     });
 
     test('should throw on close()', () => {
-      expect(() => adapter.close()).toThrow();
+      expect(() => adapter.close()).toThrow('call activities()');
     });
 
     test('should throw on egress()', async () => {
-      await expect(adapter.egress(1)).rejects.toThrow();
+      await expect(adapter.egress(1)).rejects.toThrow('call activities()');
     });
 
     test('should throw on ingress()', () => {
-      expect(() => adapter.ingress()).toThrow();
+      expect(() => adapter.ingress()).toThrow('call activities()');
     });
 
     test('should throw on addEventListener()', () => {
-      expect(() => adapter.addEventListener()).toThrow();
+      expect(() => adapter.addEventListener()).toThrow('call activities()');
     });
 
     test('should throw on removeEventListener()', () => {
-      expect(() => adapter.removeEventListener()).toThrow();
+      expect(() => adapter.removeEventListener()).toThrow('call activities()');
     });
 
     test('should throw on dispatchEvent()', () => {
-      expect(() => adapter.dispatchEvent()).toThrow();
-    });
-
-    test('should throw on setReadyState()', () => {
-      expect(() => adapter.setReadyState()).toThrow();
+      expect(() => adapter.dispatchEvent()).toThrow('call activities()');
     });
 
     test('should return 0 on readyState', () => {
       expect(adapter).toHaveProperty('readyState', 0);
     });
 
-    test('should throw on custom()', () => {
-      expect(() => adapter.custom()).toThrow();
+    test('should not have custom()', () => {
+      expect('custom' in adapter).toBeFalsy();
     });
 
     test('should not have "field"', () => {
