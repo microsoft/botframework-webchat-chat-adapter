@@ -7,7 +7,7 @@ const observableToArray = require('../__jest__/observableToArray');
 const { default: createAdapter } = require('../../src/createAdapter');
 const { default: exportDLJSInterface } = require('../../src/enhancers/exportDLJSInterface');
 
-describe('exportDLJSInterface', () => {
+describe('exportDLJSInterface.activity$', () => {
   let adapter;
 
   beforeEach(() => {
@@ -54,27 +54,5 @@ describe('exportDLJSInterface', () => {
 
     await expect(activitiesPromise1).resolves.toEqual([1, 2, 3]);
     await expect(activitiesPromise2).resolves.toEqual([1, 2, 3]);
-  });
-
-  test('"open"/"error" should set connectionStatus$ accordingly', async () => {
-    let interims;
-
-    observableToArray(adapter.connectionStatus$, {
-      progress: array => {
-        interims = array;
-      }
-    });
-
-    adapter.dispatchEvent(new Event('open'));
-
-    expect(interims).toEqual([0, 1, 2]);
-
-    adapter.dispatchEvent(new Event('error'));
-
-    expect(interims).toEqual([0, 1, 2, 1]);
-
-    adapter.dispatchEvent(new Event('open'));
-
-    expect(interims).toEqual([0, 1, 2, 1, 2]);
   });
 });

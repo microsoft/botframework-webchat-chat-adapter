@@ -66,12 +66,12 @@ export default function exportDLJSInterface(): AdapterEnhancer<IDirectLineActivi
       }),
 
       postActivity(activity: IDirectLineActivity) {
-        return new Observable(async observer => {
-          await adapter.egress(activity, {
-            progress: ({ id }) => observer.next(id)
-          });
-
-          observer.complete();
+        return new Observable(observer => {
+          adapter
+            .egress(activity, {
+              progress: ({ id }) => id && observer.next(id)
+            })
+            .then(() => observer.complete());
         });
       },
 

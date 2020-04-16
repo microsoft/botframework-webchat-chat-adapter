@@ -1,11 +1,11 @@
 module.exports = {
   collectCoverageFrom: [
     '<rootDir>/src/**/*.{js,jsx,ts,tsx}',
-    '!<rootDir>/src/**/*.d.ts',
-    '!<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
-    '!<rootDir>/src/**/*.json',
+    '!<rootDir>/__tests__/**',
     '!<rootDir>/node_modules/**',
-    '!<rootDir>/__tests__/**'
+    '!<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
+    '!<rootDir>/src/**/*.d.ts',
+    '!<rootDir>/src/**/*.json'
   ],
   coverageReporters: ['json', 'lcov', 'text-summary', 'clover', 'cobertura'],
   globals: {

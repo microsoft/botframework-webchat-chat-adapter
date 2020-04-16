@@ -4,10 +4,6 @@ import entries from 'core-js/features/object/entries';
 
 import { Adapter, AdapterCreator, AdapterOptions, IterateActivitiesOptions } from '../types/AdapterTypes';
 
-function reservedKey(key: string) {
-  return key === '__proto__' || key === 'constructor' || key === 'prototype';
-}
-
 type LazyAdapter<TActivity> = Adapter<TActivity> & {
   [key: string]: any;
 };
@@ -19,15 +15,12 @@ export default function createLazy<TActivity>() {
 
     const lazy: LazyAdapter<TActivity> = {
       activities: (options?: IterateActivitiesOptions) => {
-        if (!adapter) {
-          adapter = next(options);
+        // The next time this function is called, it will be calling the adapter.activities() instead.
+        adapter = next(options);
 
-          entries(adapter).forEach(([key, value]) => {
-            if (!reservedKey(key)) {
-              lazy[key] = typeof value === 'function' ? value.bind(lazy) : value;
-            }
-          });
-        }
+        entries(adapter).forEach(([key, value]) => {
+          lazy[key] = typeof value === 'function' ? value.bind(lazy) : value;
+        });
 
         return adapter.activities(options);
       },

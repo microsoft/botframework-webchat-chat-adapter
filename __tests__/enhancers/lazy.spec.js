@@ -9,6 +9,7 @@ const { default: applyEgressMiddleware } = require('../../src/applyEgressMiddlew
 
 describe('lazy', () => {
   let adapter;
+  let baseAdapter;
   let custom;
   let egress;
   let ingress;
@@ -16,6 +17,11 @@ describe('lazy', () => {
   beforeEach(() => {
     custom = jest.fn();
     egress = jest.fn();
+
+    baseAdapter = {
+      custom,
+      field: 1
+    };
 
     adapter = createAdapter(
       {},
@@ -27,7 +33,7 @@ describe('lazy', () => {
           return next => activity => next(activity);
         }),
         applyEgressMiddleware(() => () => egress),
-        next => options => ({ ...next(options), custom })
+        next => options => ({ ...next(options), ...baseAdapter })
       )
     );
   });
@@ -58,6 +64,20 @@ describe('lazy', () => {
 
       expect(custom).toHaveBeenCalledTimes(1);
     });
+
+    test('should unblock field', () => {
+      expect(adapter).toHaveProperty('field', 1);
+    });
+
+    test('and call activities() again', async () => {
+      const activities2 = adapter.activities();
+
+      ingress(1);
+      ingress(2);
+
+      await expect(asyncIterableToArray(activities, 2)).resolves.toEqual([1, 2]);
+      await expect(asyncIterableToArray(activities2, 2)).resolves.toEqual([1, 2]);
+    });
   });
 
   describe('before calling activities()', () => {
@@ -81,12 +101,16 @@ describe('lazy', () => {
       expect(() => adapter.removeEventListener()).toThrow();
     });
 
-    test('should throw on dispatchEventListener()', () => {
-      expect(() => adapter.dispatchEventListener()).toThrow();
+    test('should throw on dispatchEvent()', () => {
+      expect(() => adapter.dispatchEvent()).toThrow();
     });
 
     test('should throw on custom()', () => {
       expect(() => adapter.custom()).toThrow();
+    });
+
+    test('should not have "field"', () => {
+      expect('field' in adapter).toBeFalsy();
     });
   });
 });

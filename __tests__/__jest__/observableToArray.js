@@ -1,4 +1,4 @@
-module.exports = function observableToArray(observable, { count = Infinity, progress } = {}) {
+module.exports = function observableToArray(observable, { count = Infinity, progress, signal } = {}) {
   let subscription;
 
   return new Promise((resolve, reject) => {
@@ -13,5 +13,11 @@ module.exports = function observableToArray(observable, { count = Infinity, prog
         --count || resolve(results);
       }
     });
+
+    signal &&
+      signal.addEventListener('abort', () => {
+        subscription.unsubscribe();
+        reject(new Error('aborted'));
+      });
   }).finally(() => subscription.unsubscribe());
 };
