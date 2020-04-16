@@ -10,11 +10,13 @@ const { default: applyEgressMiddleware } = require('../../src/applyEgressMiddlew
 describe('lazy', () => {
   let adapter;
   let baseAdapter;
+  let cstr;
   let custom;
   let egress;
   let ingress;
 
   beforeEach(() => {
+    cstr = jest.fn();
     custom = jest.fn();
     egress = jest.fn();
 
@@ -33,7 +35,11 @@ describe('lazy', () => {
           return next => activity => next(activity);
         }),
         applyEgressMiddleware(() => () => egress),
-        next => options => ({ ...next(options), ...baseAdapter })
+        next => options => {
+          cstr();
+
+          return { ...next(options), ...baseAdapter };
+        }
       )
     );
   });
@@ -43,6 +49,10 @@ describe('lazy', () => {
 
     beforeEach(() => {
       activities = adapter.activities();
+    });
+
+    test('should not "constructor" once', () => {
+      expect(cstr).toHaveBeenCalledTimes(1);
     });
 
     test('should unblock ingress', async () => {
@@ -81,6 +91,10 @@ describe('lazy', () => {
   });
 
   describe('before calling activities()', () => {
+    test('should not call "constructor"', () => {
+      expect(cstr).toHaveBeenCalledTimes(0);
+    });
+
     test('should throw on close()', () => {
       expect(() => adapter.close()).toThrow();
     });
