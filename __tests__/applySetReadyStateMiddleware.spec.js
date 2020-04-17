@@ -1,17 +1,19 @@
-const { default: createAdapter, applySetReadyStateMiddleware, CLOSED, CONNECTING, OPEN } = require('../src/index');
+const { default: createAdapter, CLOSED, CONNECTING, OPEN } = require('../src/index');
 
-describe('applySetReadyStateMiddleware', () => {
+describe('createAdapter.eventTarget', () => {
   let adapter;
   let setReadyState;
 
   beforeEach(() => {
     adapter = createAdapter(
       {},
-      applySetReadyStateMiddleware(({ setReadyState: setReadyStateAPI }) => {
-        setReadyState = setReadyStateAPI;
+      next => options => {
+        const adapter = next(options);
 
-        return next => readyState => next(readyState);
-      })
+        setReadyState = adapter.setReadyState;
+
+        return adapter;
+      }
     );
   });
 

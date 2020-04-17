@@ -96,6 +96,17 @@ describe('lazy', () => {
 
       expect(adapter.readyState).toBe(OPEN);
     });
+
+    test('event target should work', () => {
+      const handler = jest.fn();
+
+      adapter.addEventListener('load', handler);
+      adapter.dispatchEvent(new Event('load'));
+      adapter.removeEventListener('load', handler);
+      adapter.dispatchEvent(new Event('load'));
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('before calling activities()', () => {
@@ -103,16 +114,15 @@ describe('lazy', () => {
       expect(cstr).toHaveBeenCalledTimes(0);
     });
 
-    test('should throw on close()', () => {
-      expect(() => adapter.close()).toThrow('call activities()');
-    });
+    test.each([['addEventListener'], ['close'], ['dispatchEvent'], ['ingress'], ['removeEventListener']])(
+      'when calling %s() should throw',
+      name => {
+        expect(() => adapter[name]()).toThrow('call activities()');
+      }
+    );
 
     test('should throw on egress()', async () => {
       await expect(adapter.egress(1)).rejects.toThrow('call activities()');
-    });
-
-    test('should throw on ingress()', () => {
-      expect(() => adapter.ingress()).toThrow('call activities()');
     });
 
     test('should throw on readyState getter', () => {

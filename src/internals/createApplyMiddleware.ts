@@ -1,6 +1,6 @@
 import { compose } from 'redux';
 
-import { AdapterEnhancer, InterimAdapter, MiddlewareAPI } from '../types/AdapterTypes';
+import { AdapterEnhancer, MiddlewareAPI } from '../types/AdapterTypes';
 import extractAdapterAPI from '../extractAdapterAPI';
 
 type Middleware<TActivity, TFunction> = (adapterAPI: MiddlewareAPI<TActivity>) => (next: TFunction) => TFunction;
@@ -9,9 +9,9 @@ type Middleware<TActivity, TFunction> = (adapterAPI: MiddlewareAPI<TActivity>) =
 // Enhancer is another middleware for the constructor of adapter. Essentially HOC for adapter.
 // We can chain multiple enhancer together, and plug-in multiple features to a single adapter.
 // In the future, if we decided to change Adapter, middleware written by user can still be reused. We won't introduce breaking changes.
-export default function createApplyMiddleware<TActivity, TAdapterAPI, TFunction>(
-  getFunction: (api: InterimAdapter<TActivity>) => TFunction,
-  functionSetter: (fn: TFunction) => TAdapterAPI
+export default function createApplyMiddleware<TActivity, TFunction>(
+  getFunction: (api: MiddlewareAPI<TActivity>) => TFunction,
+  setFunction: (api: MiddlewareAPI<TActivity>, fn: TFunction) => MiddlewareAPI<TActivity>
 ) {
   return (...middlewares: Middleware<TActivity, TFunction>[]): AdapterEnhancer<TActivity> => {
     return nextCreator => options => {
@@ -29,9 +29,9 @@ export default function createApplyMiddleware<TActivity, TAdapterAPI, TFunction>
       };
 
       // TODO: We should change type "any" to "TFunction"
-      const proxied: any = (...args: any[]) => fn(...args);
+      const proxyFn: any = (...args: any[]) => fn(...args);
 
-      const api: MiddlewareAPI<TActivity> = { ...extractAdapterAPI(adapter), ...functionSetter(proxied) };
+      const api: MiddlewareAPI<TActivity> = setFunction(extractAdapterAPI(adapter), proxyFn);
       const chain = middlewares.map(middleware => middleware(api));
 
       if (chain.some(fn => typeof fn !== 'function')) {
@@ -40,7 +40,7 @@ export default function createApplyMiddleware<TActivity, TAdapterAPI, TFunction>
 
       fn = compose<TFunction>(...chain)(getFunction(adapter));
 
-      return { ...adapter, ...functionSetter(fn) };
+      return { ...adapter, ...setFunction(adapter, fn) };
     };
   };
 }

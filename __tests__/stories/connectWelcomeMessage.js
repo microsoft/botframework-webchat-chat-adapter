@@ -1,23 +1,18 @@
-const { compose } = require('redux');
 const asyncIterableToArray = require('../__jest__/asyncIterableToArray');
 
-const { default: createAdapter, applySetReadyStateMiddleware, OPEN } = require('../../src/index');
+const { default: createAdapter, OPEN } = require('../../src/index');
 
 test('Connect will send welcome message', async () => {
   let setReadyState;
-  const adapter = createAdapter(
-    {},
-    compose(
-      applySetReadyStateMiddleware(({ ingress, setReadyState: setReadyStateAPI }) => {
-        setReadyState = setReadyStateAPI;
+  const adapter = createAdapter({}, next => options => {
+    const adapter = next(options);
 
-        return next => readyState => {
-          readyState === OPEN && ingress('welcome');
-          next(readyState);
-        };
-      })
-    )
-  );
+    setReadyState = adapter.setReadyState;
+
+    adapter.addEventListener('open', () => adapter.ingress('welcome'));
+
+    return adapter;
+  });
 
   const activities = adapter.activities();
 

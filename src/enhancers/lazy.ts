@@ -2,24 +2,28 @@
 
 import entries from 'core-js/features/object/entries';
 
-import {
-  AdapterCreator,
-  AdapterOptions,
-  InterimAdapter,
-  IterateActivitiesOptions,
-  ReadyState
-} from '../types/AdapterTypes';
+import { Adapter, AdapterCreator, AdapterOptions, IterateActivitiesOptions, ReadyState } from '../types/AdapterTypes';
 
-type LazyAdapter<TActivity> = InterimAdapter<TActivity> & {
+type LazyAdapter<TActivity> = Adapter<TActivity> & {
   [key: string]: any;
 };
 
-const SUPPORTED_FUNCTIONS = ['activities', 'close', 'egress', 'ingress', 'getReadyState', 'setReadyState'];
+const SUPPORTED_FUNCTIONS = [
+  'activities',
+  'addEventListener',
+  'close',
+  'dispatchEvent',
+  'egress',
+  'ingress',
+  'getReadyState',
+  'removeEventListener',
+  'setReadyState'
+];
 
 // Only create adapter when activities is being iterated.
 export default function createLazyEnhancer<TActivity>() {
-  return (next: AdapterCreator<TActivity>) => (adapterOptions: AdapterOptions): InterimAdapter<TActivity> => {
-    let adapter: InterimAdapter<TActivity>;
+  return (next: AdapterCreator<TActivity>) => (adapterOptions: AdapterOptions): Adapter<TActivity> => {
+    let adapter: Adapter<TActivity>;
 
     return {
       activities: (options?: IterateActivitiesOptions) => {
@@ -33,12 +37,28 @@ export default function createLazyEnhancer<TActivity>() {
         return adapter.activities(options);
       },
 
+      addEventListener: (...args) => {
+        if (!adapter) {
+          throw new Error('You must call activities() first.');
+        }
+
+        return adapter.addEventListener(...args);
+      },
+
       close: (...args) => {
         if (!adapter) {
           throw new Error('You must call activities() first.');
         }
 
         return adapter.close(...args);
+      },
+
+      dispatchEvent: (...args) => {
+        if (!adapter) {
+          throw new Error('You must call activities() first.');
+        }
+
+        return adapter.dispatchEvent(...args);
       },
 
       egress: (...args) => {
@@ -65,12 +85,20 @@ export default function createLazyEnhancer<TActivity>() {
         return adapter.getReadyState(...args);
       },
 
-      setReadyState: (readyState: ReadyState) => {
+      removeEventListener: (...args) => {
         if (!adapter) {
           throw new Error('You must call activities() first.');
         }
 
-        return adapter.setReadyState(readyState);
+        return adapter.removeEventListener(...args);
+      },
+
+      setReadyState: (...args) => {
+        if (!adapter) {
+          throw new Error('You must call activities() first.');
+        }
+
+        return adapter.setReadyState(...args);
       }
     };
   };
