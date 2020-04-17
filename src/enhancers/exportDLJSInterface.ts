@@ -3,7 +3,7 @@
 import AbortController from 'abort-controller-es5';
 import Observable, { Observer } from 'core-js/features/observable';
 
-import { AdapterCreator, AdapterEnhancer, AdapterOptions, InterimAdapter, ReadyState } from '../types/AdapterTypes';
+import { Adapter, AdapterCreator, AdapterEnhancer, AdapterOptions, ReadyState } from '../types/AdapterTypes';
 import { IDirectLineActivity } from '../types/DirectLineTypes';
 import shareObservable from '../utils/shareObservable';
 
@@ -24,7 +24,7 @@ export interface IDirectLineJS {
 export default function exportDLJSInterface(): AdapterEnhancer<IDirectLineActivity> {
   return (next: AdapterCreator<IDirectLineActivity>) => (
     options: AdapterOptions
-  ): InterimAdapter<IDirectLineActivity> & IDirectLineJS => {
+  ): Adapter<IDirectLineActivity> & IDirectLineJS => {
     const adapter = next(options);
     let connectionStatusObserver: Observer<ConnectionStatus>;
 
