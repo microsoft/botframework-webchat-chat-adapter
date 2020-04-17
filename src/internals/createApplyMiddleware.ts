@@ -1,6 +1,6 @@
 import { compose } from 'redux';
 
-import { Adapter, AdapterEnhancer, MiddlewareAPI } from '../types/AdapterTypes';
+import { AdapterEnhancer, InterimAdapter, MiddlewareAPI } from '../types/AdapterTypes';
 import extractAdapterAPI from '../extractAdapterAPI';
 
 type Middleware<TActivity, TFunction> = (adapterAPI: MiddlewareAPI<TActivity>) => (next: TFunction) => TFunction;
@@ -10,7 +10,7 @@ type Middleware<TActivity, TFunction> = (adapterAPI: MiddlewareAPI<TActivity>) =
 // We can chain multiple enhancer together, and plug-in multiple features to a single adapter.
 // In the future, if we decided to change Adapter, middleware written by user can still be reused. We won't introduce breaking changes.
 export default function createApplyMiddleware<TActivity, TAdapterAPI, TFunction>(
-  getFunction: (api: Adapter<TActivity>) => TFunction,
+  getFunction: (api: InterimAdapter<TActivity>) => TFunction,
   functionSetter: (fn: TFunction) => TAdapterAPI
 ) {
   return (...middlewares: Middleware<TActivity, TFunction>[]): AdapterEnhancer<TActivity> => {

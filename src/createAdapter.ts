@@ -2,7 +2,7 @@
 
 import EventTarget from 'event-target-shim-es5';
 
-import { Adapter, AdapterOptions, AdapterEnhancer, ReadyState } from './types/AdapterTypes';
+import { Adapter, AdapterOptions, AdapterEnhancer, InterimAdapter, ReadyState } from './types/AdapterTypes';
 import createAsyncIterableQueue, { AsyncIterableQueue } from './utils/createAsyncIterableQueue';
 import createEvent from './utils/createEvent';
 
@@ -16,8 +16,8 @@ export default function createAdapter<TActivity>(
   let ingressQueues: AsyncIterableQueue<TActivity>[] = [];
   let readyStatePropertyValue = ReadyState.CONNECTING;
 
-  const final = enhancer((options: AdapterOptions) => {
-    const adapter: Adapter<TActivity> = {
+  const adapter = enhancer((options: AdapterOptions) => {
+    const adapter: InterimAdapter<TActivity> = {
       activities: ({ signal } = {}): AsyncIterable<TActivity> => {
         const queue = createAsyncIterableQueue<TActivity>({ signal });
 
@@ -50,50 +50,56 @@ export default function createAdapter<TActivity>(
 
       // setReadyState middleware API
 
-      // This field is just a placeholder for TypeScript.
-      // It will be replaced with Object.defineProperty below.
-      readyState: readyStatePropertyValue,
+      getReadyState: () => readyStatePropertyValue,
 
       setReadyState: (readyState: ReadyState) => {
-        if (readyState !== readyStatePropertyValue) {
-          if (readyStatePropertyValue === ReadyState.CLOSED) {
-            throw new Error('Cannot change "readyState" after it is CLOSED.');
-          } else if (
-            readyState !== ReadyState.CLOSED &&
-            readyState !== ReadyState.CONNECTING &&
-            readyState !== ReadyState.OPEN
-          ) {
-            throw new Error('"readyState" must be either CLOSED, CONNECTING or OPEN.');
-          }
-
-          readyStatePropertyValue = readyState;
-          eventTarget.dispatchEvent(createEvent(readyState === ReadyState.OPEN ? 'open' : 'error'));
+        if (readyState === readyStatePropertyValue) {
+          return;
         }
-      },
 
-      // EventTarget
-      addEventListener: eventTarget.addEventListener.bind(eventTarget),
-      dispatchEvent: eventTarget.dispatchEvent.bind(eventTarget),
-      removeEventListener: eventTarget.removeEventListener.bind(eventTarget)
+        if (readyStatePropertyValue === ReadyState.CLOSED) {
+          throw new Error('Cannot change "readyState" after it is CLOSED.');
+        } else if (
+          readyState !== ReadyState.CLOSED &&
+          readyState !== ReadyState.CONNECTING &&
+          readyState !== ReadyState.OPEN
+        ) {
+          throw new Error('"readyState" must be either CLOSED, CONNECTING or OPEN.');
+        }
+
+        readyStatePropertyValue = readyState;
+        eventTarget.dispatchEvent(createEvent(readyState === ReadyState.OPEN ? 'open' : 'error'));
+      }
     };
 
     return adapter;
   })(options);
 
-  if (Object.getPrototypeOf(final) !== Object.prototype) {
+  if (Object.getPrototypeOf(adapter) !== Object.prototype) {
     throw new Error('Object returned from enhancer must not be a class object.');
   }
+
+  // Finalizing the adapter for public consumption.
+  // We should hide getReadyState/setReadyState, it is only available for middleware API.
+  const { getReadyState, setReadyState, ...final } = {
+    ...adapter,
+
+    // EventTarget
+    addEventListener: eventTarget.addEventListener.bind(eventTarget),
+    dispatchEvent: eventTarget.dispatchEvent.bind(eventTarget),
+    removeEventListener: eventTarget.removeEventListener.bind(eventTarget),
+
+    // This is a placeholder, will be replaced by defineProperty below.
+    readyState: -1
+  };
 
   Object.defineProperty(final, 'readyState', {
     configurable: false,
     enumerable: true,
     get() {
-      return readyStatePropertyValue;
+      return adapter.getReadyState();
     }
   });
-
-  // We should hide setReadyState, it is only available for middleware API.
-  delete final.setReadyState;
 
   return final;
 }

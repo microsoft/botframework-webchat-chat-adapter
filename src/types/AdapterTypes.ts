@@ -23,9 +23,18 @@ interface Adapter<TActivity> extends ExposedMiddlewareAPI<TActivity>, EventTarge
 
 // The ExposeMiddlewareAPI are middleware APIs that are also exposed on the Adapter.
 // The MiddlewareAPI include middleware APIs that are not exposed on the Adapter.
-// These non-exposed APIs only exists while the middleware is executing and is available only to middleware developers.
+// These non-exposed APIs only exists while the middleware is executing and is only available to middleware developers.
 interface ExposedMiddlewareAPI<TActivity> extends EgressMiddlewareAPI<TActivity>, IngressMiddlewareAPI<TActivity> {}
 interface MiddlewareAPI<TActivity> extends ExposedMiddlewareAPI<TActivity>, SetReadyStateMiddlewareAPI {}
+
+// Interim adapter is the Adapter used when the middleware is being executed.
+// It includes extra APIs that is only available to middleware developers.
+interface InterimAdapter<TActivity> extends MiddlewareAPI<TActivity> {
+  activities: (options?: IterateActivitiesOptions) => AsyncIterable<TActivity>;
+  close: () => void;
+  getReadyState: () => ReadyState;
+  setReadyState: (readyState: ReadyState) => void;
+}
 
 type EgressFunction<TActivity> = (activity: TActivity, options?: EgressOptions<TActivity>) => Promise<void>;
 
@@ -45,25 +54,26 @@ interface SetReadyStateMiddlewareAPI {
   setReadyState: SetReadyStateFunction;
 }
 
-type AdapterCreator<TActivity> = (options?: AdapterOptions) => Adapter<TActivity>;
+type AdapterCreator<TActivity> = (options?: AdapterOptions) => InterimAdapter<TActivity>;
 type AdapterEnhancer<TActivity> = (next: AdapterCreator<TActivity>) => AdapterCreator<TActivity>;
 
 interface AdapterOptions {}
 
 export type {
   Adapter,
-  MiddlewareAPI,
   AdapterCreator,
   AdapterEnhancer,
   AdapterOptions,
-  EgressMiddlewareAPI,
   EgressFunction,
+  EgressMiddlewareAPI,
   EgressOptions,
-  IngressMiddlewareAPI,
   IngressFunction,
+  IngressMiddlewareAPI,
+  InterimAdapter,
   IterateActivitiesOptions,
-  SetReadyStateMiddlewareAPI,
-  SetReadyStateFunction
+  MiddlewareAPI,
+  SetReadyStateFunction,
+  SetReadyStateMiddlewareAPI
 };
 
 export { ReadyState };

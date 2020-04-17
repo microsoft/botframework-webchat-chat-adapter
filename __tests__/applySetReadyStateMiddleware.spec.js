@@ -49,6 +49,13 @@ describe('applySetReadyStateMiddleware', () => {
 
       expect(() => setReadyState(readyState)).toThrow('it is CLOSED');
     });
+
+    test('setReadyState to OPEN should only call setReadyState once', () => {
+      setReadyState(OPEN);
+      setReadyState(OPEN);
+
+      expect(events).toEqual(['open']);
+    });
   });
 
   test('setReadyState to -1 should throw', () => {

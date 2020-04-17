@@ -12,8 +12,7 @@
         "<node_internals>/**"
       ],
       "args": [
-        "--runInBand",
-        "--testPathPattern ${file}"
+        "--runInBand"
       ],
       "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
       "outFiles": [

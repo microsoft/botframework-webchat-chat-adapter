@@ -1,4 +1,4 @@
-import { ReadyState } from './types/AdapterTypes';
+import { Adapter, ReadyState } from './types/AdapterTypes';
 import applyEgressMiddleware from './applyEgressMiddleware';
 import applyIngressMiddleware from './applyIngressMiddleware';
 import applySetReadyStateMiddleware from './applySetReadyStateMiddleware';
@@ -9,3 +9,5 @@ export default createAdapter;
 const { CLOSED, CONNECTING, OPEN } = ReadyState;
 
 export { applyEgressMiddleware, applyIngressMiddleware, applySetReadyStateMiddleware, CLOSED, CONNECTING, OPEN };
+
+export type { Adapter }

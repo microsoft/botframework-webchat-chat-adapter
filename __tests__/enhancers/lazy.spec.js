@@ -13,42 +13,38 @@ const { default: createLazyEnhancer } = require('../../src/enhancers/lazy');
 
 describe('lazy', () => {
   let adapter;
-  let baseAdapter;
   let cstr;
-  let custom;
   let egress;
   let ingress;
   let setReadyState;
 
   beforeEach(() => {
     cstr = jest.fn();
-    custom = jest.fn();
     egress = jest.fn();
-
-    baseAdapter = {
-      custom,
-      field: 1
-    };
 
     adapter = createAdapter(
       {},
       compose(
+        next => options => {
+          const adapter = next(options);
+
+          setReadyState = adapter.setReadyState;
+
+          return adapter;
+        },
         createLazyEnhancer(),
-        applyIngressMiddleware(({ ingress: ingressAPI, setReadyState: setReadyStateAPI }) => {
+        applyIngressMiddleware(({ ingress: ingressAPI }) => {
           ingress = ingressAPI;
-          setReadyState = setReadyStateAPI;
 
           return next => activity => next(activity);
         }),
-        applyEgressMiddleware(() => next => (...args) => {
+        applyEgressMiddleware(() => () => (...args) => {
           egress(...args);
-
-          return next(...args);
         }),
         next => options => {
           cstr();
 
-          return { ...next(options), ...baseAdapter };
+          return next(options);
         }
       )
     );
@@ -66,34 +62,28 @@ describe('lazy', () => {
     });
 
     test('should unblock ingress', async () => {
-      ingress(1);
-      ingress(2);
+      adapter.ingress(1);
+      adapter.ingress(2);
 
       await expect(asyncIterableToArray(activities, 2)).resolves.toEqual([1, 2]);
     });
 
     test('should unblock egress', () => {
-      egress(10);
+      adapter.egress(10);
 
       expect(egress).toHaveBeenCalledTimes(1);
       expect(egress).toHaveBeenCalledWith(10);
     });
 
-    test('should unblock custom members', () => {
-      adapter.custom();
-
-      expect(custom).toHaveBeenCalledTimes(1);
-    });
-
-    test('should unblock field', () => {
-      expect(adapter).toHaveProperty('field', 1);
+    test('should unblock close', () => {
+      adapter.close();
     });
 
     test('and call activities() again', async () => {
       const activities2 = adapter.activities();
 
-      ingress(1);
-      ingress(2);
+      adapter.ingress(1);
+      adapter.ingress(2);
 
       await expect(asyncIterableToArray(activities, 2)).resolves.toEqual([1, 2]);
       await expect(asyncIterableToArray(activities2, 2)).resolves.toEqual([1, 2]);
@@ -125,28 +115,21 @@ describe('lazy', () => {
       expect(() => adapter.ingress()).toThrow('call activities()');
     });
 
-    test('should throw on addEventListener()', () => {
-      expect(() => adapter.addEventListener()).toThrow('call activities()');
+    test('should throw on readyState getter', () => {
+      expect(() => adapter.readyState).toThrow('call activities()');
     });
 
-    test('should throw on removeEventListener()', () => {
-      expect(() => adapter.removeEventListener()).toThrow('call activities()');
-    });
-
-    test('should throw on dispatchEvent()', () => {
-      expect(() => adapter.dispatchEvent()).toThrow('call activities()');
-    });
-
-    test('should return 0 on readyState', () => {
-      expect(adapter).toHaveProperty('readyState', 0);
-    });
-
-    test('should not have custom()', () => {
-      expect('custom' in adapter).toBeFalsy();
-    });
-
-    test('should not have "field"', () => {
-      expect('field' in adapter).toBeFalsy();
+    test('should throw on setReadyState', () => {
+      expect(() => setReadyState(OPEN)).toThrow('call activities()');
     });
   });
+});
+
+test('lazy on adapter with extra functions should throw', () => {
+  const adapter = createAdapter(
+    {},
+    compose(createLazyEnhancer(), next => options => ({ ...next(options), customFn: () => {} }))
+  );
+
+  expect(() => adapter.activities()).toThrow('adapters with extra functions');
 });
