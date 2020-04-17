@@ -1,5 +1,4 @@
-const { default: createAdapter } = require('../src/createAdapter');
-const { default: applyEgressMiddleware } = require('../src/applyEgressMiddleware');
+const { default: createAdapter, applyEgressMiddleware } = require('../src/index');
 
 test('1 async middleware', async () => {
   const adapter = createAdapter(
