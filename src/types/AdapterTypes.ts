@@ -4,10 +4,6 @@ enum ReadyState {
   CLOSED = 2
 }
 
-type EgressOptions<TActivity> = {
-  progress: (activity: TActivity) => void;
-};
-
 type IterateActivitiesOptions = {
   signal?: AbortSignal;
 };
@@ -36,6 +32,10 @@ interface MiddlewareAPI<TActivity> {
   getReadyState: () => ReadyState;
   setReadyState: (readyState: ReadyState) => void;
 }
+
+type EgressOptions<TActivity> = {
+  progress: (activity: TActivity) => void;
+};
 
 type EgressFunction<TActivity> = (activity: TActivity, options?: EgressOptions<TActivity>) => Promise<void>;
 type IngressFunction<TActivity> = (activity: TActivity) => void;
