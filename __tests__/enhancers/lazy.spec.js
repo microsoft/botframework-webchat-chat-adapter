@@ -58,6 +58,7 @@ describe('lazy', () => {
     });
 
     test('should not "constructor" once', () => {
+      adapter.activities();
       expect(cstr).toHaveBeenCalledTimes(1);
     });
 

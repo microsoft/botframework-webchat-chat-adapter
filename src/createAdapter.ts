@@ -13,11 +13,11 @@ export default function createAdapter<TActivity>(
   options: AdapterOptions = {},
   enhancer: AdapterEnhancer<TActivity> = DEFAULT_ENHANCER
 ): SealedAdapter<TActivity> {
-  const eventTarget = new EventTarget();
-  let ingressQueues: AsyncIterableQueue<TActivity>[] = [];
-  let readyStatePropertyValue = ReadyState.CONNECTING;
-
   const adapter = enhancer((options: AdapterOptions) => {
+    const eventTarget = new EventTarget();
+    let ingressQueues: AsyncIterableQueue<TActivity>[] = [];
+    let readyStatePropertyValue = ReadyState.CONNECTING;
+
     const adapter: Adapter<TActivity> = {
       addEventListener: eventTarget.addEventListener.bind(eventTarget),
       dispatchEvent: eventTarget.dispatchEvent.bind(eventTarget),

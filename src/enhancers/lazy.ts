@@ -28,7 +28,9 @@ export default function createLazyEnhancer<TActivity>() {
     return {
       activities: (options?: IterateActivitiesOptions) => {
         // The next time this function is called, it will be calling the adapter.activities() instead.
-        adapter = next(adapterOptions);
+        if (!adapter) {
+          adapter = next(adapterOptions);
+        }
 
         if (Object.keys(adapter).some(name => !~SUPPORTED_FUNCTIONS.indexOf(name))) {
           throw new Error('Lazy enhancer cannot be used on adapters with extra functions.');
