@@ -9,6 +9,7 @@ let config = {
   mode: 'production',
   output: {
     filename: '[name].js',
+    library: 'ChatAdapter',
     libraryTarget: 'umd',
     path: resolve(__dirname, 'dist')
   },

@@ -15,7 +15,9 @@ describe('exportDLJSInterface.postActivity', () => {
 
     const adapter = createAdapter(
       {},
-      compose(exportDLJSInterface(), () => () => ({
+      compose(exportDLJSInterface(), next => options => ({
+        ...next(options),
+
         egress: async (activity, { progress }) => {
           await checkpoint1.pause();
 

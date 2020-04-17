@@ -72,6 +72,7 @@ export default function createAdapter<TActivity>(
           }
 
           readyStatePropertyValue = readyState;
+
           eventTarget.dispatchEvent(createEvent(readyState === ReadyState.OPEN ? 'open' : 'error'));
         }
       };

@@ -9,7 +9,7 @@ describe('exportDLJSInterface.end', () => {
 
     const adapter = createAdapter(
       {},
-      compose(exportDLJSInterface(), () => () => ({ close }))
+      compose(exportDLJSInterface(), next => options => ({ ...next(options), close }))
     );
 
     expect(close).toHaveBeenCalledTimes(0);

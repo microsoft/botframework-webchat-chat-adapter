@@ -1,7 +1,7 @@
 const { compose } = require('redux');
 const observableToArray = require('../__jest__/observableToArray');
 
-const { default: createAdapter, CLOSED, CONNECTING, OPEN } = require('../../src/index');
+const { default: createAdapter, applyEgressMiddleware, CLOSED, CONNECTING, OPEN } = require('../../src/index');
 const { default: exportDLJSInterface } = require('../../src/enhancers/exportDLJSInterface');
 
 describe('exportDLJSInterface.connectionStatus$', () => {
@@ -24,7 +24,7 @@ describe('exportDLJSInterface.connectionStatus$', () => {
     );
   });
 
-  test('"open"/"error" should set connectionStatus$ accordingly', async () => {
+  test.only('"open"/"error" should set connectionStatus$ accordingly', async () => {
     let interims;
     const abortController = new AbortController();
 
@@ -59,4 +59,24 @@ describe('exportDLJSInterface.connectionStatus$', () => {
   test('setReadyState should not throw if no subscription to connectionStatsu$', () => {
     setReadyState(OPEN);
   });
+});
+
+test('setReadyState should propagate to connectionStatus$ when enhancer is placed before exportDLJSInterface()', async () => {
+  const adapter = createAdapter(
+    {},
+    compose(
+      applyEgressMiddleware(({ setReadyState }) => next => activity => {
+        setReadyState(OPEN);
+
+        return next(activity);
+      }),
+      exportDLJSInterface()
+    )
+  );
+
+  const connectionStatusPromise = observableToArray(adapter.connectionStatus$, { count: 3 });
+
+  adapter.egress(1);
+
+  await expect(connectionStatusPromise).resolves.toEqual([0, 1, 2]);
 });

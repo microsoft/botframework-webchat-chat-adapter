@@ -28,6 +28,16 @@ export default function exportDLJSInterface(): AdapterEnhancer<IDirectLineActivi
     const adapter = next(options);
     let connectionStatusObserver: Observer<ConnectionStatus>;
 
+    adapter.addEventListener('open', () => {
+      connectionStatusObserver.next(ConnectionStatus.Connected);
+    });
+
+    adapter.addEventListener('error', () => {
+      connectionStatusObserver.next(
+        adapter.getReadyState() === ReadyState.CLOSED ? ConnectionStatus.FailedToConnect : ConnectionStatus.Connecting
+      );
+    });
+
     return {
       ...adapter,
 
@@ -47,7 +57,9 @@ export default function exportDLJSInterface(): AdapterEnhancer<IDirectLineActivi
             }
           })();
 
-          return () => abortController.abort();
+          return () => {
+            abortController.abort();
+          };
         })
       ),
 
@@ -74,28 +86,6 @@ export default function exportDLJSInterface(): AdapterEnhancer<IDirectLineActivi
             })
             .then(() => observer.complete());
         });
-      },
-
-      setReadyState(readyState: ReadyState) {
-        if (!connectionStatusObserver) {
-          return;
-        }
-
-        switch (readyState) {
-          case ReadyState.CONNECTING:
-            connectionStatusObserver.next(ConnectionStatus.Connecting);
-            break;
-
-          case ReadyState.OPEN:
-            connectionStatusObserver.next(ConnectionStatus.Connected);
-            break;
-
-          case ReadyState.CLOSED:
-            connectionStatusObserver.next(ConnectionStatus.FailedToConnect);
-            break;
-        }
-
-        adapter.setReadyState(readyState);
       }
     };
   };
