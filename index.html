@@ -53,12 +53,11 @@
           {},
           compose(
             exportDLJSInterface(),
-            applyEgressMiddleware(({ ingress, ingress3, setConfig, setReadyState }) => {
-              let conversationId;
+            next => options => {
+              const adapter = next(options);
 
-              window.setConfig = setConfig;
-
-              setConfig('dljs', 123);
+              adapter.setConfig('directLine.conversationId');
+              adapter.setConfig('directLine.streamUrl');
 
               (async function () {
                 const res = await fetch('https://directline.botframework.com/v3/directline/conversations', {
@@ -67,48 +66,68 @@
                 });
 
                 if (!res.ok) {
-                  return setReadyState(CLOSED);
+                  return adapter.setReadyState(CLOSED);
                 }
 
-                const { conversationId: fetchedConversationId, streamUrl } = await res.json();
+                const { conversationId, streamUrl } = await res.json();
 
-                conversationId = fetchedConversationId;
-
-                subscribe(
-                  new Observable(subscriber => {
-                    const socket = new WebSocket(streamUrl);
-                    const handleClose = () => subscriber.complete();
-                    const handleMessage = ({ data }) => {
-                      if (!data) {
-                        return;
-                      }
-
-                      const { activities } = JSON.parse(data);
-
-                      activities.forEach(activity => {
-                        if (activity.from.id === userId) {
-                          activity = { ...activity, from: { ...activity.from, role: 'user' } };
-                        }
-
-                        subscriber.next(activity);
-                      });
-                    };
-                    const handleOpen = () => setReadyState(OPEN);
-
-                    socket.addEventListener('close', handleClose);
-                    socket.addEventListener('message', handleMessage);
-                    socket.addEventListener('open', handleOpen);
-
-                    return () => {
-                      socket.removeEventListener('close', handleClose);
-                      socket.removeEventListener('message', handleMessage);
-                      socket.removeEventListener('open', handleOpen);
-                    };
-                  })
-                );
+                adapter.setConfig('directLine.conversationId', conversationId);
+                adapter.setConfig('directLine.streamUrl', streamUrl);
               })();
 
+              return adapter;
+            },
+            next => options => {
+              const adapter = next(options);
+              const hijack = (original, fn) => (...args) => fn(original, ...args);
+
+              adapter.setConfig = hijack(adapter.setConfig, (callback, name, value) => {
+                if (name === 'directLine.streamUrl' && value) {
+                  adapter.subscribe(
+                    new Observable(subscriber => {
+                      const socket = new WebSocket(value);
+                      const handleClose = () => subscriber.complete();
+                      const handleMessage = ({ data }) => {
+                        if (!data) {
+                          return;
+                        }
+
+                        const { activities } = JSON.parse(data);
+
+                        activities.forEach(activity => {
+                          if (activity.from.id === userId) {
+                            activity = { ...activity, from: { ...activity.from, role: 'user' } };
+                          }
+
+                          subscriber.next(activity);
+                        });
+                      };
+
+                      const handleOpen = () => adapter.setReadyState(OPEN);
+
+                      socket.addEventListener('close', handleClose);
+                      socket.addEventListener('message', handleMessage);
+                      socket.addEventListener('open', handleOpen);
+
+                      return () => {
+                        socket.removeEventListener('close', handleClose);
+                        socket.removeEventListener('message', handleMessage);
+                        socket.removeEventListener('open', handleOpen);
+                        socket.close();
+                      };
+                    })
+                  );
+                }
+
+                return callback(name, value);
+              });
+
+              return adapter;
+            },
+            applyEgressMiddleware(({ getConfig }) => {
               return next => async (activity, options) => {
+                const conversationId = getConfig('directLine.conversationId');
+
                 if (!conversationId) {
                   throw new Error('Cannot egress before the connection is up.');
                 }
@@ -135,89 +154,6 @@
                 options.progress && options.progress({ ...activity, id });
               };
             })
-            // applyEgressMiddleware(({ ingress, setReadyState }) => {
-            //   return next => async (activity, options) => {
-            //     if (!adapter.conversationId) {
-            //       throw new Error('Cannot egress before the connection is up.');
-            //     }
-
-            //     const res = await fetch(
-            //       `https://directline.botframework.com/v3/directline/conversations/${adapter.conversationId}/activities`,
-            //       {
-            //         body: JSON.stringify(activity),
-            //         headers: {
-            //           accept: 'application/json',
-            //           authorization: `Bearer ${token}`,
-            //           'content-type': 'application/json'
-            //         },
-            //         method: 'POST'
-            //       }
-            //     );
-
-            //     if (!res.ok) {
-            //       throw new Error('Failed to post activity.');
-            //     }
-
-            //     const { id } = await res.json();
-
-            //     options.progress && options.progress({ ...activity, id });
-            //   };
-            // }),
-            // next => options => {
-            //   const adapter = next(options);
-            //   const handleMessage = event => {
-            //     if (!event.data) {
-            //       return;
-            //     }
-
-            //     const { activities } = JSON.parse(event.data);
-
-            //     activities.forEach(activity => {
-            //       if (activity.from.id === userId) {
-            //         activity = { ...activity, from: { ...activity.from, role: 'user' } };
-            //       }
-
-            //       ingress(activity);
-            //     });
-            //   };
-
-            //   adapter.addEventListener('open', () => {
-            //     adapter.socket.addEventListener('message', handleMessage);
-            //   });
-
-            //   adapter.addEventListener('error', () => {
-            //     adapter.getReadyState() === CLOSED && adapter.socket.removeEventListener('message', handleMessage);
-            //   });
-
-            //   return adapter;
-            // },
-            // next => options => {
-            //   const adapter = next(options);
-
-            //   (async function () {
-            //     const res = await fetch('https://directline.botframework.com/v3/directline/conversations', {
-            //       headers: { accept: 'application/json', authorization: `Bearer ${token}` },
-            //       method: 'POST'
-            //     });
-
-            //     if (!res.ok) {
-            //       return adapter.setReadyState(CLOSED);
-            //     }
-
-            //     const { conversationId: fetchedConversationId, streamUrl } = await res.json();
-            //     const socket = new WebSocket(streamUrl);
-
-            //     socket.addEventListener('open', () => adapter.setReadyState(OPEN));
-            //     socket.addEventListener('close', () => adapter.setReadyState(CLOSED));
-
-            //     adapter.conversationId = fetchedConversationId;
-            //     adapter.streamUrl = streamUrl;
-            //     adapter.userId = userId;
-            //     adapter.socket = socket;
-            //   })();
-
-            //   return adapter;
-            // }
           )
         );
 
@@ -229,8 +165,6 @@
         );
 
         window.directLine = directLine;
-
-        console.log(directLine);
       })();
     </script>
   </body>
