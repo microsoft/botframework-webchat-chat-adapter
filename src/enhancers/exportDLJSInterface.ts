@@ -3,7 +3,7 @@
 import AbortController from 'abort-controller-es5';
 import Observable, { Observer } from 'core-js/features/observable';
 
-import { Adapter, AdapterCreator, AdapterEnhancer, AdapterOptions, ReadyState } from '../types/AdapterTypes';
+import { Adapter, AdapterConfig, AdapterCreator, AdapterEnhancer, AdapterOptions, ReadyState } from '../types/AdapterTypes';
 import { IDirectLineActivity } from '../types/DirectLineTypes';
 import shareObservable from '../utils/shareObservable';
 
@@ -21,10 +21,10 @@ export interface IDirectLineJS {
   postActivity: (activity: IDirectLineActivity) => Observable<string>;
 }
 
-export default function exportDLJSInterface(): AdapterEnhancer<IDirectLineActivity> {
-  return (next: AdapterCreator<IDirectLineActivity>) => (
+export default function exportDLJSInterface<TAdapterConfig extends AdapterConfig>(): AdapterEnhancer<IDirectLineActivity, TAdapterConfig> {
+  return (next: AdapterCreator<IDirectLineActivity, TAdapterConfig>) => (
     options: AdapterOptions
-  ): Adapter<IDirectLineActivity> & IDirectLineJS => {
+  ): Adapter<IDirectLineActivity, TAdapterConfig> & IDirectLineJS => {
     const adapter = next(options);
     let connectionStatusObserver: Observer<ConnectionStatus>;
 
@@ -82,7 +82,7 @@ export default function exportDLJSInterface(): AdapterEnhancer<IDirectLineActivi
         return new Observable(observer => {
           adapter
             .egress(activity, {
-              progress: ({ id }) => id && observer.next(id)
+              progress: ({ id }: { id: string }) => id && observer.next(id)
             })
             .then(() => observer.complete());
         });
