@@ -1,7 +1,7 @@
-const observableToArray = require('../__jest__/observableToArray');
+import Observable from 'core-js/features/observable';
+import observableToArray from '../__jest__/observableToArray';
 
-const { default: createAdapter } = require('../../src/createAdapter');
-const { default: exportDLJSInterface } = require('../../src/enhancers/exportDLJSInterface');
+import createAdapter, { exportDLJSInterface } from '../../src/index';
 
 describe('exportDLJSInterface.activity$', () => {
   let adapter;

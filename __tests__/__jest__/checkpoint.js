@@ -1,6 +1,6 @@
-const createDeferred = require('p-defer');
+import createDeferred from 'p-defer';
 
-module.exports = function checkpoint() {
+export default function checkpoint() {
   const { promise: promise1, resolve: resolve1 } = createDeferred();
   const { promise: promise2, resolve: resolve2 } = createDeferred();
 

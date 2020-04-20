@@ -1,15 +1,8 @@
-const { compose } = require('redux');
+import { compose } from 'redux';
 
-const asyncIterableToArray = require('../__jest__/asyncIterableToArray');
-
-const {
-  default: createAdapter,
-  applyEgressMiddleware,
-  applyIngressMiddleware,
-  CONNECTING,
-  OPEN
-} = require('../../src/index');
-const { default: createLazyEnhancer } = require('../../src/enhancers/lazy');
+import asyncIterableToArray from '../__jest__/asyncIterableToArray';
+import createAdapter, { applyEgressMiddleware, applyIngressMiddleware, CONNECTING, OPEN } from '../../src/index';
+import createLazyEnhancer from '../../src/enhancers/lazy';
 
 describe('lazy', () => {
   let adapter;
@@ -125,6 +118,18 @@ describe('lazy', () => {
     test('should throw on egress()', async () => {
       await expect(adapter.egress(1)).rejects.toThrow('call activities()');
     });
+
+    // test('should throw on ingress3()', async () => {
+    //   await expect(adapter.ingress3(new Observable(() => {}))).rejects.toThrow('call activities()');
+    // });
+
+    // test('should throw on getConfig()', async () => {
+    //   await expect(adapter.getConfig('my setting')).rejects.toThrow('call activities()');
+    // });
+
+    // test('should throw on setConfig()', async () => {
+    //   await expect(adapter.setConfig('my setting', 123)).rejects.toThrow('call activities()');
+    // });
 
     test('should throw on readyState getter', () => {
       expect(() => adapter.readyState).toThrow('call activities()');

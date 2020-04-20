@@ -1,8 +1,8 @@
-const asyncIterableToArray = require('../__jest__/asyncIterableToArray');
+import asyncIterableToArray from '../__jest__/asyncIterableToArray';
 
-const { default: createAdapter, OPEN } = require('../../src/index');
+import createAdapter, { OPEN } from '../../src/index';
 
-test('Connect will send welcome message', async () => {
+test('Send welcome message on "open" event', async () => {
   let setReadyState;
   const adapter = createAdapter({}, next => options => {
     const adapter = next(options);

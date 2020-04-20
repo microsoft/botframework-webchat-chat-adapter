@@ -1,7 +1,7 @@
-const { default: AbortController } = require('abort-controller');
-const { default: hasResolved } = require('has-resolved');
+import AbortController from 'abort-controller';
+import hasResolved from 'has-resolved';
 
-const { default: rejectOnAbort } = require('../../src/utils/rejectOnAbort');
+import rejectOnAbort from '../../src/utils/rejectOnAbort';
 
 test('abort after start', async () => {
   const abortController = new AbortController();

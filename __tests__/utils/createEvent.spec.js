@@ -1,4 +1,4 @@
-const { default: createEvent } = require('../../src/utils/createEvent');
+import createEvent from '../../src/utils/createEvent';
 
 describe.each([['document.createEvent', { noGlobalEvent: true }], ['new Event']])(
   'createEvent using %s',

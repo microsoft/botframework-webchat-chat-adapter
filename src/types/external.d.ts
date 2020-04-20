@@ -29,6 +29,7 @@ declare module 'core-js/features/observable' {
     complete(): void;
     error(error: Error): void;
     next(value: T): void;
+    start(subscription: Subscription): void;
   };
 
   export class Subscription {

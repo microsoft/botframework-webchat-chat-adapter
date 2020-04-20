@@ -1,7 +1,20 @@
-import { Adapter, SealedAdapter } from './types/AdapterTypes';
+import { Adapter, AdapterConfig, SealedAdapter } from './types/AdapterTypes';
 
-export default function sealAdapter<TActivity>(adapter: Adapter<TActivity>): SealedAdapter<TActivity> {
-  const { getReadyState, setReadyState, ...sealedAdapter } = { ...adapter, readyState: -1 };
+export default function sealAdapter<TActivity, TAdapterConfig extends AdapterConfig>(
+  adapter: Adapter<TActivity, TAdapterConfig>,
+  config: TAdapterConfig
+): SealedAdapter<TActivity, TAdapterConfig> {
+  const { getConfig, setConfig, getReadyState, setReadyState, ...others } = adapter;
+  const sealedAdapter = { ...others, readyState: -1 };
+
+  for (let key in config) {
+    Object.defineProperty(sealedAdapter, key, {
+      enumerable: true,
+      get() {
+        return config[key];
+      }
+    });
+  }
 
   Object.defineProperty(sealedAdapter, 'readyState', {
     get() {
@@ -9,5 +22,5 @@ export default function sealAdapter<TActivity>(adapter: Adapter<TActivity>): Sea
     }
   });
 
-  return Object.seal(sealedAdapter);
+  return Object.seal(sealedAdapter) as any;
 }

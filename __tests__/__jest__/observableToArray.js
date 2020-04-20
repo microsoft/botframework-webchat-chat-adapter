@@ -1,4 +1,4 @@
-module.exports = function observableToArray(observable, { count = Infinity, progress, signal } = {}) {
+export default function observableToArray(observable, { count = Infinity, progress, signal } = {}) {
   let subscription;
 
   return new Promise((resolve, reject) => {

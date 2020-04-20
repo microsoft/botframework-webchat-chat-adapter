@@ -1,8 +1,7 @@
-const { compose } = require('redux');
-const observableToArray = require('../__jest__/observableToArray');
+import { compose } from 'redux';
+import observableToArray from '../__jest__/observableToArray';
 
-const { default: createAdapter, applyEgressMiddleware, CLOSED, CONNECTING, OPEN } = require('../../src/index');
-const { default: exportDLJSInterface } = require('../../src/enhancers/exportDLJSInterface');
+import createAdapter, { applyEgressMiddleware, CLOSED, CONNECTING, exportDLJSInterface, OPEN } from '../../src/index';
 
 describe('exportDLJSInterface.connectionStatus$', () => {
   let adapter;

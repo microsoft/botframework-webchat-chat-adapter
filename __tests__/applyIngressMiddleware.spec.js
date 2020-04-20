@@ -1,6 +1,6 @@
-const asyncIterableToArray = require('./__jest__/asyncIterableToArray');
+import asyncIterableToArray from './__jest__/asyncIterableToArray';
 
-const { default: createAdapter, applyIngressMiddleware } = require('../src/index');
+import createAdapter, { applyIngressMiddleware } from '../src/index';
 
 test('no middleware', async () => {
   const adapter = createAdapter({}, applyIngressMiddleware());

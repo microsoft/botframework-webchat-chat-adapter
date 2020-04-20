@@ -1,4 +1,4 @@
-module.exports = async function asyncIterableToArray(iterable, count = Infinity) {
+export default async function asyncIterableToArray(iterable, count = Infinity) {
   const results = [];
 
   for await (const value of iterable) {

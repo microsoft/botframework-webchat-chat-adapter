@@ -1,8 +1,6 @@
-const { default: AbortController } = require('abort-controller-es5');
-
-const asyncIterableToArray = require('./__jest__/asyncIterableToArray');
-
-const { default: createAdapter } = require('../src/createAdapter');
+import AbortController from 'abort-controller-es5';
+import asyncIterableToArray from './__jest__/asyncIterableToArray';
+import createAdapter from '../src/createAdapter';
 
 test('iterate 3 activities and close should complete gracefully', async () => {
   const adapter = createAdapter();

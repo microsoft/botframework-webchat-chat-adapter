@@ -1,17 +1,14 @@
-const { compose } = require('redux');
+import Observable from 'core-js/features/observable';
 
-const { default: createAdapter, applyIngressMiddleware, CONNECTING, OPEN } = require('../../src/index');
+import createAdapter, { applyIngressMiddleware, CONNECTING, OPEN } from '../../src/index';
 
 test('ingress to signal online', async () => {
   const adapter = createAdapter(
     {},
-    compose(
-      applyIngressMiddleware(({ setReadyState }) => next => activity => {
-        setReadyState(OPEN);
-
-        return next(activity);
-      })
-    )
+    applyIngressMiddleware(({ setReadyState }) => next => activity => {
+      setReadyState(OPEN);
+      next(activity);
+    })
   );
 
   expect(adapter.readyState).toBe(CONNECTING);

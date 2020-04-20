@@ -1,7 +1,6 @@
-const { compose } = require('redux');
+import { compose } from 'redux';
 
-const { default: createAdapter } = require('../../src/createAdapter');
-const { default: exportDLJSInterface } = require('../../src/enhancers/exportDLJSInterface');
+import createAdapter, { exportDLJSInterface } from '../../src/index';
 
 describe('exportDLJSInterface.end', () => {
   test('end should become close', async () => {

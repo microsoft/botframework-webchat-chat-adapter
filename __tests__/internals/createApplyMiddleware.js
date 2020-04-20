@@ -1,6 +1,6 @@
-const { default: createAdapter, applyIngressMiddleware } = require('../../src/index');
+import { compose } from 'redux';
 
-const { compose } = require('redux');
+import createAdapter, { applyIngressMiddleware } from '../../src/index';
 
 test('passing a class object to enhancer should throw', async () => {
   class EnhancedAdapter {}

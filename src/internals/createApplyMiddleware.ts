@@ -1,19 +1,26 @@
 import { compose } from 'redux';
 
-import { AdapterEnhancer, MiddlewareAPI } from '../types/AdapterTypes';
+import { AdapterConfig, AdapterEnhancer, MiddlewareAPI } from '../types/AdapterTypes';
 import extractAdapterAPI from '../extractAdapterAPI';
 
-type Middleware<TActivity, TFunction> = (adapterAPI: MiddlewareAPI<TActivity>) => (next: TFunction) => TFunction;
+type Middleware<TActivity, TAdapterConfig extends AdapterConfig, TFunction> = (
+  adapterAPI: MiddlewareAPI<TActivity, TAdapterConfig>
+) => (next: TFunction) => TFunction;
 
 // This will convert multiple middlewares into a single enhancer.
 // Enhancer is another middleware for the constructor of adapter. Essentially HOC for adapter.
 // We can chain multiple enhancer together, and plug-in multiple features to a single adapter.
 // In the future, if we decided to change Adapter, middleware written by user can still be reused. We won't introduce breaking changes.
-export default function createApplyMiddleware<TActivity, TFunction>(
-  getFunction: (api: MiddlewareAPI<TActivity>) => TFunction,
-  setFunction: (api: MiddlewareAPI<TActivity>, fn: TFunction) => MiddlewareAPI<TActivity>
+export default function createApplyMiddleware<TActivity, TAdapterConfig extends AdapterConfig, TFunction>(
+  getFunction: (api: MiddlewareAPI<TActivity, TAdapterConfig>) => TFunction,
+  setFunction: (
+    api: MiddlewareAPI<TActivity, TAdapterConfig>,
+    fn: TFunction
+  ) => MiddlewareAPI<TActivity, TAdapterConfig>
 ) {
-  return (...middlewares: Middleware<TActivity, TFunction>[]): AdapterEnhancer<TActivity> => {
+  return (
+    ...middlewares: Middleware<TActivity, TAdapterConfig, TFunction>[]
+  ): AdapterEnhancer<TActivity, TAdapterConfig> => {
     return nextCreator => options => {
       const adapter = nextCreator(options);
 
@@ -31,7 +38,7 @@ export default function createApplyMiddleware<TActivity, TFunction>(
       // TODO: We should change type "any" to "TFunction"
       const proxyFn: any = (...args: any[]) => fn(...args);
 
-      const api: MiddlewareAPI<TActivity> = setFunction(extractAdapterAPI(adapter), proxyFn);
+      const api: MiddlewareAPI<TActivity, TAdapterConfig> = setFunction(extractAdapterAPI(adapter), proxyFn);
       const chain = middlewares.map(middleware => middleware(api));
 
       if (chain.some(fn => typeof fn !== 'function')) {

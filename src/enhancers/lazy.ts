@@ -2,11 +2,13 @@
 
 import entries from 'core-js/features/object/entries';
 
-import { Adapter, AdapterCreator, AdapterOptions, IterateActivitiesOptions, ReadyState } from '../types/AdapterTypes';
-
-type LazyAdapter<TActivity> = Adapter<TActivity> & {
-  [key: string]: any;
-};
+import {
+  Adapter,
+  AdapterConfig,
+  AdapterCreator,
+  AdapterOptions,
+  IterateActivitiesOptions
+} from '../types/AdapterTypes';
 
 const SUPPORTED_FUNCTIONS = [
   'activities',
@@ -14,16 +16,21 @@ const SUPPORTED_FUNCTIONS = [
   'close',
   'dispatchEvent',
   'egress',
-  'ingress',
+  'getConfig',
   'getReadyState',
+  'ingress',
   'removeEventListener',
-  'setReadyState'
+  'setConfig',
+  'setReadyState',
+  'subscribe'
 ];
 
 // Only create adapter when activities is being iterated.
-export default function createLazyEnhancer<TActivity>() {
-  return (next: AdapterCreator<TActivity>) => (adapterOptions: AdapterOptions): Adapter<TActivity> => {
-    let adapter: Adapter<TActivity>;
+export default function createLazyEnhancer<TActivity, TAdapterConfig extends AdapterConfig>() {
+  return (next: AdapterCreator<TActivity, TAdapterConfig>) => (
+    adapterOptions: AdapterOptions
+  ): Adapter<TActivity, TAdapterConfig> => {
+    let adapter: Adapter<TActivity, TAdapterConfig>;
 
     return {
       activities: (options?: IterateActivitiesOptions) => {
@@ -71,12 +78,12 @@ export default function createLazyEnhancer<TActivity>() {
         return adapter.egress(...args);
       },
 
-      ingress: (...args) => {
+      getConfig: (...args) => {
         if (!adapter) {
           throw new Error('You must call activities() first.');
         }
 
-        return adapter.ingress(...args);
+        return adapter.getConfig(...args);
       },
 
       getReadyState: (...args) => {
@@ -85,6 +92,30 @@ export default function createLazyEnhancer<TActivity>() {
         }
 
         return adapter.getReadyState(...args);
+      },
+
+      ingress: (...args) => {
+        if (!adapter) {
+          throw new Error('You must call activities() first.');
+        }
+
+        return adapter.ingress(...args);
+      },
+
+      subscribe: (...args) => {
+        if (!adapter) {
+          throw new Error('You must call activities() first.');
+        }
+
+        return adapter.subscribe(...args);
+      },
+
+      setConfig: (...args) => {
+        if (!adapter) {
+          throw new Error('You must call activities() first.');
+        }
+
+        return adapter.setConfig(...args);
       },
 
       removeEventListener: (...args) => {

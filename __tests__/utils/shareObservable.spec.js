@@ -1,9 +1,9 @@
-const createDeferred = require('p-defer');
-const Observable = require('core-js/features/observable');
+import createDeferred from 'p-defer';
+import Observable from 'core-js/features/observable';
 
-const observableToArray = require('../__jest__/observableToArray');
+import observableToArray from '../__jest__/observableToArray';
 
-const { default: shareObservable } = require('../../src/utils/shareObservable');
+import shareObservable from '../../src/utils/shareObservable';
 
 test('2 observables at the same time', async () => {
   const { promise, resolve } = createDeferred();

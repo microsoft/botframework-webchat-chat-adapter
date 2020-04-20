@@ -1,4 +1,4 @@
-const { default: createAdapter, applyEgressMiddleware } = require('../src/index');
+import createAdapter, { applyEgressMiddleware } from '../src/index';
 
 test('1 async middleware', async () => {
   const adapter = createAdapter(
@@ -48,10 +48,7 @@ test('1 egress become 2 egresses', async () => {
 });
 
 test('no middleware should throw exception on egress', async () => {
-  const adapter = createAdapter(
-    {},
-    applyEgressMiddleware()
-  );
+  const adapter = createAdapter({}, applyEgressMiddleware());
 
   await expect(adapter.egress(1)).rejects.toThrow('no enhancers registered');
 });

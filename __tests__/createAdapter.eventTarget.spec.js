@@ -1,20 +1,17 @@
-const { default: createAdapter, CLOSED, CONNECTING, OPEN } = require('../src/index');
+import createAdapter, { CLOSED, CONNECTING, OPEN } from '../src/index';
 
 describe('createAdapter.eventTarget', () => {
   let adapter;
   let setReadyState;
 
   beforeEach(() => {
-    adapter = createAdapter(
-      {},
-      next => options => {
-        const adapter = next(options);
+    adapter = createAdapter({}, next => options => {
+      const adapter = next(options);
 
-        setReadyState = adapter.setReadyState;
+      setReadyState = adapter.setReadyState;
 
-        return adapter;
-      }
-    );
+      return adapter;
+    });
   });
 
   describe('for events', () => {

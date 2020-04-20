@@ -1,7 +1,7 @@
-const AbortController = require('abort-controller');
-const { default: hasResolved } = require('has-resolved');
+import AbortController from 'abort-controller';
+import hasResolved from 'has-resolved';
 
-const { default: createAsyncIterableQueue } = require('../../src/utils/createAsyncIterableQueue');
+import createAsyncIterableQueue from '../../src/utils/createAsyncIterableQueue';
 
 describe('createAsyncIterableQueue', () => {
   let end;

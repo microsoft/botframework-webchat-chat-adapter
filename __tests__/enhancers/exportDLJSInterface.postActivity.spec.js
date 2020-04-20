@@ -1,11 +1,8 @@
-const { compose } = require('redux');
+import { compose } from 'redux';
+import checkpoint from '../__jest__/checkpoint';
+import observableToArray from '../__jest__/observableToArray';
 
-const observableToArray = require('../__jest__/observableToArray');
-
-const { default: createAdapter } = require('../../src/createAdapter');
-const { default: exportDLJSInterface } = require('../../src/enhancers/exportDLJSInterface');
-
-const checkpoint = require('../__jest__/checkpoint');
+import createAdapter, { exportDLJSInterface } from '../../src/index';
 
 describe('exportDLJSInterface.postActivity', () => {
   test('postActivity should become egress', async () => {
