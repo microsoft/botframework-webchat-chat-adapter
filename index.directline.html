@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <title>Chat Adapter Prototype</title>
+    <script src="https://cdn.botframework.com/botframework-webchat/4.8.0/webchat.js"></script>
+    <script src="/dist/chat-adapter.js"></script>
+    <style type="text/css">
+      body,
+      html,
+      #root {
+        height: 100%;
+      }
+
+      body {
+        background-color: #f7f7f7;
+        margin: 0;
+      }
+
+      #root {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        margin: auto;
+        min-width: 360px;
+        max-width: 720px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      (async function () {
+        'use strict';
+
+        const tokenRes = await fetch('https://webchat-mockbot.azurewebsites.net/directline/token', { method: 'POST' });
+
+        if (!tokenRes.ok) {
+          throw new Error('Token service is down');
+        }
+
+        const { token, userID: userId } = await tokenRes.json();
+
+        const {
+          default: createAdapter,
+          applyIngressMiddleware,
+          applyEgressMiddleware,
+          CLOSED,
+          compose,
+          exportDLJSInterface,
+          OPEN
+        } = window.ChatAdapter;
+
+        const startConversationRes = await fetch('https://directline.botframework.com/v3/directline/conversations', {
+          headers: { accept: 'application/json', authorization: `Bearer ${token}` },
+          method: 'POST'
+        });
+
+        if (!startConversationRes.ok) {
+          return adapter.setReadyState(CLOSED);
+        }
+
+        const { conversationId, streamUrl } = await startConversationRes.json();
+
+        // const directLine = window.WebChat.createDirectLine({ token });
+        const directLine = createAdapter(
+          {},
+          compose(
+            exportDLJSInterface(),
+            next => options => {
+              const adapter = next(options);
+
+              adapter.setConfig('directLine.conversationId', conversationId);
+              adapter.setConfig('directLine.streamUrl', streamUrl);
+
+              adapter.subscribe(
+                new Observable(subscriber => {
+                  const socket = new WebSocket(streamUrl);
+                  const handleClose = () => subscriber.complete();
+                  const handleMessage = ({ data }) => {
+                    if (!data) {
+                      return;
+                    }
+
+                    const { activities } = JSON.parse(data);
+
+                    activities.forEach(activity => {
+                      if (activity.from.id === userId) {
+                        activity = { ...activity, from: { ...activity.from, role: 'user' } };
+                      }
+
+                      subscriber.next(activity);
+                    });
+                  };
+
+                  const handleOpen = () => adapter.setReadyState(OPEN);
+
+                  socket.addEventListener('close', handleClose);
+                  socket.addEventListener('message', handleMessage);
+                  socket.addEventListener('open', handleOpen);
+
+                  return () => {
+                    socket.removeEventListener('close', handleClose);
+                    socket.removeEventListener('message', handleMessage);
+                    socket.removeEventListener('open', handleOpen);
+                    socket.close();
+                  };
+                })
+              );
+
+              return adapter;
+            },
+            applyEgressMiddleware(({ getConfig }) => {
+              return next => async (activity, options) => {
+                const conversationId = getConfig('directLine.conversationId');
+
+                if (!conversationId) {
+                  throw new Error('Cannot egress before the connection is up.');
+                }
+
+                const res = await fetch(
+                  `https://directline.botframework.com/v3/directline/conversations/${conversationId}/activities`,
+                  {
+                    body: JSON.stringify(activity),
+                    headers: {
+                      accept: 'application/json',
+                      authorization: `Bearer ${token}`,
+                      'content-type': 'application/json'
+                    },
+                    method: 'POST'
+                  }
+                );
+
+                if (!res.ok) {
+                  throw new Error('Failed to post activity.');
+                }
+
+                const { id } = await res.json();
+
+                options.progress && options.progress({ ...activity, id });
+              };
+            })
+          )
+        );
+
+        window.WebChat.renderWebChat(
+          {
+            directLine
+          },
+          document.getElementById('root')
+        );
+
+        window.directLine = directLine;
+      })();
+    </script>
+  </body>
+</html>

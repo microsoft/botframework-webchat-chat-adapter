@@ -6,7 +6,7 @@ type IngressMiddleware<TActivity, TAdapterConfig extends AdapterConfig> = Middle
 
 export default function applyIngressMiddleware<TActivity, TAdapterConfig extends AdapterConfig>(
   ...middlewares: IngressMiddleware<TActivity, TAdapterConfig>[]
-): AdapterEnhancer<TActivity, TAdapterConfig> {
+): AdapterEnhancer<TActivity, TActivity, TAdapterConfig> {
   return createApplyMiddleware<TActivity, TAdapterConfig, IngressFunction<TActivity>>(
     api => api.ingress,
     (api, fn) => ({ ...api, ingress: fn })

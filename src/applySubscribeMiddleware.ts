@@ -10,7 +10,7 @@ type SubscribeMiddleware<TActivity, TAdapterConfig extends AdapterConfig> = Midd
 
 export default function applySubscribeMiddleware<TActivity, TAdapterConfig extends AdapterConfig>(
   ...middlewares: SubscribeMiddleware<TActivity, TAdapterConfig>[]
-): AdapterEnhancer<TActivity, TAdapterConfig> {
+): AdapterEnhancer<TActivity, TActivity, TAdapterConfig> {
   return createApplyMiddleware<TActivity, TAdapterConfig, SubscribeFunction<TActivity>>(
     api => api.subscribe,
     (api, fn) => ({ ...api, subscribe: fn })

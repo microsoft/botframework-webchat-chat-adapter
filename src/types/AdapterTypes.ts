@@ -11,7 +11,7 @@ type IterateActivitiesOptions = {
 };
 
 type AdapterConfig = { [key: string]: AdapterConfigValue };
-type AdapterConfigValue = boolean | number | string;
+type AdapterConfigValue = boolean | number | string | any;
 
 type SealedAdapter<TActivity, TAdapterConfig extends AdapterConfig> = {
   activities: (options?: IterateActivitiesOptions) => AsyncIterable<TActivity>;
@@ -52,14 +52,20 @@ type EgressOptions<TActivity> = {
 
 type EgressFunction<TActivity> = (activity: TActivity, options?: EgressOptions<TActivity>) => Promise<void>;
 type IngressFunction<TActivity> = (activity: TActivity) => void;
+type SetConfigFunction<TAdapterConfig> = (key: keyof TAdapterConfig, value: AdapterConfigValue) => void;
 type SubscribeFunction<TActivity> = (observable: Observable<TActivity> | false) => void;
 
 type AdapterCreator<TActivity, TAdapterConfig extends AdapterConfig> = (
   options?: AdapterOptions
 ) => Adapter<TActivity, TAdapterConfig>;
-type AdapterEnhancer<TActivity, TAdapterConfig extends AdapterConfig> = (
-  next: AdapterCreator<TActivity, TAdapterConfig>
-) => AdapterCreator<TActivity, TAdapterConfig>;
+
+// type AdapterEnhancer<TActivity, TAdapterConfig extends AdapterConfig> = (
+//   next: AdapterCreator<TActivity, TAdapterConfig>
+// ) => AdapterCreator<TActivity, TAdapterConfig>;
+
+type AdapterEnhancer<TInputActivity, TOutputActivity, TAdapterConfig extends AdapterConfig> = (
+  next: AdapterCreator<TInputActivity, TAdapterConfig>
+) => AdapterCreator<TOutputActivity, TAdapterConfig>;
 
 interface AdapterOptions {}
 
@@ -76,6 +82,7 @@ export type {
   IterateActivitiesOptions,
   MiddlewareAPI,
   SealedAdapter,
+  SetConfigFunction,
   SubscribeFunction
 };
 

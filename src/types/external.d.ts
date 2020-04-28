@@ -56,3 +56,7 @@ declare module 'p-defer-es5' {
     resolve: (value: T) => void;
   };
 }
+
+declare module 'simple-update-in' {
+  export default function updateIn(target: any, paths: (number | string | function)[], updater?: Function);
+}

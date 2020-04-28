@@ -13,10 +13,17 @@ function isInternalActivity(activity: IC3DirectLineActivity): boolean {
   return activity.channelData && activity.channelData.tags && activity.channelData.tags.includes(MessageTag.Private);
 }
 
-export default function createEgressTypingActivityMiddleware(
-  conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation
-): EgressMiddleware<ActivityMessageThread, IC3AdapterState> {
+export default function createEgressTypingActivityMiddleware(): EgressMiddleware<
+  ActivityMessageThread,
+  IC3AdapterState
+> {
   return ({ getConfig }) => next => (activityMessageThread: ActivityMessageThread) => {
+    const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getConfig(StateKey.Conversation);
+
+    if (!conversation) {
+      throw new Error('IC3: Failed to egress without an active conversation.');
+    }
+
     if (!('activity' in activityMessageThread)) {
       return next(activityMessageThread);
     }

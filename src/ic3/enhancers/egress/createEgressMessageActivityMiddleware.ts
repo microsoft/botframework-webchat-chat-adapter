@@ -4,10 +4,19 @@ import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { ActivityMessageThread } from '../../../types/ic3/ActivityMessageThread';
 
-export default function createEgressTypingActivityMiddleware(
-  conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation
-): EgressMiddleware<ActivityMessageThread, IC3AdapterState> {
+export default function createEgressTypingActivityMiddleware(): EgressMiddleware<
+  ActivityMessageThread,
+  IC3AdapterState
+> {
   return ({ getConfig, ingress }) => next => async (activityMessageThread: ActivityMessageThread) => {
+    const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getConfig(StateKey.Conversation);
+
+    console.log('egress', { activityMessageThread, conversation });
+
+    if (!conversation) {
+      throw new Error('IC3: Failed to egress without an active conversation.');
+    }
+
     if (!('activity' in activityMessageThread)) {
       return next(activityMessageThread);
     }

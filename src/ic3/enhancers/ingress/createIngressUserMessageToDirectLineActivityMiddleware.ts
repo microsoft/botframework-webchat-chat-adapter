@@ -1,12 +1,11 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
 import { ActivityMessageThread } from '../../../types/ic3/ActivityMessageThread';
-import { ActivityType, IDirectLineActivity, SuggestedActions } from '../../../types/DirectLineTypes';
+import { ActivityType, SuggestedActions } from '../../../types/DirectLineTypes';
 import { IC3_CHANNEL_ID } from '../../Constants';
 import { IngressMiddleware } from '../../../applyIngressMiddleware';
+import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import uniqueId from '../../utils/uniqueId';
-
-type IC3AdapterOptions = {};
 
 const SUPPORTED_CONTENT_TYPES: { [type: string]: string } = {
   gif: 'image/gif',
@@ -15,10 +14,14 @@ const SUPPORTED_CONTENT_TYPES: { [type: string]: string } = {
   png: 'image/png'
 };
 
-export default function createEgressEnhancer(
-  conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation
-): IngressMiddleware<ActivityMessageThread, IC3AdapterOptions> {
-  return () => next => async (activityMessageThread: ActivityMessageThread) => {
+export default function createEgressEnhancer(): IngressMiddleware<ActivityMessageThread, IC3AdapterState> {
+  return ({ getConfig }) => next => async (activityMessageThread: ActivityMessageThread) => {
+    const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getConfig(StateKey.Conversation);
+
+    if (!conversation) {
+      throw new Error('IC3: Failed to ingress without an active conversation.');
+    }
+
     if (!('message' in activityMessageThread)) {
       return next(activityMessageThread);
     }

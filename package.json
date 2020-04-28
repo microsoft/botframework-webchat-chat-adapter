@@ -35,7 +35,8 @@
     "event-target-shim-es5": "^1.0.1",
     "math-random": "^1.0.4",
     "p-defer-es5": "^1.0.1",
-    "redux": "^4.0.5"
+    "redux": "^4.0.5",
+    "simple-update-in": "^2.1.1"
   },
   "scripts": {
     "build": "npm run build:babel && npm run build:webpack",

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title>Live Chat Widget Service</title>
+    </head>
+    <body>
+        <script>
+            const MicrosoftOmnichannelLCWidgetChatIframePageId = "Microsoft_Omnichannel_LCWidget_Chat_Iframe_Window";
+            const MicrosoftOmnichannelLCWidget = "Microsoft_Omnichannel_LCWidget";
+            const DataAppId = "data-app-id";
+            const DataOrgId = "data-org-id";
+            const DataOrgUrl = "data-org-url";
+            const HostName = "hostname";
+            const OpenChatInPopOutWindow = "data-open-in-window";
+            const DisableTelemetry = "data-disable-telemetry";
+            const IsPopOutMode = "is-popout-mode";
+            const LiveChatWidgetHideChatButton = "data-hide-chat-button";
+            const RenderOnMobileDevice = "data-render-mobile";
+            const LcwVersion = "data-lcw-version";
+            const WidgetThemeColor = "data-color-override";
+            const SRC = "src";
+            const ID = "id";
+            const BrowserIconType = 'image/x-icon';
+            const BrowserIconRel = 'icon'
+            const ChatPageReadyMessage = "MicrosoftOmnichannelLCWidgetChatIframeWindowReady";
+            const WebChatControl = "WebChatControl";
+            const Scripts = "scripts";
+            const BootstrapperFile = "LiveChatBootstrapper.js";
+            window[MicrosoftOmnichannelLCWidgetChatIframePageId] = true;
+
+            const fetchBootstrapperScriptPath = function() {
+                return window.location.origin.concat(window.location.pathname.replace("/htmls/chat.html", "/"+Scripts+"/"+BootstrapperFile));
+            }
+
+            const attachBootScript = function(parameters) {
+                let scriptElement = document.createElement("script");
+                scriptElement.id = parameters[ID];
+                scriptElement.src = fetchBootstrapperScriptPath();
+                scriptElement.setAttribute(DataAppId, parameters[DataAppId]);
+                scriptElement.setAttribute(DataOrgId, parameters[DataOrgId]);
+                scriptElement.setAttribute(DataOrgUrl, parameters[DataOrgUrl]);
+                scriptElement.setAttribute(HostName, parameters[HostName]);
+                scriptElement.setAttribute(OpenChatInPopOutWindow, parameters[OpenChatInPopOutWindow]);
+                scriptElement.setAttribute(IsPopOutMode, parameters[IsPopOutMode] || "false");
+                scriptElement.setAttribute(DisableTelemetry, parameters[DisableTelemetry] || "false");
+                scriptElement.setAttribute(LiveChatWidgetHideChatButton, parameters[LiveChatWidgetHideChatButton] || "false");
+                scriptElement.setAttribute(RenderOnMobileDevice, parameters[RenderOnMobileDevice] || "false");
+                scriptElement.setAttribute(LcwVersion, parameters[LcwVersion] || "prod");
+                if (parameters[WidgetThemeColor])
+                {
+                    scriptElement.setAttribute(WidgetThemeColor, decodeURIComponent(parameters[WidgetThemeColor]));
+                }
+                document.getElementsByTagName("body")[0].appendChild(scriptElement);
+            }
+
+            function parseSearchParameters(searchUrl) {
+                let parameters = {};
+                if(!searchUrl) return parameters;
+                let searchPart = searchUrl.substr(1);
+                searchPart.split('&').forEach(function(param) {
+                    let paramArr = param.split('=');
+                    if(paramArr && paramArr[0]){
+                        parameters[paramArr[0]] = paramArr[1];
+                    }
+                });
+                return parameters;
+            }
+
+        (function() {
+            let parameters = parseSearchParameters(window.location.search);
+            attachBootScript(parameters);
+            if(parameters[IsPopOutMode]){
+                window.addEventListener("lcw:ready", function handleLivechatReadyEvent() {
+                    var link = document.createElement('link');
+                    link.type = BrowserIconType;
+                    link.rel = BrowserIconRel;
+                    link.href = Microsoft.Omnichannel.LiveChatWidget.Loader.liveChatConfig.chatButtonIconUrl ? Microsoft.Omnichannel.LiveChatWidget.Loader.liveChatConfig.chatButtonIconUrl : " ";
+                    document.getElementsByTagName('head')[0].appendChild(link);
+                    document.title = Microsoft.Omnichannel.LiveChatWidget.Loader.liveChatConfig.chatButtonTitle;
+                    document.documentElement.lang = (Microsoft.Omnichannel.LiveChatWidget.Loader.liveChatConfig.chatWidgetLocale).split("-")[0];
+                    if (performance.navigation.type != 1) {
+                        Microsoft.Omnichannel.LiveChatWidget.SDK.startChat();
+                    }
+                });
+                document.addEventListener('contextmenu', event => event.preventDefault());
+            }
+            })();
+        </script>
+    </body>
+</html>

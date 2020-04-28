@@ -1,0 +1,13 @@
+{
+  "cleanUrls": false,
+  "rewrites": [
+    {
+      "source": "samples/ic3",
+      "destination": "samples/ic3/index.html"
+    },
+    {
+      "source": "samples/ic3/livechatwidget/WebChatControl/scripts/botframework-webchat-adapter.ic3.development.js",
+      "destination": "dist/chat-adapter.js"
+    }
+  ]
+}
