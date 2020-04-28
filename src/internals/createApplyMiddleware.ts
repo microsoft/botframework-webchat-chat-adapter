@@ -5,7 +5,7 @@ import extractAdapterAPI from '../extractAdapterAPI';
 
 type Middleware<TActivity, TAdapterConfig extends AdapterConfig, TFunction> = (
   adapterAPI: MiddlewareAPI<TActivity, TAdapterConfig>
-) => (next: TFunction) => TFunction;
+) => (next: TFunction) => TFunction | void;
 
 // This will convert multiple middlewares into a single enhancer.
 // Enhancer is another middleware for the constructor of adapter. Essentially HOC for adapter.

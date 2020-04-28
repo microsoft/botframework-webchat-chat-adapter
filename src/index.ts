@@ -4,6 +4,7 @@ import applyEgressMiddleware from './applyEgressMiddleware';
 import applyIngressMiddleware from './applyIngressMiddleware';
 import applySubscribeMiddleware from './applySubscribeMiddleware';
 import createAdapter from './createAdapter';
+import createIC3AdapterEnhancer from './ic3/createAdapterEnhancer';
 import exportDLJSInterface from './enhancers/exportDLJSInterface';
 
 export default createAdapter;
@@ -17,6 +18,7 @@ export {
   CLOSED,
   compose,
   CONNECTING,
+  createIC3AdapterEnhancer,
   exportDLJSInterface,
   OPEN
 };

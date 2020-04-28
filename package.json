@@ -33,6 +33,7 @@
     "core-js": "^3.6.4",
     "event-target-shim": "^5.0.1",
     "event-target-shim-es5": "^1.0.1",
+    "math-random": "^1.0.4",
     "p-defer-es5": "^1.0.1",
     "redux": "^4.0.5"
   },

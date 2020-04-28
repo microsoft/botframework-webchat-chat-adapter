@@ -38,10 +38,10 @@ interface Adapter<TActivity, TAdapterConfig extends AdapterConfig> extends Event
 interface MiddlewareAPI<TActivity, TAdapterConfig extends AdapterConfig> {
   close: () => void;
   egress: EgressFunction<TActivity>;
-  getConfig: (key: keyof TAdapterConfig) => void;
+  getConfig: (key: keyof TAdapterConfig) => AdapterConfigValue;
   getReadyState: () => ReadyState;
   ingress: IngressFunction<TActivity>;
-  setConfig: (key: keyof TAdapterConfig, value: any) => void;
+  setConfig: (key: keyof TAdapterConfig, value: AdapterConfigValue) => void;
   setReadyState: (readyState: ReadyState) => void;
   subscribe: SubscribeFunction<TActivity>;
 }
