@@ -15,7 +15,7 @@ type SuggestedActions = { actions: CardAction[]; to?: string[] };
 
 interface IDirectLineActivity {
   // TODO: Add type "Attachment".
-  attachment?: any[];
+  attachments?: any[];
   channelData?: {
     [key: string]: boolean | number | string | boolean[] | number[] | string[];
   };

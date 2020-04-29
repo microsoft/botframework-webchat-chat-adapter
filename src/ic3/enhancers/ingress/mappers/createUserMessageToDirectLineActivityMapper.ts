@@ -91,53 +91,6 @@ export default function createUserMessageToDirectLineActivityMapper({
       type: ActivityType.Message
     };
 
-    // // Adaptive Cards
-    // if (content && content.includes(HTMLConstants.contentURIObject)) {
-    //   const parser = new DOMParser();
-    //   const xmlDoc = parser.parseFromString(content, HTMLConstants.contentTextXml);
-
-    //   if (xmlDoc.getElementsByTagName(HTMLConstants.tagParseError).length > 0) {
-    //     console.warn(`[AdaptiveCard] Unable to parse XML`);
-    //     return activityData;
-    //   }
-
-    //   if (xmlDoc.documentElement.nodeName !== HTMLConstants.contentURIObject) {
-    //     console.warn(`[AdaptiveCard] Wrong XML schema`);
-    //     return activityData;
-    //   }
-
-    //   const swiftElement = xmlDoc.getElementsByTagName(HTMLConstants.tagSwift)[0];
-    //   const base64Data: any = swiftElement.getAttribute(HTMLConstants.attributeB64);
-    //   const data = this.b64DecodeUnicode(base64Data);
-
-    //   if (!data) {
-    //     console.warn(`[AdaptiveCard] Data is empty`);
-    //     return activityData;
-    //   }
-
-    //   const jsonData = JSON.parse(data);
-    //   const { type } = jsonData;
-
-    //   // Check if it's adaptive card
-    //   if (!type.includes(HTMLConstants.typeMessageCard)) {
-    //     return activityData;
-    //   }
-
-    //   if (!jsonData[Constants.attachments]) {
-    //     console.warn(`[AdaptiveCard] Key 'attachments' not found`);
-    //     return activityData;
-    //   }
-
-    //   let _attachments = jsonData[Constants.attachments];
-    //   try {
-    //     _attachments = this.processAdaptiveCardAttachments(_attachments);
-    //   } catch (a) {
-    //     console.error('Failed to processing attachments: ', _attachments);
-    //   }
-    //   activityData.attachments = _attachments;
-    //   activityData.text = '';
-    // }
-
     return activity;
   };
 }
