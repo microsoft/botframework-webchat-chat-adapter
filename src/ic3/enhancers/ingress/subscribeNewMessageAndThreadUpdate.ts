@@ -7,9 +7,9 @@ import { AdapterConfigValue, AdapterEnhancer } from '../../../types/AdapterTypes
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import applySetConfigMiddleware from '../../../applySetConfigMiddleware';
-import createThreadToDirectLineActivityMapper from './createThreadToDirectLineActivityMapper';
-import createTypingMessageToDirectLineActivityMapper from './createTypingMessageToDirectLineActivityMapper';
-import createUserMessageToDirectLineActivityMapper from './createUserMessageToDirectLineActivityMapper';
+import createThreadToDirectLineActivityMapper from './mappers/createThreadToDirectLineActivityMapper';
+import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
+import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
   IC3DirectLineActivity,

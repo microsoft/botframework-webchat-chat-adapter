@@ -1,12 +1,12 @@
-/// <reference path="../../../types/ic3/external/Model.d.ts" />
+/// <reference path="../../../../types/ic3/external/Model.d.ts" />
 
-import { ActivityType, SuggestedActions } from '../../../types/DirectLineTypes';
-import { AsyncMapper } from '../../../types/ic3/AsyncMapper';
-import { GetConfigFunction } from '../../../types/AdapterTypes';
-import { IC3_CHANNEL_ID } from '../../Constants';
-import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
-import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
-import uniqueId from '../../utils/uniqueId';
+import { ActivityType, SuggestedActions } from '../../../../types/DirectLineTypes';
+import { AsyncMapper } from '../../../../types/ic3/AsyncMapper';
+import { GetConfigFunction } from '../../../../types/AdapterTypes';
+import { IC3_CHANNEL_ID } from '../../../Constants';
+import { IC3AdapterState, StateKey } from '../../../../types/ic3/IC3AdapterState';
+import { IC3DirectLineActivity } from '../../../../types/ic3/IC3DirectLineActivity';
+import uniqueId from '../../../utils/uniqueId';
 
 const SUPPORTED_CONTENT_TYPES: { [type: string]: string } = {
   gif: 'image/gif',
