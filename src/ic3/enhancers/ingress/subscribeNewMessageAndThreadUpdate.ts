@@ -15,49 +15,50 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return applySetStateMiddleware<IC3DirectLineActivity, IC3AdapterState>(
-    ({ getState, subscribe }) => next => (key: keyof IC3AdapterState, value: any) => {
-      if (key === StateKey.Conversation && value) {
-        const conversation = value as Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation;
+  return applySetStateMiddleware<IC3DirectLineActivity, IC3AdapterState>(({ getState, subscribe }) => {
+    const convertMessage = compose(
+      createUserMessageToDirectLineActivityMapper({ getState }),
+      createTypingMessageToDirectLineActivityMapper({ getState })
+    )(message => {
+      console.warn('IC3: Unknown type of message; ignoring message.', message);
+    });
 
+    const convertThread = createThreadToDirectLineActivityMapper({ getState })(thread => {
+      console.warn('IC3: Unknown type of thread; ignoring thread.', thread);
+    });
+
+    return next => (key: keyof IC3AdapterState, value: any) => {
+      key === StateKey.Conversation &&
         subscribe(
-          new Observable<IC3DirectLineActivity>(subscriber => {
-            let unsubscribed: boolean;
-            const next = subscriber.next.bind(subscriber);
+          !!value &&
+            new Observable<IC3DirectLineActivity>(subscriber => {
+              const conversation = value as Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation;
+              const next = subscriber.next.bind(subscriber);
 
-            const convertMessage = compose(
-              createUserMessageToDirectLineActivityMapper({ getState }),
-              createTypingMessageToDirectLineActivityMapper({ getState })
-            )(message => {
-              console.warn('IC3: Unknown type of message; ignoring message.', message);
-            });
+              // TODO: Currently, there is no way to unsubscribe. We are using this flag to fake an "unregisterOnXXX".
+              let unsubscribed: boolean;
 
-            const convertThread = createThreadToDirectLineActivityMapper({ getState })(thread => {
-              console.warn('IC3: Unknown type of thread; ignoring thread.', thread);
-            });
+              (async function () {
+                (await conversation.getMessages()).forEach(async message => {
+                  !unsubscribed && next(await convertMessage(message));
+                });
 
-            (async function () {
-              (await conversation.getMessages()).forEach(async message => {
-                !unsubscribed && next(await convertMessage(message));
-              });
+                conversation.registerOnNewMessage(async message => {
+                  !unsubscribed && next(await convertMessage(message));
+                });
 
-              conversation.registerOnNewMessage(async message => {
-                !unsubscribed && next(await convertMessage(message));
-              });
+                conversation.registerOnThreadUpdate(async thread => {
+                  !unsubscribed && next(await convertThread(thread));
+                });
+              })();
 
-              conversation.registerOnThreadUpdate(async thread => {
-                !unsubscribed && next(await convertThread(thread));
-              });
-            })();
-
-            return () => {
-              unsubscribed = true;
-            };
-          })
+              return () => {
+                unsubscribed = true;
+              };
+            })
         );
-      }
 
       return next(key, value);
-    }
-  );
+    };
+  });
 }

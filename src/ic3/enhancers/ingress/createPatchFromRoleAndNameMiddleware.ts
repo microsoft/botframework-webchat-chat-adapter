@@ -11,17 +11,20 @@ export default function createPatchFromRoleAndNameMiddleware(): IngressMiddlewar
 > {
   return ({ getState }) => next => (activity: IC3DirectLineActivity) => {
     const {
-      from: { id, name }
+      from: { id, name, role }
     } = activity;
 
-    const role = id.includes(getState(StateKey.UserId)) ? Role.User : Role.Bot;
+    const userId = getState(StateKey.UserId);
+
+    // TODO: Why use "id.includes" instead of string equal?
+    const patchedRole = role === Role.Channel ? role : id.includes(userId) ? Role.User : Role.Bot;
 
     return next({
       ...activity,
       from: {
         id,
-        role,
-        name: (role === Role.User && getState(StateKey.UserDisplayName)) || name
+        role: patchedRole,
+        name: (patchedRole === Role.User && getState(StateKey.UserDisplayName)) || name
       }
     });
   };
