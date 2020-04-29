@@ -47,6 +47,10 @@ declare module 'event-target-shim-es5' {
   export type EventListener = (event: Event) => void;
 }
 
+declare module 'math-random' {
+  export default function random(): number;
+}
+
 declare module 'p-defer-es5' {
   export default function createDeferred<T>(): DeferredPromise<T>;
 

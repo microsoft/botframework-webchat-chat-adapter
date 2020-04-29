@@ -1,3 +1,5 @@
+/// <reference path="../../types/external.d.ts" />
+
 import random from 'math-random';
 
 export default function uniqueId() {
