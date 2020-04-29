@@ -19,13 +19,11 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
     const convertMessage = compose(
       createUserMessageToDirectLineActivityMapper({ getState }),
       createTypingMessageToDirectLineActivityMapper({ getState })
-    )(message => {
-      console.warn('IC3: Unknown type of message; ignoring message.', message);
-    });
+    )(message => console.warn('IC3: Unknown type of message; ignoring message.', message));
 
-    const convertThread = createThreadToDirectLineActivityMapper({ getState })(thread => {
-      console.warn('IC3: Unknown type of thread; ignoring thread.', thread);
-    });
+    const convertThread = createThreadToDirectLineActivityMapper({ getState })(thread =>
+      console.warn('IC3: Unknown type of thread; ignoring thread.', thread)
+    );
 
     return next => (key: keyof IC3AdapterState, value: any) => {
       key === StateKey.Conversation &&
