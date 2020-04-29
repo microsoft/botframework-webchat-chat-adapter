@@ -9,7 +9,7 @@ import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity'
 import createIngressOverrideDirectLineFromFieldMiddleware from './createIngressOverrideDirectLineFromFieldMiddleware';
 import createSubscribeNewMessageAndThreadUpdateEnhancer from './subscribeNewMessageAndThreadUpdate';
 
-export default function createEgressEnhancer(): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
+export default function createIngressEnhancer(): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
   return compose(
     createSubscribeNewMessageAndThreadUpdateEnhancer(),
     applyIngressMiddleware<IC3DirectLineActivity, IC3AdapterState>(createIngressOverrideDirectLineFromFieldMiddleware())
