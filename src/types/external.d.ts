@@ -58,5 +58,5 @@ declare module 'p-defer-es5' {
 }
 
 declare module 'simple-update-in' {
-  export default function updateIn(target: any, paths: (number | string | function)[], updater?: Function);
+  export default function updateIn(target: any, paths: (number | string | Function)[], updater?: Function);
 }
