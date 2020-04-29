@@ -21,14 +21,14 @@ export default function createUserMessageToDirectLineActivityMapper({
   getState: GetStateFunction<IC3AdapterState>;
 }): AsyncMapper<Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage, IC3DirectLineActivity> {
   return next => async (message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage) => {
+    if (message.messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage) {
+      return next(message);
+    }
+
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
     if (!conversation) {
       throw new Error('IC3: Failed to ingress without an active conversation.');
-    }
-
-    if (message.messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage) {
-      return next(message);
     }
 
     const {

@@ -3,9 +3,9 @@
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { IngressMiddleware } from '../../../applyIngressMiddleware';
-import { SenderRole } from '../../../types/DirectLineTypes';
+import { Role } from '../../../types/DirectLineTypes';
 
-export default function createIngressOverrideDirectLineFromFieldMiddleware(): IngressMiddleware<
+export default function createPatchFromRoleAndNameMiddleware(): IngressMiddleware<
   IC3DirectLineActivity,
   IC3AdapterState
 > {
@@ -14,14 +14,14 @@ export default function createIngressOverrideDirectLineFromFieldMiddleware(): In
       from: { id, name }
     } = activity;
 
-    const role = id.includes(getState(StateKey.UserId)) ? SenderRole.User : SenderRole.Bot;
+    const role = id.includes(getState(StateKey.UserId)) ? Role.User : Role.Bot;
 
     return next({
       ...activity,
       from: {
         id,
         role,
-        name: (role === SenderRole.User && getState(StateKey.UserDisplayName)) || name
+        name: (role === Role.User && getState(StateKey.UserDisplayName)) || name
       }
     });
   };

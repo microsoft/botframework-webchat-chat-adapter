@@ -17,14 +17,14 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
   IC3AdapterState
 > {
   return ({ getState }) => next => (activity: IC3DirectLineActivity) => {
+    if (activity.type !== ActivityType.Typing) {
+      return next(activity);
+    }
+
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
     if (!conversation) {
       throw new Error('IC3: Failed to egress without an active conversation.');
-    }
-
-    if (activity.type !== ActivityType.Typing) {
-      return next(activity);
     }
 
     conversation.indicateTypingStatus(Microsoft.CRM.Omnichannel.IC3Client.Model.TypingStatus.Typing, {

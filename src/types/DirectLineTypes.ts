@@ -3,7 +3,7 @@ enum ActivityType {
   Typing = 'typing'
 }
 
-enum SenderRole {
+enum Role {
   Bot = 'bot',
   Channel = 'channel',
   Unknown = '',
@@ -26,7 +26,7 @@ interface IDirectLineActivity {
   from: {
     id: string;
     name?: string;
-    role?: SenderRole;
+    role?: Role;
   };
   id?: string;
   suggestedActions?: SuggestedActions;
@@ -36,5 +36,5 @@ interface IDirectLineActivity {
   value?: any;
 }
 
-export { ActivityType, SenderRole };
+export { ActivityType, Role };
 export type { CardAction, IDirectLineActivity, SuggestedActions };

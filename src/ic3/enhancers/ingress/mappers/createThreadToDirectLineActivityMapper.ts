@@ -1,6 +1,6 @@
 /// <reference path="../../../../types/ic3/external/Model.d.ts" />
 
-import { ActivityType, SenderRole } from '../../../../types/DirectLineTypes';
+import { ActivityType, Role } from '../../../../types/DirectLineTypes';
 import { AsyncMapper } from '../../../../types/ic3/AsyncMapper';
 import { GetStateFunction } from '../../../../types/AdapterTypes';
 import { IC3_CHANNEL_ID } from '../../../Constants';
@@ -33,7 +33,7 @@ export default function createTypingMessageToDirectLineActivityMapper({
       from: {
         id,
         name,
-        role: SenderRole.Channel
+        role: Role.Channel
       },
       id: uniqueId(),
       timestamp: new Date().toISOString(),
