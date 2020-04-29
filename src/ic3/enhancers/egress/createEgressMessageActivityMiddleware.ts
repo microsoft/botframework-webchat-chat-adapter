@@ -1,5 +1,6 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
+import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
@@ -8,11 +9,15 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getConfig, ingress }) => () => (activity: IC3DirectLineActivity) => {
+  return ({ getConfig, ingress }) => next => (activity: IC3DirectLineActivity) => {
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getConfig(StateKey.Conversation);
 
     if (!conversation) {
       throw new Error('IC3: Failed to egress without an active conversation.');
+    }
+
+    if (activity.type !== ActivityType.Message) {
+      return next(activity);
     }
 
     const { channelData, from, text, timestamp, value } = activity;
