@@ -30,7 +30,6 @@ export interface IDirectLineJS {
 
 export default function exportDLJSInterface<TAdapterConfig extends AdapterConfig>(): AdapterEnhancer<
   IDirectLineActivity,
-  IDirectLineActivity,
   TAdapterConfig
 > {
   return (next: AdapterCreator<IDirectLineActivity, TAdapterConfig>) => (
@@ -91,11 +90,13 @@ export default function exportDLJSInterface<TAdapterConfig extends AdapterConfig
 
       postActivity(activity: IDirectLineActivity) {
         return new Observable(observer => {
-          adapter
-            .egress(activity, {
+          (async function () {
+            await adapter.egress(activity, {
               progress: ({ id }: { id?: string }) => id && observer.next(id)
-            })
-            .then(() => observer.complete());
+            });
+
+            observer.complete();
+          })();
         });
       }
     };

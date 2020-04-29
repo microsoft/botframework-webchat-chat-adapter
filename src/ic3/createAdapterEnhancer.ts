@@ -2,16 +2,14 @@
 
 import { compose } from 'redux';
 
-import { ActivityMessageThread } from '../types/ic3/ActivityMessageThread';
 import { AdapterCreator, AdapterEnhancer, ReadyState } from '../types/AdapterTypes';
 import { HostType } from '../types/ic3/HostType';
 import { IC3AdapterState, StateKey } from '../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../types/ic3/IC3DirectLineActivity';
 import { IIC3AdapterOptions } from '../types/ic3/IIC3AdapterOptions';
 import { ProtocolType } from '../types/ic3/ProtocolType';
-import applyIngressMiddleware from '../applyIngressMiddleware';
-import createEgressEnhancer from './enhancers/egress';
-import createIngressEnhancer from './enhancers/ingress';
+import createEgressEnhancer from './enhancers/egress/index';
+import createIngressEnhancer from './enhancers/ingress/index';
 import getPlatformBotId from './utils/getPlatformBotId';
 import initializeIC3SDK from './initializeIC3SDK';
 
@@ -25,11 +23,7 @@ export default function createIC3Enhancer({
   userDisplayName,
   userId,
   visitor
-}: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<
-  ActivityMessageThread,
-  ActivityMessageThread | IC3DirectLineActivity,
-  IC3AdapterState
-> {
+}: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
   if (!chatToken) {
     throw new Error('"chatToken" must be specified.');
   }
@@ -46,7 +40,7 @@ export default function createIC3Enhancer({
   visitor = visitor ?? true;
 
   return compose(
-    (next: AdapterCreator<ActivityMessageThread, IC3AdapterState>) => (options: IIC3AdapterOptions) => {
+    (next: AdapterCreator<IC3DirectLineActivity, IC3AdapterState>) => (options: IIC3AdapterOptions) => {
       const adapter = next(options);
 
       adapter.setConfig(StateKey.BotId, undefined);
@@ -82,24 +76,6 @@ export default function createIC3Enhancer({
       return adapter;
     },
     createEgressEnhancer(),
-    createIngressEnhancer(),
-    // createConvertActivityEnhancer<ActivityMessageThread, IC3DirectLineActivity, IC3AdapterState>(
-    //   (activityMessageThread: ActivityMessageThread): IC3DirectLineActivity => {
-    //     if ('activity' in activityMessageThread) {
-    //       return activityMessageThread.activity;
-    //     }
-    //   },
-    //   (activity: IC3DirectLineActivity): ActivityMessageThread => {
-    //     return { activity };
-    //   }
-    // ),
-    applyIngressMiddleware<ActivityMessageThread | IC3DirectLineActivity, IC3AdapterState>(
-      () => next => (activityMessageThread: ActivityMessageThread): IC3DirectLineActivity | void => {
-        // We are only ingressing Direct Line Activity
-        if ('activity' in activityMessageThread) {
-          next(activityMessageThread.activity);
-        }
-      }
-    )
+    createIngressEnhancer()
   );
 }

@@ -1,6 +1,5 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
-import { ActivityMessageThread } from '../../../types/ic3/ActivityMessageThread';
 import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
@@ -14,24 +13,18 @@ function isInternalActivity(activity: IC3DirectLineActivity): boolean {
 }
 
 export default function createEgressTypingActivityMiddleware(): EgressMiddleware<
-  ActivityMessageThread,
+  IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getConfig }) => next => (activityMessageThread: ActivityMessageThread) => {
+  return ({ getConfig }) => next => (activity: IC3DirectLineActivity) => {
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getConfig(StateKey.Conversation);
 
     if (!conversation) {
       throw new Error('IC3: Failed to egress without an active conversation.');
     }
 
-    if (!('activity' in activityMessageThread)) {
-      return next(activityMessageThread);
-    }
-
-    const { activity } = activityMessageThread;
-
     if (activity.type !== ActivityType.Typing) {
-      return next(activityMessageThread);
+      return next(activity);
     }
 
     conversation.indicateTypingStatus(Microsoft.CRM.Omnichannel.IC3Client.Model.TypingStatus.Typing, {

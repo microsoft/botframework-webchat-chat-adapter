@@ -2,28 +2,16 @@
 
 import { compose } from 'redux';
 
-import { ActivityMessageThread } from '../../../types/ic3/ActivityMessageThread';
 import { AdapterEnhancer } from '../../../types/AdapterTypes';
 import { applyIngressMiddleware } from '../../..';
 import { IC3AdapterState } from '../../../types/ic3/IC3AdapterState';
-import createSubscribeNewMessageAndThreadUpdateEnhancer from './subscribeNewMessageAndThreadUpdate';
+import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import createIngressOverrideDirectLineFromFieldMiddleware from './createIngressOverrideDirectLineFromFieldMiddleware';
-import createIngressThreadToDirectLineActivityMiddleware from './createIngressThreadToDirectLineActivityMiddleware';
-import createIngressTypingMessageToDirectLineActivityMiddleware from './createIngressTypingMessageToDirectLineActivityMiddleware';
-import createIngressUserMessageToDirectLineActivityMiddleware from './createIngressUserMessageToDirectLineActivityMiddleware';
+import createSubscribeNewMessageAndThreadUpdateEnhancer from './subscribeNewMessageAndThreadUpdate';
 
-export default function createEgressEnhancer(): AdapterEnhancer<
-  ActivityMessageThread,
-  ActivityMessageThread,
-  IC3AdapterState
-> {
+export default function createEgressEnhancer(): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
   return compose(
     createSubscribeNewMessageAndThreadUpdateEnhancer(),
-    applyIngressMiddleware<ActivityMessageThread, IC3AdapterState>(
-      createIngressUserMessageToDirectLineActivityMiddleware(),
-      createIngressThreadToDirectLineActivityMiddleware(),
-      createIngressTypingMessageToDirectLineActivityMiddleware(),
-      createIngressOverrideDirectLineFromFieldMiddleware()
-    )
+    applyIngressMiddleware<IC3DirectLineActivity, IC3AdapterState>(createIngressOverrideDirectLineFromFieldMiddleware())
   );
 }

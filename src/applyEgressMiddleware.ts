@@ -6,7 +6,7 @@ type EgressMiddleware<TActivity, TAdapterConfig extends AdapterConfig> = Middlew
 
 export default function applyEgressMiddleware<TActivity, TAdapterConfig extends AdapterConfig>(
   ...middlewares: EgressMiddleware<TActivity, TAdapterConfig>[]
-): AdapterEnhancer<TActivity, TActivity, TAdapterConfig> {
+): AdapterEnhancer<TActivity, TAdapterConfig> {
   return createApplyMiddleware<TActivity, TAdapterConfig, EgressFunction<TActivity>>(
     api => api.egress,
     (api, fn) => ({ ...api, egress: fn })

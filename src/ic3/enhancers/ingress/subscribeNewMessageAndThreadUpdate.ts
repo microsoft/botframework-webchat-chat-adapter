@@ -1,39 +1,54 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
+import { compose } from 'redux';
 import Observable from 'core-js/features/observable';
 
-import { ActivityMessageThread } from '../../../types/ic3/ActivityMessageThread';
 import { AdapterConfigValue, AdapterEnhancer } from '../../../types/AdapterTypes';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import applySetConfigMiddleware from '../../../applySetConfigMiddleware';
+import createThreadToDirectLineActivityMapper from './createThreadToDirectLineActivityMapper';
+import createTypingMessageToDirectLineActivityMapper from './createTypingMessageToDirectLineActivityMapper';
+import createUserMessageToDirectLineActivityMapper from './createUserMessageToDirectLineActivityMapper';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
-  ActivityMessageThread,
-  ActivityMessageThread,
+  IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return applySetConfigMiddleware(
-    ({ subscribe }) => next => (key: keyof IC3AdapterState, value: AdapterConfigValue) => {
+  return applySetConfigMiddleware<IC3DirectLineActivity, IC3AdapterState>(
+    ({ getConfig, subscribe }) => next => (key: keyof IC3AdapterState, value: AdapterConfigValue) => {
       if (key === StateKey.Conversation && value) {
         const conversation = value as Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation;
 
         subscribe(
-          new Observable<ActivityMessageThread>(({ next }) => {
+          new Observable<IC3DirectLineActivity>(subscriber => {
             let unsubscribed: boolean;
+            const next = subscriber.next.bind(subscriber);
+
+            const convertMessage = compose(
+              createUserMessageToDirectLineActivityMapper({ getConfig }),
+              createTypingMessageToDirectLineActivityMapper({ getConfig })
+            )(message => {
+              console.warn('IC3: Unknown type of message; ignoring message.', message);
+            });
+
+            const convertThread = createThreadToDirectLineActivityMapper({ getConfig })(thread => {
+              console.warn('IC3: Unknown type of thread; ignoring thread.', thread);
+            });
 
             (async function () {
-              (await conversation.getMessages()).forEach(message => {
-                !unsubscribed && next({ message });
+              (await conversation.getMessages()).forEach(async message => {
+                !unsubscribed && next(await convertMessage(message));
               });
 
-              conversation.registerOnNewMessage((message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage) => {
-                !unsubscribed && next({ message });
+              conversation.registerOnNewMessage(async message => {
+                !unsubscribed && next(await convertMessage(message));
               });
 
-              conversation.registerOnThreadUpdate((thread: Microsoft.CRM.Omnichannel.IC3Client.Model.IThread) => {
-                !unsubscribed && next({ thread });
+              conversation.registerOnThreadUpdate(async thread => {
+                !unsubscribed && next(await convertThread(thread));
               });
-            })().catch(err => console.error(err));
+            })();
 
             return () => {
               unsubscribed = true;
@@ -45,47 +60,4 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
       return next(key, value);
     }
   );
-  // return (next: AdapterCreator<ActivityMessageThread, IC3AdapterOptions>) => (options: IC3AdapterOptions) => {
-  //   const adapter = next(options);
-  //   const newMessageObservable = shareObservable<ActivityMessageThread>(
-  //     new Observable(({ next }) => {
-  //       (async function () {
-  //         (await conversation.getMessages()).forEach(message => next({ message }));
-
-  //         conversation.registerOnNewMessage((message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage) =>
-  //           next({ message })
-  //         );
-  //       })();
-  //     })
-  //   );
-
-  //   let newMessageFirstSubscription: Subscription;
-
-  //   adapter.subscribe(
-  //     new Observable(({ complete, next, error }) => {
-  //       if (!newMessageFirstSubscription) {
-  //         newMessageObservable.subscribe({
-  //           start(subscription: Subscription) {
-  //             newMessageFirstSubscription = subscription;
-  //           }
-  //         });
-  //       }
-
-  //       let subscription: Subscription;
-
-  //       newMessageObservable.subscribe({
-  //         complete,
-  //         error,
-  //         next,
-  //         start(thisSubscription: Subscription) {
-  //           subscription = thisSubscription;
-  //         }
-  //       });
-
-  //       return () => subscription.unsubscribe();
-  //     })
-  //   );
-
-  //   return adapter;
-  // };
 }

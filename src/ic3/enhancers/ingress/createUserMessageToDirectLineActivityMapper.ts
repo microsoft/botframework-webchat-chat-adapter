@@ -1,10 +1,11 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
-import { ActivityMessageThread } from '../../../types/ic3/ActivityMessageThread';
 import { ActivityType, SuggestedActions } from '../../../types/DirectLineTypes';
+import { AsyncMapper } from '../../../types/ic3/AsyncMapper';
+import { GetConfigFunction } from '../../../types/AdapterTypes';
 import { IC3_CHANNEL_ID } from '../../Constants';
-import { IngressMiddleware } from '../../../applyIngressMiddleware';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import uniqueId from '../../utils/uniqueId';
 
 const SUPPORTED_CONTENT_TYPES: { [type: string]: string } = {
@@ -14,34 +15,31 @@ const SUPPORTED_CONTENT_TYPES: { [type: string]: string } = {
   png: 'image/png'
 };
 
-export default function createEgressEnhancer(): IngressMiddleware<ActivityMessageThread, IC3AdapterState> {
-  return ({ getConfig }) => next => async (activityMessageThread: ActivityMessageThread) => {
+export default function createUserMessageToDirectLineActivityMapper({
+  getConfig
+}: {
+  getConfig: GetConfigFunction<IC3AdapterState>;
+}): AsyncMapper<Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage, IC3DirectLineActivity> {
+  return next => async (message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage) => {
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getConfig(StateKey.Conversation);
 
     if (!conversation) {
       throw new Error('IC3: Failed to ingress without an active conversation.');
     }
 
-    if (!('message' in activityMessageThread)) {
-      return next(activityMessageThread);
+    if (message.messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage) {
+      return next(message);
     }
-
-    const { message } = activityMessageThread;
 
     const {
       clientmessageid,
       content,
       fileMetadata,
-      messageType,
+      properties,
       sender: { displayName: name, id },
-      timestamp,
       tags,
-      properties
+      timestamp
     } = message;
-
-    if (messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage) {
-      return next(activityMessageThread);
-    }
 
     let attachments: any[];
 
@@ -51,7 +49,7 @@ export default function createEgressEnhancer(): IngressMiddleware<ActivityMessag
       const contentType = SUPPORTED_CONTENT_TYPES[type] || 'application/octet-stream';
       const contentUrl = URL.createObjectURL(blob);
 
-      // TODO: I think we don't need the line below.
+      // TODO: I think we don't need the line below. Web Chat should fallback to contentUrl if we don't set the thumbnailUrl for images.
       const thumbnailUrl = type in SUPPORTED_CONTENT_TYPES ? contentUrl : undefined;
 
       attachments = [
@@ -67,9 +65,12 @@ export default function createEgressEnhancer(): IngressMiddleware<ActivityMessag
       ];
     }
 
-    // TODO: Is it a type problem?
-    let suggestedActions: SuggestedActions;
+    // TODO: Is it a type problem in IMessage? Try the commented line below, it failed typings.
     // let suggestedActions = (properties && properties.suggestedActions && properties.suggestedActions.actions) ? properties.suggestedActions : [];
+    let suggestedActions: SuggestedActions =
+      properties && properties.suggestedActions && (properties.suggestedActions as any).actions
+        ? (properties.suggestedActions as any)
+        : undefined;
 
     const activity = {
       attachments,
@@ -137,6 +138,6 @@ export default function createEgressEnhancer(): IngressMiddleware<ActivityMessag
     //   activityData.text = '';
     // }
 
-    return next({ activity });
+    return activity;
   };
 }

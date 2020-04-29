@@ -17,11 +17,11 @@ import createEvent from './utils/createEvent';
 import sealAdapter from './sealAdapter';
 import Observable, { Subscription } from 'core-js/features/observable';
 
-const DEFAULT_ENHANCER: AdapterEnhancer<any, any, any> = next => options => next(options);
+const DEFAULT_ENHANCER: AdapterEnhancer<any, any> = next => options => next(options);
 
 export default function createAdapter<TActivity, TAdapterConfig extends AdapterConfig>(
   options: AdapterOptions = {},
-  enhancer: AdapterEnhancer<TActivity, TActivity, TAdapterConfig> = DEFAULT_ENHANCER
+  enhancer: AdapterEnhancer<TActivity, TAdapterConfig> = DEFAULT_ENHANCER
 ): SealedAdapter<TActivity, TAdapterConfig> {
   let mutableAdapterConfig: TAdapterConfig = {} as TAdapterConfig;
   let sealed: boolean;
