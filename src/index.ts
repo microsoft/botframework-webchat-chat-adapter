@@ -28,6 +28,7 @@ export {
 export type { Adapter };
 
 // TODO: Expose the IC3 adapter in a better way.
+// TODO: Allow devs to insert enhancer to modify the behavior of the final adapter.
 
 import { IIC3AdapterOptions } from './types/ic3/IIC3AdapterOptions';
 import updateIn from 'simple-update-in';
