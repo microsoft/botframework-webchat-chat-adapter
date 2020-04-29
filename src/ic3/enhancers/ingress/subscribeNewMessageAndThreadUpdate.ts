@@ -3,10 +3,10 @@
 import { compose } from 'redux';
 import Observable from 'core-js/features/observable';
 
-import { AdapterConfigValue, AdapterEnhancer } from '../../../types/AdapterTypes';
+import { AdapterEnhancer } from '../../../types/AdapterTypes';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
-import applySetConfigMiddleware from '../../../applySetConfigMiddleware';
+import applySetStateMiddleware from '../../../applySetStateMiddleware';
 import createThreadToDirectLineActivityMapper from './mappers/createThreadToDirectLineActivityMapper';
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
@@ -15,8 +15,8 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return applySetConfigMiddleware<IC3DirectLineActivity, IC3AdapterState>(
-    ({ getConfig, subscribe }) => next => (key: keyof IC3AdapterState, value: AdapterConfigValue) => {
+  return applySetStateMiddleware<IC3DirectLineActivity, IC3AdapterState>(
+    ({ getState, subscribe }) => next => (key: keyof IC3AdapterState, value: any) => {
       if (key === StateKey.Conversation && value) {
         const conversation = value as Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation;
 
@@ -26,13 +26,13 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
             const next = subscriber.next.bind(subscriber);
 
             const convertMessage = compose(
-              createUserMessageToDirectLineActivityMapper({ getConfig }),
-              createTypingMessageToDirectLineActivityMapper({ getConfig })
+              createUserMessageToDirectLineActivityMapper({ getState }),
+              createTypingMessageToDirectLineActivityMapper({ getState })
             )(message => {
               console.warn('IC3: Unknown type of message; ignoring message.', message);
             });
 
-            const convertThread = createThreadToDirectLineActivityMapper({ getConfig })(thread => {
+            const convertThread = createThreadToDirectLineActivityMapper({ getState })(thread => {
               console.warn('IC3: Unknown type of thread; ignoring thread.', thread);
             });
 

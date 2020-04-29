@@ -1,17 +1,17 @@
-import { AdapterConfig, AdapterEnhancer, SubscribeFunction } from './types/AdapterTypes';
+import { AdapterState, AdapterEnhancer, SubscribeFunction } from './types/AdapterTypes';
 
 import createApplyMiddleware, { Middleware } from './internals/createApplyMiddleware';
 
-type SubscribeMiddleware<TActivity, TAdapterConfig extends AdapterConfig> = Middleware<
+type SubscribeMiddleware<TActivity, TAdapterState extends AdapterState> = Middleware<
   TActivity,
-  TAdapterConfig,
+  TAdapterState,
   SubscribeFunction<TActivity>
 >;
 
-export default function applySubscribeMiddleware<TActivity, TAdapterConfig extends AdapterConfig>(
-  ...middlewares: SubscribeMiddleware<TActivity, TAdapterConfig>[]
-): AdapterEnhancer<TActivity, TAdapterConfig> {
-  return createApplyMiddleware<TActivity, TAdapterConfig, SubscribeFunction<TActivity>>(
+export default function applySubscribeMiddleware<TActivity, TAdapterState extends AdapterState>(
+  ...middlewares: SubscribeMiddleware<TActivity, TAdapterState>[]
+): AdapterEnhancer<TActivity, TAdapterState> {
+  return createApplyMiddleware<TActivity, TAdapterState, SubscribeFunction<TActivity>>(
     api => api.subscribe,
     (api, fn) => ({ ...api, subscribe: fn })
   )(...middlewares);

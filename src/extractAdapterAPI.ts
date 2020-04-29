@@ -1,16 +1,16 @@
-import { Adapter, AdapterConfig, AdapterConfigValue, MiddlewareAPI } from './types/AdapterTypes';
+import { Adapter, AdapterState, MiddlewareAPI } from './types/AdapterTypes';
 
-export default function extractAdapterAPI<TActivity, TAdapterConfig extends AdapterConfig>(
-  adapter: Adapter<TActivity, TAdapterConfig>
-): MiddlewareAPI<TActivity, TAdapterConfig> {
+export default function extractAdapterAPI<TActivity, TAdapterState extends AdapterState>(
+  adapter: Adapter<TActivity, TAdapterState>
+): MiddlewareAPI<TActivity, TAdapterState> {
   return {
     close: (...args) => adapter.close(...args),
     egress: (...args) => adapter.egress(...args),
-    getConfig: (name: keyof TAdapterConfig) => adapter.getConfig(name),
     getReadyState: (...args) => adapter.getReadyState(...args),
+    getState: (name: keyof TAdapterState) => adapter.getState(name),
     ingress: (...args) => adapter.ingress(...args),
-    setConfig: (name: keyof TAdapterConfig, value: AdapterConfigValue) => adapter.setConfig(name, value),
     setReadyState: (...args) => adapter.setReadyState(...args),
+    setState: (name: keyof TAdapterState, value: any) => adapter.setState(name, value),
     subscribe: (...args) => adapter.subscribe(...args)
   };
 }

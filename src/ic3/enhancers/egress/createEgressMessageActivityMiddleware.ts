@@ -9,8 +9,8 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getConfig, ingress }) => next => (activity: IC3DirectLineActivity) => {
-    const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getConfig(StateKey.Conversation);
+  return ({ getState, ingress }) => next => (activity: IC3DirectLineActivity) => {
+    const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
     if (!conversation) {
       throw new Error('IC3: Failed to egress without an active conversation.');
@@ -48,7 +48,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         deliveryMode: deliveryMode + ''
       },
       sender: {
-        displayName: getConfig(StateKey.UserDisplayName) || from.name || '',
+        displayName: getState(StateKey.UserDisplayName) || from.name || '',
         id: from.id,
         type: Microsoft.CRM.Omnichannel.IC3Client.Model.PersonType.User
       },

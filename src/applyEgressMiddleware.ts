@@ -1,13 +1,13 @@
-import { AdapterConfig, AdapterEnhancer, EgressFunction } from './types/AdapterTypes';
+import { AdapterState, AdapterEnhancer, EgressFunction } from './types/AdapterTypes';
 
 import createApplyMiddleware, { Middleware } from './internals/createApplyMiddleware';
 
-type EgressMiddleware<TActivity, TAdapterConfig extends AdapterConfig> = Middleware<TActivity, TAdapterConfig, EgressFunction<TActivity>>;
+type EgressMiddleware<TActivity, TAdapterState extends AdapterState> = Middleware<TActivity, TAdapterState, EgressFunction<TActivity>>;
 
-export default function applyEgressMiddleware<TActivity, TAdapterConfig extends AdapterConfig>(
-  ...middlewares: EgressMiddleware<TActivity, TAdapterConfig>[]
-): AdapterEnhancer<TActivity, TAdapterConfig> {
-  return createApplyMiddleware<TActivity, TAdapterConfig, EgressFunction<TActivity>>(
+export default function applyEgressMiddleware<TActivity, TAdapterState extends AdapterState>(
+  ...middlewares: EgressMiddleware<TActivity, TAdapterState>[]
+): AdapterEnhancer<TActivity, TAdapterState> {
+  return createApplyMiddleware<TActivity, TAdapterState, EgressFunction<TActivity>>(
     api => api.egress,
     (api, fn) => ({ ...api, egress: fn })
   )(...middlewares);

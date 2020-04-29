@@ -10,10 +10,9 @@ type IterateActivitiesOptions = {
   signal?: AbortSignal;
 };
 
-type AdapterConfig = { [key: string]: AdapterConfigValue };
-type AdapterConfigValue = boolean | number | string | any;
+type AdapterState = { [key: string]: any };
 
-type SealedAdapter<TActivity, TAdapterConfig extends AdapterConfig> = {
+type SealedAdapter<TActivity, TAdapterState extends AdapterState> = {
   activities: (options?: IterateActivitiesOptions) => AsyncIterable<TActivity>;
   close: () => void;
   egress: EgressFunction<TActivity>;
@@ -21,28 +20,28 @@ type SealedAdapter<TActivity, TAdapterConfig extends AdapterConfig> = {
   readyState: ReadyState;
   subscribe: SubscribeFunction<TActivity>;
 } & EventTarget &
-  TAdapterConfig;
+  TAdapterState;
 
-interface Adapter<TActivity, TAdapterConfig extends AdapterConfig> extends EventTarget {
+interface Adapter<TActivity, TAdapterState extends AdapterState> extends EventTarget {
   activities: (options?: IterateActivitiesOptions) => AsyncIterable<TActivity>;
   close: () => void;
   egress: EgressFunction<TActivity>;
-  getConfig: GetConfigFunction<TAdapterConfig>;
+  getState: GetStateFunction<TAdapterState>;
   getReadyState: () => ReadyState;
   ingress: IngressFunction<TActivity>;
-  setConfig: SetConfigFunction<TAdapterConfig>;
   setReadyState: (readyState: ReadyState) => void;
+  setState: SetStateFunction<TAdapterState>;
   subscribe: SubscribeFunction<TActivity>;
 }
 
-interface MiddlewareAPI<TActivity, TAdapterConfig extends AdapterConfig> {
+interface MiddlewareAPI<TActivity, TAdapterState extends AdapterState> {
   close: () => void;
   egress: EgressFunction<TActivity>;
-  getConfig: GetConfigFunction<TAdapterConfig>;
   getReadyState: () => ReadyState;
+  getState: GetStateFunction<TAdapterState>;
   ingress: IngressFunction<TActivity>;
-  setConfig: SetConfigFunction<TAdapterConfig>;
   setReadyState: (readyState: ReadyState) => void;
+  setState: SetStateFunction<TAdapterState>;
   subscribe: SubscribeFunction<TActivity>;
 }
 
@@ -51,40 +50,35 @@ type EgressOptions<TActivity> = {
 };
 
 type EgressFunction<TActivity> = (activity: TActivity, options?: EgressOptions<TActivity>) => Promise<void> | void;
-type GetConfigFunction<TAdapterConfig> = (key: keyof TAdapterConfig) => AdapterConfigValue;
+type GetStateFunction<TAdapterState> = (key: keyof TAdapterState) => any;
 type IngressFunction<TActivity> = (activity: TActivity) => void;
-type SetConfigFunction<TAdapterConfig> = (key: keyof TAdapterConfig, value: AdapterConfigValue) => void;
+type SetStateFunction<TAdapterState> = (key: keyof TAdapterState, value: any) => void;
 type SubscribeFunction<TActivity> = (observable: Observable<TActivity> | false) => void;
 
-type AdapterCreator<TActivity, TAdapterConfig extends AdapterConfig> = (
+type AdapterCreator<TActivity, TAdapterState extends AdapterState> = (
   options?: AdapterOptions
-) => Adapter<TActivity, TAdapterConfig>;
+) => Adapter<TActivity, TAdapterState>;
 
-type AdapterEnhancer<TActivity, TAdapterConfig extends AdapterConfig> = (
-  next: AdapterCreator<TActivity, TAdapterConfig>
-) => AdapterCreator<TActivity, TAdapterConfig>;
-
-// type AdapterEnhancer<TInputActivity, TOutputActivity, TAdapterConfig extends AdapterConfig> = (
-//   next: AdapterCreator<TInputActivity, TAdapterConfig>
-// ) => AdapterCreator<TOutputActivity, TAdapterConfig>;
+type AdapterEnhancer<TActivity, TAdapterState extends AdapterState> = (
+  next: AdapterCreator<TActivity, TAdapterState>
+) => AdapterCreator<TActivity, TAdapterState>;
 
 interface AdapterOptions {}
 
 export type {
   Adapter,
-  AdapterConfig,
-  AdapterConfigValue,
   AdapterCreator,
   AdapterEnhancer,
   AdapterOptions,
+  AdapterState,
   EgressFunction,
   EgressOptions,
-  GetConfigFunction,
+  GetStateFunction,
   IngressFunction,
   IterateActivitiesOptions,
   MiddlewareAPI,
   SealedAdapter,
-  SetConfigFunction,
+  SetStateFunction,
   SubscribeFunction
 };
 

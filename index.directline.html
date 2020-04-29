@@ -67,8 +67,8 @@
             next => options => {
               const adapter = next(options);
 
-              adapter.setConfig('directLine.conversationId', conversationId);
-              adapter.setConfig('directLine.streamUrl', streamUrl);
+              adapter.setState('directLine.conversationId', conversationId);
+              adapter.setState('directLine.streamUrl', streamUrl);
 
               adapter.subscribe(
                 new Observable(subscriber => {
@@ -107,9 +107,9 @@
 
               return adapter;
             },
-            applyEgressMiddleware(({ getConfig }) => {
+            applyEgressMiddleware(({ getState }) => {
               return next => async (activity, options) => {
-                const conversationId = getConfig('directLine.conversationId');
+                const conversationId = getState('directLine.conversationId');
 
                 if (!conversationId) {
                   throw new Error('Cannot egress before the connection is up.');

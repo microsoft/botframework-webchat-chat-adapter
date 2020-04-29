@@ -16,8 +16,8 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getConfig }) => next => (activity: IC3DirectLineActivity) => {
-    const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getConfig(StateKey.Conversation);
+  return ({ getState }) => next => (activity: IC3DirectLineActivity) => {
+    const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
     if (!conversation) {
       throw new Error('IC3: Failed to egress without an active conversation.');
@@ -28,10 +28,10 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
     }
 
     conversation.indicateTypingStatus(Microsoft.CRM.Omnichannel.IC3Client.Model.TypingStatus.Typing, {
-      imdisplayname: getConfig(StateKey.UserDisplayName) || activity.from.name || ''
+      imdisplayname: getState(StateKey.UserDisplayName) || activity.from.name || ''
     });
 
-    const botId = getConfig(StateKey.BotId);
+    const botId = getState(StateKey.BotId);
 
     botId &&
       !isInternalActivity(activity) &&

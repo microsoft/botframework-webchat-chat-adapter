@@ -4,8 +4,7 @@ import EventTarget from 'event-target-shim-es5';
 
 import {
   Adapter,
-  AdapterConfig,
-  AdapterConfigValue,
+  AdapterState,
   AdapterOptions,
   AdapterEnhancer,
   ReadyState,
@@ -19,16 +18,16 @@ import Observable, { Subscription } from 'core-js/features/observable';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any, any> = next => options => next(options);
 
-export default function createAdapter<TActivity, TAdapterConfig extends AdapterConfig>(
+export default function createAdapter<TActivity, TAdapterState extends AdapterState>(
   options: AdapterOptions = {},
-  enhancer: AdapterEnhancer<TActivity, TAdapterConfig> = DEFAULT_ENHANCER
-): SealedAdapter<TActivity, TAdapterConfig> {
-  let mutableAdapterConfig: TAdapterConfig = {} as TAdapterConfig;
+  enhancer: AdapterEnhancer<TActivity, TAdapterState> = DEFAULT_ENHANCER
+): SealedAdapter<TActivity, TAdapterState> {
+  let mutableAdapterState: TAdapterState = {} as TAdapterState;
   let sealed: boolean;
   let activeSubscription: Subscription;
 
   const adapter = enhancer(
-    (): Adapter<TActivity, TAdapterConfig> => {
+    (): Adapter<TActivity, TAdapterState> => {
       const eventTarget = new EventTarget();
       let ingressQueues: AsyncIterableQueue<TActivity>[] = [];
       let readyStatePropertyValue = ReadyState.CONNECTING;
@@ -63,8 +62,8 @@ export default function createAdapter<TActivity, TAdapterConfig extends AdapterC
           return Promise.reject(new Error('There are no enhancers registered for egress().'));
         },
 
-        getConfig: (name: keyof TAdapterConfig) => {
-          return mutableAdapterConfig[name];
+        getState: (name: keyof TAdapterState) => {
+          return mutableAdapterState[name];
         },
 
         getReadyState: () => readyStatePropertyValue,
@@ -74,14 +73,14 @@ export default function createAdapter<TActivity, TAdapterConfig extends AdapterC
           ingressQueues.forEach(ingressQueue => ingressQueue.push(activity));
         },
 
-        setConfig: (name: keyof TAdapterConfig, value: AdapterConfigValue) => {
-          if (sealed && !(name in mutableAdapterConfig)) {
+        setState: (name: keyof TAdapterState, value: any) => {
+          if (sealed && !(name in mutableAdapterState)) {
             throw new Error(`Cannot set config "${name}" because it was not set before being sealed.`);
           }
 
           // TODO: Fix this typing
-          // mutableAdapterConfig[name] = value;
-          (mutableAdapterConfig as any)[name] = value;
+          // mutableAdapterState[name] = value;
+          (mutableAdapterState as any)[name] = value;
         },
 
         setReadyState: (readyState: ReadyState) => {
@@ -153,7 +152,7 @@ export default function createAdapter<TActivity, TAdapterConfig extends AdapterC
     throw new Error('Object returned from enhancer must not be a class object.');
   }
 
-  const sealedAdapter = sealAdapter(adapter, mutableAdapterConfig);
+  const sealedAdapter = sealAdapter(adapter, mutableAdapterState);
 
   sealed = true;
 

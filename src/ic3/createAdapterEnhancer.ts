@@ -43,10 +43,10 @@ export default function createIC3Enhancer({
     (next: AdapterCreator<IC3DirectLineActivity, IC3AdapterState>) => (options: IIC3AdapterOptions) => {
       const adapter = next(options);
 
-      adapter.setConfig(StateKey.BotId, undefined);
-      adapter.setConfig(StateKey.Conversation, undefined);
-      adapter.setConfig(StateKey.UserDisplayName, undefined);
-      adapter.setConfig(StateKey.UserId, undefined);
+      adapter.setState(StateKey.BotId, undefined);
+      adapter.setState(StateKey.Conversation, undefined);
+      adapter.setState(StateKey.UserDisplayName, undefined);
+      adapter.setState(StateKey.UserId, undefined);
 
       (async function () {
         const sdk = await initializeIC3SDK(
@@ -66,10 +66,10 @@ export default function createIC3Enhancer({
         const conversation = await sdk.joinConversation(chatToken.chatId);
         const botId = await getPlatformBotId(conversation);
 
-        adapter.setConfig(StateKey.BotId, botId);
-        adapter.setConfig(StateKey.Conversation, conversation);
-        adapter.setConfig(StateKey.UserDisplayName, userDisplayName);
-        adapter.setConfig(StateKey.UserId, userId);
+        adapter.setState(StateKey.BotId, botId);
+        adapter.setState(StateKey.Conversation, conversation);
+        adapter.setState(StateKey.UserDisplayName, userDisplayName);
+        adapter.setState(StateKey.UserId, userId);
         adapter.setReadyState(ReadyState.OPEN);
       })();
 

@@ -5,7 +5,7 @@ import Observable, { Observer } from 'core-js/features/observable';
 
 import {
   Adapter,
-  AdapterConfig,
+  AdapterState,
   AdapterCreator,
   AdapterEnhancer,
   AdapterOptions,
@@ -28,13 +28,13 @@ export interface IDirectLineJS {
   postActivity: (activity: IDirectLineActivity) => Observable<string>;
 }
 
-export default function exportDLJSInterface<TAdapterConfig extends AdapterConfig>(): AdapterEnhancer<
+export default function exportDLJSInterface<TAdapterState extends AdapterState>(): AdapterEnhancer<
   IDirectLineActivity,
-  TAdapterConfig
+  TAdapterState
 > {
-  return (next: AdapterCreator<IDirectLineActivity, TAdapterConfig>) => (
+  return (next: AdapterCreator<IDirectLineActivity, TAdapterState>) => (
     options: AdapterOptions
-  ): Adapter<IDirectLineActivity, TAdapterConfig> & IDirectLineJS => {
+  ): Adapter<IDirectLineActivity, TAdapterState> & IDirectLineJS => {
     const adapter = next(options);
     let connectionStatusObserver: Observer<ConnectionStatus>;
 

@@ -123,12 +123,12 @@ describe('lazy', () => {
     //   await expect(adapter.ingress3(new Observable(() => {}))).rejects.toThrow('call activities()');
     // });
 
-    // test('should throw on getConfig()', async () => {
-    //   await expect(adapter.getConfig('my setting')).rejects.toThrow('call activities()');
+    // test('should throw on getState()', async () => {
+    //   await expect(adapter.getState('my setting')).rejects.toThrow('call activities()');
     // });
 
-    // test('should throw on setConfig()', async () => {
-    //   await expect(adapter.setConfig('my setting', 123)).rejects.toThrow('call activities()');
+    // test('should throw on setState()', async () => {
+    //   await expect(adapter.setState('my setting', 123)).rejects.toThrow('call activities()');
     // });
 
     test('should throw on readyState getter', () => {

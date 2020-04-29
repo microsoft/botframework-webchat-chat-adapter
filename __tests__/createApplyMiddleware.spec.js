@@ -7,8 +7,8 @@ test('adding a new function', () => {
   const close = jest.fn();
   const egress = jest.fn();
   const ingress = jest.fn();
-  const getConfig = jest.fn();
-  const setConfig = jest.fn();
+  const getState = jest.fn();
+  const setState = jest.fn();
   const getReadyState = jest.fn();
   const setReadyState = jest.fn();
 
@@ -19,12 +19,12 @@ test('adding a new function', () => {
       createApplyMiddleware(
         api => api.custom,
         (api, fn) => ({ ...api, custom: fn })
-      )(({ close, egress, ingress, getConfig, setConfig, getReadyState, setReadyState }) => next => activity => {
+      )(({ close, egress, ingress, getState, setState, getReadyState, setReadyState }) => next => activity => {
         close('close');
         egress('egress');
         ingress('ingress');
-        getConfig('getConfig');
-        setConfig('setConfig', 1);
+        getState('getState');
+        setState('setState', 1);
         getReadyState('getReadyState');
         setReadyState('setReadyState');
 
@@ -38,8 +38,8 @@ test('adding a new function', () => {
           close,
           egress,
           ingress,
-          getConfig,
-          setConfig,
+          getState,
+          setState,
           getReadyState,
           setReadyState
         };
@@ -61,11 +61,11 @@ test('adding a new function', () => {
   expect(ingress).toHaveBeenCalledTimes(1);
   expect(ingress).toHaveBeenCalledWith('ingress');
 
-  expect(getConfig).toHaveBeenCalledTimes(1);
-  expect(getConfig).toHaveBeenCalledWith('getConfig');
+  expect(getState).toHaveBeenCalledTimes(1);
+  expect(getState).toHaveBeenCalledWith('getState');
 
-  expect(setConfig).toHaveBeenCalledTimes(1);
-  expect(setConfig).toHaveBeenCalledWith('setConfig', 1);
+  expect(setState).toHaveBeenCalledTimes(1);
+  expect(setState).toHaveBeenCalledWith('setState', 1);
 
   expect(getReadyState).toHaveBeenCalledTimes(1);
   expect(getReadyState).toHaveBeenCalledWith('getReadyState');
@@ -74,17 +74,17 @@ test('adding a new function', () => {
   expect(setReadyState).toHaveBeenCalledWith('setReadyState');
 });
 
-test('using getConfig and setConfig', () => {
+test('using getState and setState', () => {
   const adapter = createAdapter(
     {},
     createApplyMiddleware(
       api => api.custom,
       (api, fn) => ({ ...api, custom: fn })
-    )(({ setConfig }) => {
-      setConfig('value');
+    )(({ setState }) => {
+      setState('value');
 
       return next => value => {
-        setConfig('value', value);
+        setState('value', value);
 
         return next && next(value);
       };
@@ -98,21 +98,21 @@ test('using getConfig and setConfig', () => {
   expect(adapter.value).toBe('123');
 });
 
-test('call setConfig with a non-defined entry after seal should throw', () => {
-  let setConfig;
+test('call setState with a non-defined entry after seal should throw', () => {
+  let setState;
   const adapter = createAdapter({}, next => options => {
     const adapter = next(options);
 
-    setConfig = adapter.setConfig;
-    setConfig('predefined', 1);
+    setState = adapter.setState;
+    setState('predefined', 1);
 
     return adapter;
   });
 
   expect(adapter.predefined).toBe(1);
 
-  setConfig('predefined', 2);
+  setState('predefined', 2);
 
   expect(adapter.predefined).toBe(2);
-  expect(() => setConfig('not defined', 1)).toThrow();
+  expect(() => setState('not defined', 1)).toThrow();
 });

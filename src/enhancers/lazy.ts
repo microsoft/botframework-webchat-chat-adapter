@@ -1,10 +1,8 @@
 /// <reference path="../types/external.d.ts" />
 
-import entries from 'core-js/features/object/entries';
-
 import {
   Adapter,
-  AdapterConfig,
+  AdapterState,
   AdapterCreator,
   AdapterOptions,
   IterateActivitiesOptions
@@ -16,21 +14,21 @@ const SUPPORTED_FUNCTIONS = [
   'close',
   'dispatchEvent',
   'egress',
-  'getConfig',
   'getReadyState',
+  'getState',
   'ingress',
   'removeEventListener',
-  'setConfig',
   'setReadyState',
+  'setState',
   'subscribe'
 ];
 
 // Only create adapter when activities is being iterated.
-export default function createLazyEnhancer<TActivity, TAdapterConfig extends AdapterConfig>() {
-  return (next: AdapterCreator<TActivity, TAdapterConfig>) => (
+export default function createLazyEnhancer<TActivity, TAdapterState extends AdapterState>() {
+  return (next: AdapterCreator<TActivity, TAdapterState>) => (
     adapterOptions: AdapterOptions
-  ): Adapter<TActivity, TAdapterConfig> => {
-    let adapter: Adapter<TActivity, TAdapterConfig>;
+  ): Adapter<TActivity, TAdapterState> => {
+    let adapter: Adapter<TActivity, TAdapterState>;
 
     return {
       activities: (options?: IterateActivitiesOptions) => {
@@ -78,12 +76,12 @@ export default function createLazyEnhancer<TActivity, TAdapterConfig extends Ada
         return adapter.egress(...args);
       },
 
-      getConfig: (...args) => {
+      getState: (...args) => {
         if (!adapter) {
           throw new Error('You must call activities() first.');
         }
 
-        return adapter.getConfig(...args);
+        return adapter.getState(...args);
       },
 
       getReadyState: (...args) => {
@@ -110,12 +108,12 @@ export default function createLazyEnhancer<TActivity, TAdapterConfig extends Ada
         return adapter.subscribe(...args);
       },
 
-      setConfig: (...args) => {
+      setState: (...args) => {
         if (!adapter) {
           throw new Error('You must call activities() first.');
         }
 
-        return adapter.setConfig(...args);
+        return adapter.setState(...args);
       },
 
       removeEventListener: (...args) => {

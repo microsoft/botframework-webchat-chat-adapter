@@ -9,19 +9,19 @@ export default function createIngressOverrideDirectLineFromFieldMiddleware(): In
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getConfig }) => next => (activity: IC3DirectLineActivity) => {
+  return ({ getState }) => next => (activity: IC3DirectLineActivity) => {
     const {
       from: { id, name }
     } = activity;
 
-    const role = id.includes(getConfig(StateKey.UserId)) ? SenderRole.User : SenderRole.Bot;
+    const role = id.includes(getState(StateKey.UserId)) ? SenderRole.User : SenderRole.Bot;
 
     return next({
       ...activity,
       from: {
         id,
         role,
-        name: (role === SenderRole.User && getConfig(StateKey.UserDisplayName)) || name
+        name: (role === SenderRole.User && getState(StateKey.UserDisplayName)) || name
       }
     });
   };

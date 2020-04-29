@@ -2,7 +2,7 @@ import { Adapter, ReadyState } from './types/AdapterTypes';
 import { compose } from 'redux';
 import applyEgressMiddleware from './applyEgressMiddleware';
 import applyIngressMiddleware from './applyIngressMiddleware';
-import applySetConfigMiddleware from './applySetConfigMiddleware';
+import applySetStateMiddleware from './applySetStateMiddleware';
 import applySubscribeMiddleware from './applySubscribeMiddleware';
 import createAdapter from './createAdapter';
 import createIC3AdapterEnhancer from './ic3/createAdapterEnhancer';
@@ -15,7 +15,7 @@ const { CLOSED, CONNECTING, OPEN } = ReadyState;
 export {
   applyEgressMiddleware,
   applyIngressMiddleware,
-  applySetConfigMiddleware,
+  applySetStateMiddleware,
   applySubscribeMiddleware,
   CLOSED,
   compose,
