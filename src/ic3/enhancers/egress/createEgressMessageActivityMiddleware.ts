@@ -9,7 +9,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getState, ingress }) => next => (activity: IC3DirectLineActivity) => {
+  return ({ getState, ingress }) => next => async (activity: IC3DirectLineActivity) => {
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
@@ -21,26 +21,14 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     }
 
     const { channelData, from, text, timestamp, value } = activity;
-
-    const deliveryMode = channelData.deliveryMode
-      ? channelData.deliveryMode
-      : Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged;
-
-    let content;
+    const deliveryMode = channelData.deliveryMode || Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged;
 
     // If the text is null, we check if the value object is available.
     // Assign text to be the value string.
-    if (!text && value) {
-      try {
-        content = JSON.stringify(value);
-      } catch (e) {}
-    } else {
-      content = text;
-    }
-
+    // If text is still falsy, we set to empty string to avoid breaking IC3 SDK.
+    const content = !text && value ? JSON.stringify(value) : text || '';
     const message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage = {
-      // If text is still falsy, we set to empty string to avoid breaking IC3 SDK.
-      content: content || '',
+      content,
       contentType: Microsoft.CRM.Omnichannel.IC3Client.Model.MessageContentType.Text,
       deliveryMode: deliveryMode,
       messageType: Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage,
@@ -56,8 +44,15 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       tags: channelData.tags
     };
 
-    conversation.sendMessage(message).then(() => {
-      ingress(activity);
-    });
+    if (channelData.uploadedFileMetadata) {
+      await conversation.sendFileMessage(
+        (channelData.uploadedFileMetadata as unknown) as Microsoft.CRM.Omnichannel.IC3Client.Model.IFileMetadata,
+        message
+      );
+    } else {
+      await conversation.sendMessage(message);
+    }
+
+    ingress(activity);
   };
 }

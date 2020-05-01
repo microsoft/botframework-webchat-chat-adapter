@@ -45,7 +45,7 @@ export default function createUserMessageToDirectLineActivityMapper({
 
     if (fileMetadata) {
       const { type } = fileMetadata;
-      const blob = await this.conversation.downloadFile(fileMetadata);
+      const blob = await conversation.downloadFile(fileMetadata);
       const contentType = SUPPORTED_CONTENT_TYPES[type] || 'application/octet-stream';
       const contentUrl = URL.createObjectURL(blob);
 
