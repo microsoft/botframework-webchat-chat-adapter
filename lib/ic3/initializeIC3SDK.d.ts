@@ -1,0 +1,1 @@
+export default function initializeIC3SDK(sdkURL: string | undefined, options: Microsoft.CRM.Omnichannel.IC3Client.Model.IClientSDKInitializationParameters, sessionInfo: Microsoft.CRM.Omnichannel.IC3Client.Model.IInitializationInfo): Promise<Microsoft.CRM.Omnichannel.IC3Client.Model.ISDK>;
