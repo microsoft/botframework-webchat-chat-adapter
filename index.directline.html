@@ -27,6 +27,20 @@
   <body>
     <div id="root"></div>
     <script>
+      function englishToHsilgne(value) {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve(
+              value
+                .split(' ')
+                .reverse()
+                // .map(value => value.split('').reverse().join(''))
+                .join(' ')
+            );
+          }, 5000);
+        });
+      }
+
       (async function () {
         'use strict';
 
@@ -64,6 +78,62 @@
           {},
           compose(
             exportDLJSInterface(),
+
+            // hawo: Egress translation
+
+            applyEgressMiddleware(() => next => async (activity, options) => {
+              const hsilgne = await englishToHsilgne(activity.text);
+
+              // For DL only
+              next(
+                {
+                  ...activity,
+                  channelData: {
+                    ...activity.channelData,
+                    timestamp: activity.timestamp
+                  },
+                  text: hsilgne
+                },
+                options
+              );
+
+              // For IC3 only
+              // next(
+              //   {
+              //     ...activity,
+              //     locale: 'US-en',
+              //     text: hsilgne
+              //   },
+              //   options
+              // );
+            }),
+
+            // hawo: Ingress translation
+
+            applyIngressMiddleware(() => next => async activity => {
+              // For DL only
+              if (activity.from.role === 'user') {
+                // This is because DL channel always return server timestamp on read-receipt.
+                // Also, DL weirdly send bot response as "US-en"
+                next({ ...activity, timestamp: activity.channelData.timestamp });
+              } else {
+                next(activity);
+
+                const hsilgne = await englishToHsilgne(activity.text);
+
+                next({ ...activity, text: hsilgne });
+              }
+
+              // For IC3 only
+              // next(activity);
+
+              // if (activity.locale === 'en-US') {
+              //   const hsilgne = await englishToHsilgne(activity.text);
+
+              //   next({ ...activity, text: hsilgne });
+              // }
+            }),
+
             next => options => {
               const adapter = next(options);
 
@@ -140,14 +210,18 @@
           )
         );
 
+        const store = window.WebChat.createStore({}, () => next => action => next(action));
+
         window.WebChat.renderWebChat(
           {
-            directLine
+            directLine,
+            store
           },
           document.getElementById('root')
         );
 
         window.directLine = directLine;
+        window.store = store;
       })();
     </script>
   </body>

@@ -33,6 +33,8 @@ export type { Adapter };
 import { IIC3AdapterOptions } from './types/ic3/IIC3AdapterOptions';
 import updateIn from 'simple-update-in';
 
+window.Microsoft || (window.Microsoft = {});
+
 window.Microsoft.BotFramework = updateIn(
   window.Microsoft.BotFramework || {},
   ['WebChat', 'createIC3Adapter'],
