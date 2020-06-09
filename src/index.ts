@@ -32,19 +32,9 @@ export type { Adapter };
 
 import { IIC3AdapterOptions } from './types/ic3/IIC3AdapterOptions';
 import updateIn from 'simple-update-in';
-console.log("bot frame work current window:", window);
-if(!window.Microsoft){
-  window.Microsoft = {};
-}
-if(!window.Microsoft.BotFramework){
-  window.Microsoft.BotFramework = {};
-}
-if(!window.Microsoft.BotFramework.WebChat){
-  window.Microsoft.BotFramework.WebChat = {};
-}
-if(!window.Microsoft.BotFramework.WebChat.createIC3Adapter){
-  window.Microsoft.BotFramework.WebChat.createIC3Adapter = () => {};
-}
+
+window.Microsoft || (window.Microsoft = {});
+
 window.Microsoft.BotFramework = updateIn(
   window.Microsoft.BotFramework || {},
   ['WebChat', 'createIC3Adapter'],
