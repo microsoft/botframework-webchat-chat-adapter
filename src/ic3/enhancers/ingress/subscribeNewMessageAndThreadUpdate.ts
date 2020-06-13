@@ -1,12 +1,12 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
-import { compose } from 'redux';
-import Observable from 'core-js/features/observable';
+import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 
 import { AdapterEnhancer } from '../../../types/AdapterTypes';
-import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
+import Observable from 'core-js/features/observable';
 import applySetStateMiddleware from '../../../applySetStateMiddleware';
+import { compose } from 'redux';
 import createThreadToDirectLineActivityMapper from './mappers/createThreadToDirectLineActivityMapper';
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
@@ -38,14 +38,17 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
               (async function () {
                 (await conversation.getMessages()).forEach(async message => {
+                  console.log("get message from messages: ", message)
                   !unsubscribed && next(await convertMessage(message));
                 });
 
                 conversation.registerOnNewMessage(async message => {
+                  console.log("register on new message: ", message);
                   !unsubscribed && next(await convertMessage(message));
                 });
 
                 conversation.registerOnThreadUpdate(async thread => {
+                  console.log("got thread update notification: ", thread)
                   !unsubscribed && next(await convertThread(thread));
                 });
               })();

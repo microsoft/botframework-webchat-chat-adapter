@@ -1,9 +1,11 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
+import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+
 import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
-import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
+import uniqueId from '../../utils/uniqueId';
 
 export default function createEgressMessageActivityMiddleware(): EgressMiddleware<
   IC3DirectLineActivity,
@@ -13,12 +15,16 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
+    activity.text = activity.text + " e ";
+    console.log("calling egressMessageActivityMiddleware: ", activity);
+
 
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
     if (!conversation) {
       throw new Error('IC3: Failed to egress without an active conversation.');
     }
+    console.log("current conversation: ", conversation);
 
     const { channelData, from, text, timestamp, value } = activity;
     const deliveryMode = channelData.deliveryMode || Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged;
@@ -41,7 +47,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         type: Microsoft.CRM.Omnichannel.IC3Client.Model.PersonType.User
       },
       timestamp: new Date(timestamp),
-      tags: channelData.tags
+      tags: channelData.tags,
     };
 
     if (channelData.uploadedFileMetadata) {
@@ -53,6 +59,6 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       await conversation.sendMessage(message);
     }
 
-    ingress(activity);
+    ingress({ ...activity, id: uniqueId() });
   };
 }
