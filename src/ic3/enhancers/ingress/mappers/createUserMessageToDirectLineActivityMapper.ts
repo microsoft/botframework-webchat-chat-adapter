@@ -1,11 +1,12 @@
 /// <reference path="../../../../types/ic3/external/Model.d.ts" />
 
-import { ActivityType, SuggestedActions } from '../../../../types/DirectLineTypes';
+import { ActivityType, IDirectLineActivity, SuggestedActions } from '../../../../types/DirectLineTypes';
+import { IC3AdapterState, StateKey } from '../../../../types/ic3/IC3AdapterState';
+
 import { AsyncMapper } from '../../../../types/ic3/AsyncMapper';
 import { GetStateFunction } from '../../../../types/AdapterTypes';
-import { IC3_CHANNEL_ID } from '../../../Constants';
-import { IC3AdapterState, StateKey } from '../../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../../types/ic3/IC3DirectLineActivity';
+import { IC3_CHANNEL_ID } from '../../../Constants';
 import uniqueId from '../../../utils/uniqueId';
 
 const SUPPORTED_CONTENT_TYPES: { [type: string]: string } = {
@@ -21,10 +22,10 @@ export default function createUserMessageToDirectLineActivityMapper({
   getState: GetStateFunction<IC3AdapterState>;
 }): AsyncMapper<Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage, IC3DirectLineActivity> {
   return next => async (message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage) => {
+    console.log("processing IC3 client message: ", message);
     if (message.messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage) {
       return next(message);
     }
-
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
     if (!conversation) {
@@ -72,12 +73,13 @@ export default function createUserMessageToDirectLineActivityMapper({
         ? (properties.suggestedActions as any)
         : undefined;
 
-    const activity = {
+    const activity: IDirectLineActivity = {
       attachments,
       channelId: IC3_CHANNEL_ID,
       channelData: {
         tags,
-        clientmessageid
+        clientmessageid,
+        clientActivityID: clientmessageid
       },
       conversation: { id: conversation.id },
       from: {
@@ -90,7 +92,7 @@ export default function createUserMessageToDirectLineActivityMapper({
       timestamp: timestamp.toISOString(),
       type: ActivityType.Message
     };
-
+    console.log("returned converted usermessage to activity: ", activity);
     return activity;
   };
 }

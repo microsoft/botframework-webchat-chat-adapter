@@ -81,59 +81,59 @@
 
             // hawo: Egress translation
 
-            applyEgressMiddleware(() => next => async (activity, options) => {
-              const hsilgne = await englishToHsilgne(activity.text);
+            // applyEgressMiddleware(() => next => async (activity, options) => {
+            //   const hsilgne = await englishToHsilgne(activity.text);
 
-              // For DL only
-              next(
-                {
-                  ...activity,
-                  channelData: {
-                    ...activity.channelData,
-                    timestamp: activity.timestamp
-                  },
-                  text: hsilgne
-                },
-                options
-              );
+            //   // For DL only
+            //   next(
+            //     {
+            //       ...activity,
+            //       channelData: {
+            //         ...activity.channelData,
+            //         timestamp: activity.timestamp
+            //       },
+            //       text: hsilgne
+            //     },
+            //     options
+            //   );
 
-              // For IC3 only
-              // next(
-              //   {
-              //     ...activity,
-              //     locale: 'US-en',
-              //     text: hsilgne
-              //   },
-              //   options
-              // );
-            }),
+            //   // For IC3 only
+            //   // next(
+            //   //   {
+            //   //     ...activity,
+            //   //     locale: 'US-en',
+            //   //     text: hsilgne
+            //   //   },
+            //   //   options
+            //   // );
+            // }),
 
             // hawo: Ingress translation
 
-            applyIngressMiddleware(() => next => async activity => {
-              // For DL only
-              if (activity.from.role === 'user') {
-                // This is because DL channel always return server timestamp on read-receipt.
-                // Also, DL weirdly send bot response as "US-en"
-                next({ ...activity, timestamp: activity.channelData.timestamp });
-              } else {
-                next(activity);
+            // applyIngressMiddleware(() => next => async activity => {
+            //   // For DL only
+            //   if (activity.from.role === 'user') {
+            //     // This is because DL channel always return server timestamp on read-receipt.
+            //     // Also, DL weirdly send bot response as "US-en"
+            //     next({ ...activity, timestamp: activity.channelData.timestamp });
+            //   } else {
+            //     next(activity);
 
-                const hsilgne = await englishToHsilgne(activity.text);
+            //     const hsilgne = await englishToHsilgne(activity.text);
 
-                next({ ...activity, text: hsilgne });
-              }
+            //     next({ ...activity, text: hsilgne });
+            //   }
 
-              // For IC3 only
-              // next(activity);
+            //   // For IC3 only
+            //   // next(activity);
 
-              // if (activity.locale === 'en-US') {
-              //   const hsilgne = await englishToHsilgne(activity.text);
+            //   // if (activity.locale === 'en-US') {
+            //   //   const hsilgne = await englishToHsilgne(activity.text);
 
-              //   next({ ...activity, text: hsilgne });
-              // }
-            }),
-
+            //   //   next({ ...activity, text: hsilgne });
+            //   // }
+            // }),
+            // // ingress middleware
             next => options => {
               const adapter = next(options);
 
@@ -142,20 +142,22 @@
 
               adapter.subscribe(
                 new Observable(subscriber => {
+                  
                   const socket = new WebSocket(streamUrl);
                   const handleClose = () => subscriber.complete();
                   const handleMessage = ({ data }) => {
                     if (!data) {
                       return;
                     }
-
+                    
                     const { activities } = JSON.parse(data);
+                    console.log("directline: received activities: ", activities, " time: ", new Date().toISOString());
 
                     activities.forEach(activity => {
-                      if (activity.from.id === userId) {
+                      if (activity.from.id === userId ) {
                         activity = { ...activity, from: { ...activity.from, role: 'user' } };
                       }
-
+                      console.log("looping asubscriber: ",subscriber);
                       subscriber.next(activity);
                     });
                   };
@@ -184,6 +186,7 @@
                 if (!conversationId) {
                   throw new Error('Cannot egress before the connection is up.');
                 }
+                console.log("egressing activity: ", activity," time: ", new Date().toISOString());
 
                 const res = await fetch(
                   `https://directline.botframework.com/v3/directline/conversations/${conversationId}/activities`,
@@ -203,14 +206,14 @@
                 }
 
                 const { id } = await res.json();
-
+                console.log("options: ", options, " response id: ", id);
                 options.progress && options.progress({ ...activity, id });
               };
             })
           )
         );
 
-        const store = window.WebChat.createStore({}, () => next => action => next(action));
+        const store = window.WebChat.createStore({}, () => next => action => {console.log("action:",action); return next(action)});
 
         window.WebChat.renderWebChat(
           {
