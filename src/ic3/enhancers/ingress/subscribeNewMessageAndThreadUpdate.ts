@@ -4,13 +4,14 @@ import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 
 import { AdapterEnhancer } from '../../../types/AdapterTypes';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
+import { IDirectLineActivity } from '../../../types/DirectLineTypes';
 import Observable from 'core-js/features/observable';
-import { activityMap } from '../../utils/helper';
 import applySetStateMiddleware from '../../../applySetStateMiddleware';
 import { compose } from 'redux';
 import createThreadToDirectLineActivityMapper from './mappers/createThreadToDirectLineActivityMapper';
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
+import { sendingActivityMap } from '../../utils/helper';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
   IC3DirectLineActivity,
@@ -39,25 +40,19 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
               (async function () {
                 (await conversation.getMessages()).forEach(async message => {
-                  console.log("get message from messages: ", message)
                   let activity = await convertMessage(message);
-                  console.log("mapped to activity: ", activity);
                   !unsubscribed && next(activity);
                 });
 
                 conversation.registerOnNewMessage(async message => {
-                  console.log("current state: ", getState(StateKey.Conversation));
-                  console.log("register on new message: ", message);
-                  let activity = await convertMessage(message);
-                  if(activityMap.get(message.clientmessageid)){
-                    activity = activityMap.get(message.clientmessageid);
-                    activityMap.delete(message.clientmessageid);
+                  let activity: any = await convertMessage(message);
+                  if(activity && sendingActivityMap.get(message.clientmessageid)){
+                    activity = sendingActivityMap.get(message.clientmessageid);
+                    if(message.timestamp){
+                      activity.timestamp = message.timestamp.toISOString();
+                    }
+                    sendingActivityMap.delete(message.clientmessageid);
                   }
-                  else{
-                    console.log("cannot find activity: ",message.clientmessageid );
-                    console.log("activity map: dump: ", activityMap);
-                  }
-                  console.log("mapped to activity: ", activity);
                   !unsubscribed && next(activity);
                 });
 

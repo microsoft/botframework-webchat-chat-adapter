@@ -5,7 +5,7 @@ import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
-import { activityMap } from '../../utils/helper'
+import { sendingActivityMap } from '../../utils/helper'
 import uniqueId from '../../utils/uniqueId';
 
 export default function createEgressMessageActivityMiddleware(): EgressMiddleware<
@@ -29,7 +29,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
 
     const { channelData, from, text, timestamp, value } = activity;
     const deliveryMode = channelData.deliveryMode || Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged;
-    let uniqueClientMessageId = new Date().getTime() + '';
+    let uniqueClientMessageId = Date.now().toString();
     // If the text is null, we check if the value object is available.
     // Assign text to be the value string.
     // If text is still falsy, we set to empty string to avoid breaking IC3 SDK.
@@ -51,10 +51,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       tags: channelData.tags,
       clientmessageid: uniqueClientMessageId
     };
-
-    activityMap.set(uniqueClientMessageId, activity);
-    console.log("activity to send out: ", JSON.stringify(activity), " activity: ", activity);
-    console.log("message to send out: ", message);
+    sendingActivityMap.set(uniqueClientMessageId, activity);
 
     if (channelData.uploadedFileMetadata) {
       await conversation.sendFileMessage(
