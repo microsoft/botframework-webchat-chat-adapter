@@ -28,3 +28,7 @@ function firstObservation(observable) {
 
   console.log(id);
 })().catch(() => {});
+
+test("sample test..",()=>{
+  expect(true);
+})

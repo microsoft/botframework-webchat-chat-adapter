@@ -91,6 +91,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
 
 declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
   interface IIC3SDKLogData {
+    Description?: string;
     SubscriptionId?: string;
     EndpointUrl?: string;
     ElapsedTimeInMilliseconds?: number;

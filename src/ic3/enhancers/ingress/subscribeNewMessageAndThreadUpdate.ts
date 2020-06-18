@@ -1,15 +1,17 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
-import { compose } from 'redux';
-import Observable from 'core-js/features/observable';
+import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 
 import { AdapterEnhancer } from '../../../types/AdapterTypes';
-import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
+import { IDirectLineActivity } from '../../../types/DirectLineTypes';
+import Observable from 'core-js/features/observable';
 import applySetStateMiddleware from '../../../applySetStateMiddleware';
+import { compose } from 'redux';
 import createThreadToDirectLineActivityMapper from './mappers/createThreadToDirectLineActivityMapper';
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
+import { sendingActivityMap } from '../../utils/helper';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
   IC3DirectLineActivity,
@@ -38,11 +40,20 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
               (async function () {
                 (await conversation.getMessages()).forEach(async message => {
-                  !unsubscribed && next(await convertMessage(message));
+                  let activity = await convertMessage(message);
+                  !unsubscribed && next(activity);
                 });
 
                 conversation.registerOnNewMessage(async message => {
-                  !unsubscribed && next(await convertMessage(message));
+                  let activity: any = await convertMessage(message);
+                  if(activity && sendingActivityMap.get(message.clientmessageid)){
+                    activity = sendingActivityMap.get(message.clientmessageid);
+                    if(message.timestamp){
+                      activity.timestamp = message.timestamp.toISOString();
+                    }
+                    sendingActivityMap.delete(message.clientmessageid);
+                  }
+                  !unsubscribed && next(activity);
                 });
 
                 conversation.registerOnThreadUpdate(async thread => {

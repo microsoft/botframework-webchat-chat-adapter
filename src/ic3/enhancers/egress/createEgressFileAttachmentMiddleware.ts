@@ -1,9 +1,11 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
+import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+
 import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
-import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
+import uniqueId from '../../utils/uniqueId';
 
 export default function createEgressMessageActivityMiddleware(): EgressMiddleware<
   IC3DirectLineActivity,
@@ -65,7 +67,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         next(individualActivity);
       })
     );
-
+    
     // const { channelData, from, text, timestamp, value } = activity;
     // const deliveryMode = channelData.deliveryMode || Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged;
 

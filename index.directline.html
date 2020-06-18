@@ -134,6 +134,7 @@
               // }
             }),
 
+            // ingress middleware
             next => options => {
               const adapter = next(options);
 
@@ -148,14 +149,13 @@
                     if (!data) {
                       return;
                     }
-
+                    
                     const { activities } = JSON.parse(data);
 
                     activities.forEach(activity => {
-                      if (activity.from.id === userId) {
+                      if (activity.from.id === userId ) {
                         activity = { ...activity, from: { ...activity.from, role: 'user' } };
                       }
-
                       subscriber.next(activity);
                     });
                   };
@@ -203,7 +203,6 @@
                 }
 
                 const { id } = await res.json();
-
                 options.progress && options.progress({ ...activity, id });
               };
             })

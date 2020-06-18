@@ -1,18 +1,19 @@
 /// <reference path="../types/external.d.ts" />
 
-import AbortController from 'abort-controller-es5';
-import Observable, { Observer } from 'core-js/features/observable';
-
 import {
   Adapter,
-  AdapterState,
   AdapterCreator,
   AdapterEnhancer,
   AdapterOptions,
+  AdapterState,
   ReadyState
 } from '../types/AdapterTypes';
+import Observable, { Observer } from 'core-js/features/observable';
+
+import AbortController from 'abort-controller-es5';
 import { IDirectLineActivity } from '../types/DirectLineTypes';
 import shareObservable from '../utils/shareObservable';
+import uniqueId from '../ic3/utils/uniqueId';
 
 export enum ConnectionStatus {
   Uninitialized = 0,
@@ -91,9 +92,11 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
       postActivity(activity: IDirectLineActivity) {
         return new Observable(observer => {
           (async function () {
-            await adapter.egress(activity, {
+            await adapter.egress(activity, 
+              {
               progress: ({ id }: { id?: string }) => id && observer.next(id)
             });
+            await adapter.ingress({...activity, id: uniqueId()});
 
             observer.complete();
           })();

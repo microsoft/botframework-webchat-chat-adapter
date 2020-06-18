@@ -1,11 +1,12 @@
 /// <reference path="../../../../types/ic3/external/Model.d.ts" />
 
-import { ActivityType, SuggestedActions } from '../../../../types/DirectLineTypes';
+import { ActivityType, IDirectLineActivity, SuggestedActions } from '../../../../types/DirectLineTypes';
+import { IC3AdapterState, StateKey } from '../../../../types/ic3/IC3AdapterState';
+
 import { AsyncMapper } from '../../../../types/ic3/AsyncMapper';
 import { GetStateFunction } from '../../../../types/AdapterTypes';
-import { IC3_CHANNEL_ID } from '../../../Constants';
-import { IC3AdapterState, StateKey } from '../../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../../types/ic3/IC3DirectLineActivity';
+import { IC3_CHANNEL_ID } from '../../../Constants';
 import uniqueId from '../../../utils/uniqueId';
 
 const SUPPORTED_CONTENT_TYPES: { [type: string]: string } = {
@@ -72,7 +73,7 @@ export default function createUserMessageToDirectLineActivityMapper({
         ? (properties.suggestedActions as any)
         : undefined;
 
-    const activity = {
+    const activity: IDirectLineActivity = {
       attachments,
       channelId: IC3_CHANNEL_ID,
       channelData: {

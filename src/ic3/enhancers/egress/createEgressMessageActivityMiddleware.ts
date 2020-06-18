@@ -1,18 +1,23 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
+import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+
 import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
-import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
+import { sendingActivityMap } from '../../utils/helper'
+import uniqueId from '../../utils/uniqueId';
 
 export default function createEgressMessageActivityMiddleware(): EgressMiddleware<
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getState, ingress }) => next => async (activity: IC3DirectLineActivity) => {
+  return ({ getState }) => next => async (activity: IC3DirectLineActivity) => {
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
+    activity.text = activity.text;
+    activity.id = uniqueId(); //added unique id: 
 
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
@@ -22,7 +27,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
 
     const { channelData, from, text, timestamp, value } = activity;
     const deliveryMode = channelData.deliveryMode || Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged;
-
+    let uniqueClientMessageId = Date.now().toString();
     // If the text is null, we check if the value object is available.
     // Assign text to be the value string.
     // If text is still falsy, we set to empty string to avoid breaking IC3 SDK.
@@ -41,8 +46,10 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         type: Microsoft.CRM.Omnichannel.IC3Client.Model.PersonType.User
       },
       timestamp: new Date(timestamp),
-      tags: channelData.tags
+      tags: channelData.tags,
+      clientmessageid: uniqueClientMessageId
     };
+    sendingActivityMap.set(uniqueClientMessageId, activity);
 
     if (channelData.uploadedFileMetadata) {
       await conversation.sendFileMessage(
@@ -52,7 +59,5 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     } else {
       await conversation.sendMessage(message);
     }
-
-    ingress(activity);
   };
 }
