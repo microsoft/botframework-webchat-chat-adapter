@@ -78,8 +78,7 @@ export default function createUserMessageToDirectLineActivityMapper({
       channelId: IC3_CHANNEL_ID,
       channelData: {
         tags,
-        clientmessageid,
-        clientActivityID: clientmessageid
+        clientmessageid
       },
       conversation: { id: conversation.id },
       from: {
@@ -92,7 +91,6 @@ export default function createUserMessageToDirectLineActivityMapper({
       timestamp: timestamp.toISOString(),
       type: ActivityType.Message
     };
-    console.log("returned converted usermessage to activity: ", activity);
     return activity;
   };
 }

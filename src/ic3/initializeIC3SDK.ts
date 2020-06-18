@@ -9,7 +9,6 @@ export default async function initializeIC3SDK(
   //       Looks like it does not make sense to cache the result because it always initialize.
 
   const sdk = await getSDKFromURL(sdkURL, options);
-  console.log("session info: ", sdkURL, options, sessionInfo);
   await sdk.initialize(sessionInfo);
 
   return sdk;

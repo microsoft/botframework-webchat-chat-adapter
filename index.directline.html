@@ -133,6 +133,7 @@
               //   next({ ...activity, text: hsilgne });
               // }
             }),
+
             // ingress middleware
             next => options => {
               const adapter = next(options);
@@ -142,7 +143,6 @@
 
               adapter.subscribe(
                 new Observable(subscriber => {
-                  
                   const socket = new WebSocket(streamUrl);
                   const handleClose = () => subscriber.complete();
                   const handleMessage = ({ data }) => {
@@ -151,13 +151,11 @@
                     }
                     
                     const { activities } = JSON.parse(data);
-                    console.log("directline: received activities: ", activities, " time: ", new Date().toISOString());
 
                     activities.forEach(activity => {
                       if (activity.from.id === userId ) {
                         activity = { ...activity, from: { ...activity.from, role: 'user' } };
                       }
-                      console.log("looping asubscriber: ",subscriber);
                       subscriber.next(activity);
                     });
                   };
@@ -186,7 +184,6 @@
                 if (!conversationId) {
                   throw new Error('Cannot egress before the connection is up.');
                 }
-                console.log("egressing activity: ", activity," time: ", new Date().toISOString());
 
                 const res = await fetch(
                   `https://directline.botframework.com/v3/directline/conversations/${conversationId}/activities`,
@@ -206,14 +203,13 @@
                 }
 
                 const { id } = await res.json();
-                console.log("options: ", options, " response id: ", id);
                 options.progress && options.progress({ ...activity, id });
               };
             })
           )
         );
 
-        const store = window.WebChat.createStore({}, () => next => action => {console.log("action:",action); return next(action)});
+        const store = window.WebChat.createStore({}, () => next => action => next(action));
 
         window.WebChat.renderWebChat(
           {

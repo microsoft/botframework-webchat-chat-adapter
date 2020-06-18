@@ -90,27 +90,16 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
       end: () => adapter.close(),
 
       postActivity(activity: IDirectLineActivity) {
-        if(activity.type === "typing"){
-          console.log("posting typing indicator");
-        }
-        else{
-          activity.text = activity.text
-          console.log("calling post activity from DL interfaces: activity: ", JSON.stringify(activity), " adapter: ",adapter);
-        }
         return new Observable(observer => {
           (async function () {
             await adapter.egress(activity, 
               {
-              progress: ({ id }: { id?: string }) => {
-                console.log("posting activity id: ", id, " during progress");
-                id && observer.next(id)
-              }
-            }
-            );
+              progress: ({ id }: { id?: string }) => id && observer.next(id)
+            });
             await adapter.ingress({...activity, id: uniqueId()});
 
             observer.complete();
-          })().then(() => console.log('!!!!! DONE'), err => console.log('!!!!!! ', err));
+          })();
         });
       }
     };

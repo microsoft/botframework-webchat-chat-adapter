@@ -11,7 +11,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getState, ingress }) => next => async (activity: IC3DirectLineActivity) => {
+  return ({ getState }) => next => async (activity: IC3DirectLineActivity) => {
     if (activity.type !== ActivityType.Message || !(activity.attachments || []).length) {
       return next(activity);
     }
@@ -68,7 +68,6 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       })
     );
     
-    //ingress({ ...activity, id: uniqueId() });
     // const { channelData, from, text, timestamp, value } = activity;
     // const deliveryMode = channelData.deliveryMode || Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged;
 

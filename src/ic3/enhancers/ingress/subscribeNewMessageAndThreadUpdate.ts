@@ -57,7 +57,6 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                 });
 
                 conversation.registerOnThreadUpdate(async thread => {
-                  console.log("got thread update notification: ", thread)
                   !unsubscribed && next(await convertThread(thread));
                 });
               })();

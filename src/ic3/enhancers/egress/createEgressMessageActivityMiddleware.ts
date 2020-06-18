@@ -12,12 +12,11 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getState, ingress }) => next => async (activity: IC3DirectLineActivity) => {
+  return ({ getState }) => next => async (activity: IC3DirectLineActivity) => {
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
     activity.text = activity.text;
-    console.log("calling egressMessageActivityMiddleware: ", {...activity});
     activity.id = uniqueId(); //added unique id: 
 
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
@@ -25,7 +24,6 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     if (!conversation) {
       throw new Error('IC3: Failed to egress without an active conversation.');
     }
-    console.log("current conversation: ", conversation);
 
     const { channelData, from, text, timestamp, value } = activity;
     const deliveryMode = channelData.deliveryMode || Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged;
@@ -61,7 +59,5 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     } else {
       await conversation.sendMessage(message);
     }
-
-  // ingress({ ...activity, id: uniqueId() });
   };
 }
