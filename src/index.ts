@@ -36,20 +36,7 @@ import { IDirectLineActivity } from './types/DirectLineTypes';
 
 window.Microsoft || (window.Microsoft = {});
 
-function englishToHsilgne(value: string, modify: string ): Promise<string> {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve(
-        // value
-        //   .split(' ')
-        //   .reverse()
-        //   // .map(value => value.split('').reverse().join(''))
-        //   .join(' ')
-        value + modify
-      );
-    }, 5000);
-  });
-}
+
 function testAsyncActivity(activity: IDirectLineActivity){
   return new Promise(resolve => {
     setTimeout(() => {
@@ -94,11 +81,7 @@ window.Microsoft.BotFramework = updateIn(
         //     }
         //   );
         // }),
-        createIC3AdapterEnhancer({ ...options, /*logger*/ }),
-        // applyIngressMiddleware(() => next => activity => {
-        //   console.log("from ingress middleware, ", activity);
-        //   next(activity);
-        // }),
+        createIC3AdapterEnhancer({ ...options, logger }),
       )
     )
 );

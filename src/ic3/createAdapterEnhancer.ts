@@ -23,7 +23,8 @@ export default function createIC3Enhancer({
   sdkURL,
   userDisplayName,
   userId,
-  visitor
+  visitor,
+  // conversation #join the passed in conversation fails to connect for half of the time. Creating new one for now.
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
   if (!chatToken) {
     throw new Error('"chatToken" must be specified.');
