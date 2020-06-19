@@ -1,6 +1,6 @@
 {
-  "name": "@ersuo/botframework-webchat-chat-adapter",
-  "version": "0.0.1-0",
+  "name": "botframework-webchat-chat-adapter",
+  "version": "0.0.1-1",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
