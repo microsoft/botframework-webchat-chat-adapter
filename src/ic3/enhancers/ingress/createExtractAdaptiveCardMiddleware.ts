@@ -1,11 +1,10 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
-import updateIn from 'simple-update-in';
-
+import { ActivityType } from '../../../types/DirectLineTypes';
 import { IC3AdapterState } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { IngressMiddleware } from '../../../applyIngressMiddleware';
-import { ActivityType } from '../../../types/DirectLineTypes';
+import updateIn from 'simple-update-in';
 
 const ADAPTIVE_CARD_ACTION_SUBMIT = 'Action.Submit';
 const ADAPTIVE_CARD_ACTION_TYPE_MAP: { [id: string]: string } = {
@@ -71,7 +70,7 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
 
     const { text = '' } = activity;
 
-    if (!text.includes(CONTENT_URI_OBJECT)) {
+    if (!text || !text.includes(CONTENT_URI_OBJECT)) {
       return next(activity);
     }
 
