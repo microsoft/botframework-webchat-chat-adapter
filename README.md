@@ -62,4 +62,4 @@ For every new feature, a user story is required. The user story need to be coded
 # Related articles
 
 - [`applyMiddleware`](https://redux.js.org/api/applymiddleware)
-- [Store creator](https://redux.js.org/glossary#store-creator)
+- [`Store creator`](https://redux.js.org/glossary#store-creator)
