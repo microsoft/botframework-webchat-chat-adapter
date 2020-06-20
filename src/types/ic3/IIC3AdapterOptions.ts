@@ -13,4 +13,5 @@ export interface IIC3AdapterOptions
   userDisplayName?: string;
   userId: string;
   visitor?: boolean;
+  sendHeartBeat: boolean;
 }

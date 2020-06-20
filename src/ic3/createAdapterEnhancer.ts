@@ -24,7 +24,8 @@ export default function createIC3Enhancer({
   userDisplayName,
   userId,
   visitor,
-  // conversation #join the passed in conversation fails to connect for half of the time. Creating new one for now.
+  sendHeartBeat = false,
+  //conversation //#join the passed in conversation fails to connect for half of the time. Creating new one for now.
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
   if (!chatToken) {
     throw new Error('"chatToken" must be specified.');
@@ -65,7 +66,7 @@ export default function createIC3Enhancer({
           }
         );
 
-        const conversation = await sdk.joinConversation(chatToken.chatId);
+        const conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
         const botId = await getPlatformBotId(conversation);
 
         adapter.setState(StateKey.BotId, botId);

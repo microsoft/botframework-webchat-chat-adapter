@@ -241,6 +241,6 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     initialize(sessionInfo: IInitializationInfo): Promise<void>;
     update(sessionInfo: IInitializationInfo): Promise<void>;
     dispose(): Promise<void>;
-    joinConversation(conversationId: string): Promise<IConversation>;
+    joinConversation(conversationId: string, sendHeartBeat?: boolean): Promise<IConversation>;
   }
 }

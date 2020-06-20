@@ -1,11 +1,12 @@
 /// <reference path="../../../../types/ic3/external/Model.d.ts" />
 
+import { IC3AdapterState, StateKey } from '../../../../types/ic3/IC3AdapterState';
+
 import { ActivityType } from '../../../../types/DirectLineTypes';
 import { AsyncMapper } from '../../../../types/ic3/AsyncMapper';
 import { GetStateFunction } from '../../../../types/AdapterTypes';
-import { IC3_CHANNEL_ID } from '../../../Constants';
-import { IC3AdapterState, StateKey } from '../../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../../types/ic3/IC3DirectLineActivity';
+import { IC3_CHANNEL_ID } from '../../../Constants';
 import uniqueId from '../../../utils/uniqueId';
 
 export default function createTypingMessageToDirectLineActivityMapper({
@@ -14,7 +15,7 @@ export default function createTypingMessageToDirectLineActivityMapper({
   getState: GetStateFunction<IC3AdapterState>;
 }): AsyncMapper<Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage, IC3DirectLineActivity> {
   return next => async (message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage) => {
-    if (message.messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.Typing) {
+    if (message.messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.Typing && message.messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.ClearTyping) {
       return next(message);
     }
 

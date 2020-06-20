@@ -1,6 +1,7 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { IngressMiddleware } from '../../../applyIngressMiddleware';
 import { Role } from '../../../types/DirectLineTypes';
