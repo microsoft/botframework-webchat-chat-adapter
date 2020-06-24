@@ -33,6 +33,7 @@ export default function createUserMessageToDirectLineActivityMapper({
     }
 
     const {
+      messageid,
       clientmessageid,
       content,
       fileMetadata,
@@ -89,7 +90,8 @@ export default function createUserMessageToDirectLineActivityMapper({
       suggestedActions,
       text: content,
       timestamp: timestamp.toISOString(),
-      type: ActivityType.Message
+      type: ActivityType.Message,
+      messageid: messageid? messageid : ""
     };
 
     if(message.tags){

@@ -49,6 +49,7 @@ interface IDirectLineActivity {
   timestamp: string;
   type: ActivityType;
   value?: any;
+  messageid?: string;
 }
 
 export { ActivityType, Role };

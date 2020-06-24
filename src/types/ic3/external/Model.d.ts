@@ -160,6 +160,9 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
 
 declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
   interface IMessage {
+    //messageid: represents server side IC3 message id. Available as id field in 'poll' rest api response. 
+    //Unlike 'clientmessageid',Always available in messages after conversation close.
+    messageid?: string;
     clientmessageid?: string;
     content: string;
     contentType: MessageContentType;
