@@ -85,13 +85,19 @@ export default function createUserMessageToDirectLineActivityMapper({
         id,
         name
       },
-      id: uniqueId(),
+      id: message.clientmessageid ? message.clientmessageid : uniqueId(),
       suggestedActions,
       text: content,
       timestamp: timestamp.toISOString(),
       type: ActivityType.Message
     };
 
+    if(message.tags){
+      let clientActivityTags = message.tags.filter(tag => tag.indexOf("client_activity_id:") !== -1);
+      if(clientActivityTags[0]){
+        activity.channelData.clientActivityID = clientActivityTags[0].replace("client_activity_id:", "");
+      }
+    }
     return activity;
   };
 }

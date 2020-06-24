@@ -11,7 +11,6 @@ import { compose } from 'redux';
 import createThreadToDirectLineActivityMapper from './mappers/createThreadToDirectLineActivityMapper';
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
-import { sendingActivityMap } from '../../utils/helper';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
   IC3DirectLineActivity,
@@ -46,13 +45,6 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
                 conversation.registerOnNewMessage(async message => {
                   let activity: any = await convertMessage(message);
-                  if(activity && sendingActivityMap.get(message.clientmessageid)){
-                    activity = sendingActivityMap.get(message.clientmessageid);
-                    if(message.timestamp){
-                      activity.timestamp = message.timestamp.toISOString();
-                    }
-                    sendingActivityMap.delete(message.clientmessageid);
-                  }
                   !unsubscribed && next(activity);
                 });
 

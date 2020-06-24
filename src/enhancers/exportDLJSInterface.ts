@@ -96,8 +96,7 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
               {
               progress: ({ id }: { id?: string }) => id && observer.next(id)
             });
-            await adapter.ingress({...activity, id: uniqueId()});
-
+            //await adapter.ingress({...activity, id: uniqueId()}); //No need to call ingress as IC3 is providing echo back. If we need this for DL, a new class for IC3 should be created
             observer.complete();
           })();
         });

@@ -5,8 +5,6 @@ import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
-import { sendingActivityMap } from '../../utils/helper'
-import uniqueId from '../../utils/uniqueId';
 
 export default function createEgressMessageActivityMiddleware(): EgressMiddleware<
   IC3DirectLineActivity,
@@ -16,8 +14,6 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
-    activity.text = activity.text;
-    activity.id = uniqueId(); //added unique id: 
 
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
@@ -28,6 +24,8 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     const { channelData, from, text, timestamp, value } = activity;
     const deliveryMode = channelData.deliveryMode || Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged;
     let uniqueClientMessageId = Date.now().toString();
+    (activity as any).clientmessageid = uniqueClientMessageId;
+    
     // If the text is null, we check if the value object is available.
     // Assign text to be the value string.
     // If text is still falsy, we set to empty string to avoid breaking IC3 SDK.
@@ -49,7 +47,11 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       tags: channelData.tags,
       clientmessageid: uniqueClientMessageId
     };
-    sendingActivityMap.set(uniqueClientMessageId, activity);
+
+    // attach client activity id tag
+    if(activity.channelData && activity.channelData.clientActivityID){
+      message.tags.push("client_activity_id:" + activity.channelData.clientActivityID);
+    }
 
     if (channelData.uploadedFileMetadata) {
       await conversation.sendFileMessage(
