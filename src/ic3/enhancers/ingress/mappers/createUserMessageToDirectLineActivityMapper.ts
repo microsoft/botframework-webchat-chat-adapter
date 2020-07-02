@@ -62,7 +62,8 @@ export default function createUserMessageToDirectLineActivityMapper({
           thumbnailUrl,
           // `contentUrl` has to be renamed to `tempContentUrl`. Otherwise because it is a blob URI, it is patched out by packages/core/src/reducers/activities.js (see link)
           // https://github.com/microsoft/BotFramework-WebChat/blob/89bf57a500c50ed4b377f05e4bb0aaeea9e11586/packages/core/src/reducers/activities.js#L35-L39
-          tempContentUrl: contentUrl
+          tempContentUrl: contentUrl,
+          blob
         }
       ];
     }

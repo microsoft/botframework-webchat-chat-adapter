@@ -94,6 +94,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     Description?: string;
     SubscriptionId?: string;
     EndpointUrl?: string;
+    EndpointId?: string;
     ElapsedTimeInMilliseconds?: number;
     Event?: string;
     ErrorCode?: string;
@@ -124,7 +125,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
   enum LogLevel {
     INFO = 'INFO',
     DEBUG = 'DEBUG',
-    WARNING = 'WARN',
+    WARN = 'WARN',
     ERROR = 'ERROR'
   }
 }
