@@ -27,11 +27,11 @@ export default function createUserMessageToDirectLineActivityMapper({
     }
 
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
-
+    
     if (!conversation) {
       throw new Error('IC3: Failed to ingress without an active conversation.');
     }
-
+    
     const {
       messageid,
       clientmessageid,
@@ -40,7 +40,9 @@ export default function createUserMessageToDirectLineActivityMapper({
       properties,
       sender: { displayName: name, id },
       tags,
-      timestamp
+      timestamp,
+      resourceType,
+      messageType
     } = message;
 
     let attachments: any[];
@@ -101,6 +103,13 @@ export default function createUserMessageToDirectLineActivityMapper({
         activity.channelData.clientActivityID = clientActivityTags[0].replace("client_activity_id:", "");
       }
     }
+
+    // const isUserMessage = (messageType === Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage);
+    // const isMessageUpdate = (resourceType === Microsoft.CRM.Omnichannel.IC3Client.Model.ResourceType.MessageUpdate)
+    // if(isUserMessage && clientmessageid && !isMessageUpdate && activity.channelData.clientActivityID){
+    //   return;
+    // }
+
     return activity;
   };
 }

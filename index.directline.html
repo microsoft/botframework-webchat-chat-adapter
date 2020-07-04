@@ -81,58 +81,58 @@
 
             // hawo: Egress translation
 
-            applyEgressMiddleware(() => next => async (activity, options) => {
-              const hsilgne = await englishToHsilgne(activity.text);
+            // applyEgressMiddleware(() => next => async (activity, options) => {
+            //   const hsilgne = await englishToHsilgne(activity.text);
 
-              // For DL only
-              next(
-                {
-                  ...activity,
-                  channelData: {
-                    ...activity.channelData,
-                    timestamp: activity.timestamp
-                  },
-                  text: hsilgne
-                },
-                options
-              );
+            //   // For DL only
+            //   next(
+            //     {
+            //       ...activity,
+            //       channelData: {
+            //         ...activity.channelData,
+            //         timestamp: activity.timestamp
+            //       },
+            //       text: hsilgne
+            //     },
+            //     options
+            //   );
 
-              // For IC3 only
-              // next(
-              //   {
-              //     ...activity,
-              //     locale: 'US-en',
-              //     text: hsilgne
-              //   },
-              //   options
-              // );
-            }),
+            //   // For IC3 only
+            //   // next(
+            //   //   {
+            //   //     ...activity,
+            //   //     locale: 'US-en',
+            //   //     text: hsilgne
+            //   //   },
+            //   //   options
+            //   // );
+            // }),
 
             // hawo: Ingress translation
 
-            applyIngressMiddleware(() => next => async activity => {
-              // For DL only
-              if (activity.from.role === 'user') {
-                // This is because DL channel always return server timestamp on read-receipt.
-                // Also, DL weirdly send bot response as "US-en"
-                next({ ...activity, timestamp: activity.channelData.timestamp });
-              } else {
-                next(activity);
+            // applyIngressMiddleware(() => next => async activity => {
+            //   // For DL only
+            //   if (activity.from.role === 'user') {
+            //     // This is because DL channel always return server timestamp on read-receipt.
+            //     // Also, DL weirdly send bot response as "US-en"
+            //     next({ ...activity, timestamp: activity.channelData.timestamp });
+            //   } else {
+            //     next(activity);
 
-                const hsilgne = await englishToHsilgne(activity.text);
+            //     const hsilgne = await englishToHsilgne(activity.text);
 
-                next({ ...activity, text: hsilgne });
-              }
+            //     next({ ...activity, text: hsilgne });
+            //   }
 
-              // For IC3 only
-              // next(activity);
+            //   // For IC3 only
+            //   // next(activity);
 
-              // if (activity.locale === 'en-US') {
-              //   const hsilgne = await englishToHsilgne(activity.text);
+            //   // if (activity.locale === 'en-US') {
+            //   //   const hsilgne = await englishToHsilgne(activity.text);
 
-              //   next({ ...activity, text: hsilgne });
-              // }
-            }),
+            //   //   next({ ...activity, text: hsilgne });
+            //   // }
+            // }),
 
             // ingress middleware
             next => options => {

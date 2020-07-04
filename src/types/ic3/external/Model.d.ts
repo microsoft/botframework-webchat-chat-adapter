@@ -11,6 +11,16 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
 }
 
 declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
+  class ResourceType {
+      static readonly NewMessage = "NewMessage";
+      static readonly MessageUpdate = "MessageUpdate";
+      static readonly UserPresence = "UserPresence";
+      static readonly ConversationUpdate = "ConversationUpdate";
+      static readonly ThreadUpdate = "ThreadUpdate";
+  }
+}
+
+declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
   enum PersonType {
     Unknown = 0,
     User = 1,
@@ -60,6 +70,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     static readonly SwiftCard = 'SwiftCard';
     static readonly Typing = 'Control/Typing';
     static readonly ClearTyping = 'Control/ClearTyping';
+    static readonly LiveState = "Control/LiveState";
   }
 }
 
@@ -90,6 +101,49 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
 }
 
 declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
+  interface ILogData {
+    /**
+     * The telemetry event to log
+     */
+    event: string;
+    /**
+     * The event description
+     */
+    description?: string;
+    /**
+     * The type of the event
+     */
+    eventType: string;
+    /**
+     * The additional data which needs to be logged
+     */
+    customData?: any;
+    /**
+     * The global telemetry context for the event to be logged
+     */
+    globalTelemetryContext: IGlobalTelemetryContext;
+    /**
+     * The sdk telemetry context for the event to be logged
+     */
+    sdkTelemetryContext: ISDKTelemetryContext;
+    /**
+     * The conversation telemetry context for the event to be logged
+     */
+    conversationTelemetryContext: IConversationTelemetryContext;
+    /**
+     * The event log time in ISO format
+     */
+    eventLogTime: string;
+    /**
+     * The execution time of the event
+     */
+    executionTime?: number;
+    /**
+     * The error which needs to be logged
+     */
+    error?: Error;
+  }
+
   interface IIC3SDKLogData {
     Description?: string;
     SubscriptionId?: string;
@@ -99,6 +153,16 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     Event?: string;
     ErrorCode?: string;
     ExceptionDetails?: object;
+    ShouldBubbleToHost?: boolean;
+  }
+
+  interface IIC3TelemetryCustomData {
+    ElapsedTimeInMilliseconds?: number;
+    ErrorCode?: string;
+    EndpointUrl?: string;
+    EndpointId?: string;
+    ExceptionDetails?: object;
+    Description?: string;
     ShouldBubbleToHost?: boolean;
   }
 }
@@ -118,6 +182,18 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
 declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
   interface IBotMessage {
     [key: string]: any;
+  }
+}
+
+declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
+  interface IThread {
+      id: string;
+      type: string;
+      properties: any;
+      members: any[];
+      version: number;
+      messages: string;
+      rosterVersion: number;
   }
 }
 
@@ -161,7 +237,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
 
 declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
   interface IMessage {
-    //messageid: represents server side IC3 message id. Available as id field in 'poll' rest api response. 
+    //(DO NOT DELETE THIS COMMENT)messageid: represents server side IC3 message id. Available as id field in 'poll' rest api response. 
     //Unlike 'clientmessageid',Always available in messages after conversation close.
     messageid?: string;
     clientmessageid?: string;
@@ -174,18 +250,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     tags?: string[];
     deliveryMode: DeliveryMode;
     fileMetadata?: IFileMetadata;
-  }
-}
-
-declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
-  interface IThread {
-    id: string;
-    type: string;
-    properties: any;
-    members: any[];
-    version: number;
-    messages: string;
-    rosterVersion: number;
+    resourceType?: ResourceType;
   }
 }
 

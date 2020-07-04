@@ -59,7 +59,24 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
           (async function () {
             try {
               for await (const activity of adapter.activities({ signal: abortController.signal })) {
-                observer.next(activity);
+                console.log("received activity: ", activity);
+                let modifyActivity = {
+                  ...activity
+                }
+                if(activity.attachments && activity.attachments.length > 0 && activity.attachments[0].type === "mp3"){
+                  modifyActivity = {
+                    ...activity,
+                  }
+                  //https://ersuolocaldev.blob.core.windows.net/share/file_example_MP3_700KB.mp3
+                  // modifyActivity.attachments[0].contentUrl = "https://ersuolocaldev.blob.core.windows.net/share/file_example_MP3_700KB.mp3";
+                  modifyActivity.attachments[0].contentUrl = activity.attachments[0].url;
+                  modifyActivity.attachments[0].contentType = "audio/mpeg";
+                }
+                else if (activity.attachments && activity.attachments.length > 0 && activity.attachments[0].type === "mp4") {
+                  modifyActivity.attachments[0].contentType = "video/mp4";
+                }
+                console.log("modified acitivity: ", modifyActivity);
+                observer.next(modifyActivity);
               }
 
               observer.complete();
@@ -92,6 +109,7 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
       postActivity(activity: IDirectLineActivity) {
         return new Observable(observer => {
           (async function () {
+            console.log("sending activity: ", activity);
             await adapter.egress(activity, 
               {
               progress: ({ id }: { id?: string }) => id && observer.next(id)
