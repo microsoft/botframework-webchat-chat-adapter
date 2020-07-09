@@ -25,7 +25,7 @@ export default function createIC3Enhancer({
   userId,
   visitor,
   sendHeartBeat = false,
-  //conversation //#join the passed in conversation fails to connect for half of the time. Creating new one for now.
+  conversation
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
   if (!chatToken) {
     throw new Error('"chatToken" must be specified.');
@@ -52,21 +52,23 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.UserId, undefined);
 
       (async function () {
-        const sdk = await initializeIC3SDK(
-          sdkURL,
-          {
-            hostType,
-            protocolType,
-            logger
-          },
-          {
-            regionGtms: chatToken.regionGTMS,
-            token: chatToken.token,
-            visitor
-          }
-        );
+        if(!conversation){
+          const sdk = await initializeIC3SDK(
+            sdkURL,
+            {
+              hostType,
+              protocolType,
+              logger
+            },
+            {
+              regionGtms: chatToken.regionGTMS,
+              token: chatToken.token,
+              visitor
+            }
+          );
+          conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
+        }
 
-        const conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
         const botId = await getPlatformBotId(conversation);
 
         adapter.setState(StateKey.BotId, botId);
