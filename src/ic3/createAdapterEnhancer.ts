@@ -68,7 +68,6 @@ export default function createIC3Enhancer({
           conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
         }
 
-
         const botId = await getPlatformBotId(conversation);
 
         adapter.setState(StateKey.BotId, botId);
