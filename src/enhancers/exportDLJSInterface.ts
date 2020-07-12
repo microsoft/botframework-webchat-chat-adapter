@@ -13,7 +13,6 @@ import Observable, { Observer } from 'core-js/features/observable';
 import AbortController from 'abort-controller-es5';
 import { IDirectLineActivity } from '../types/DirectLineTypes';
 import shareObservable from '../utils/shareObservable';
-import uniqueId from '../ic3/utils/uniqueId';
 
 export enum ConnectionStatus {
   Uninitialized = 0,
@@ -29,6 +28,12 @@ export interface IDirectLineJS {
   postActivity: (activity: IDirectLineActivity) => Observable<string>;
 }
 
+function timeout(ms: number){
+  return new Promise(resolve => setTimeout(() => {
+    resolve();
+  }, ms));
+}
+
 export default function exportDLJSInterface<TAdapterState extends AdapterState>(): AdapterEnhancer<
   IDirectLineActivity,
   TAdapterState
@@ -39,8 +44,17 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
     const adapter = next(options);
     let connectionStatusObserver: Observer<ConnectionStatus>;
 
-    adapter.addEventListener('open', () => {
-      connectionStatusObserver.next(ConnectionStatus.Connected);
+    adapter.addEventListener('open', async () => {
+      if(!connectionStatusObserver){
+        let waitTime = 5;
+        while(!connectionStatusObserver && waitTime < 2000){
+          await timeout(waitTime);
+          waitTime = waitTime*2;
+        }
+        connectionStatusObserver.next(ConnectionStatus.Connected);
+      }else{
+        connectionStatusObserver.next(ConnectionStatus.Connected);
+      }
     });
 
     adapter.addEventListener('error', () => {
@@ -59,24 +73,7 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
           (async function () {
             try {
               for await (const activity of adapter.activities({ signal: abortController.signal })) {
-                console.log("received activity: ", activity);
-                let modifyActivity = {
-                  ...activity
-                }
-                if(activity.attachments && activity.attachments.length > 0 && activity.attachments[0].type === "mp3"){
-                  modifyActivity = {
-                    ...activity,
-                  }
-                  //https://ersuolocaldev.blob.core.windows.net/share/file_example_MP3_700KB.mp3
-                  // modifyActivity.attachments[0].contentUrl = "https://ersuolocaldev.blob.core.windows.net/share/file_example_MP3_700KB.mp3";
-                  modifyActivity.attachments[0].contentUrl = activity.attachments[0].url;
-                  modifyActivity.attachments[0].contentType = "audio/mpeg";
-                }
-                else if (activity.attachments && activity.attachments.length > 0 && activity.attachments[0].type === "mp4") {
-                  modifyActivity.attachments[0].contentType = "video/mp4";
-                }
-                console.log("modified acitivity: ", modifyActivity);
-                observer.next(modifyActivity);
+                observer.next(activity);
               }
 
               observer.complete();
@@ -109,7 +106,6 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
       postActivity(activity: IDirectLineActivity) {
         return new Observable(observer => {
           (async function () {
-            console.log("sending activity: ", activity);
             await adapter.egress(activity, 
               {
               progress: ({ id }: { id?: string }) => id && observer.next(id)

@@ -18,7 +18,6 @@ export default async function initializeIC3SDK(
     await sdk.initialize(sessionInfo);
     _sdk = sdk;
   } catch(error){
-    console.error("IC3 SDK init failed.", error);
     _sdk = null;
     throw error;
   }
