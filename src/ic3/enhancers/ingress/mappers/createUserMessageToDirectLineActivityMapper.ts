@@ -13,7 +13,9 @@ const SUPPORTED_CONTENT_TYPES: { [type: string]: string } = {
   gif: 'image/gif',
   jpeg: 'image/jpeg',
   jpg: 'image/jpeg',
-  png: 'image/png'
+  png: 'image/png',
+  mp3: 'audio/mp3',
+  mp4: 'video/mp4'
 };
 
 export default function createUserMessageToDirectLineActivityMapper({
@@ -27,11 +29,11 @@ export default function createUserMessageToDirectLineActivityMapper({
     }
 
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
-
+    
     if (!conversation) {
       throw new Error('IC3: Failed to ingress without an active conversation.');
     }
-
+    
     const {
       messageid,
       clientmessageid,
@@ -40,7 +42,9 @@ export default function createUserMessageToDirectLineActivityMapper({
       properties,
       sender: { displayName: name, id },
       tags,
-      timestamp
+      timestamp,
+      resourceType,
+      messageType
     } = message;
 
     let attachments: any[];
@@ -49,7 +53,8 @@ export default function createUserMessageToDirectLineActivityMapper({
       const { type } = fileMetadata;
       const blob = await conversation.downloadFile(fileMetadata);
       const contentType = SUPPORTED_CONTENT_TYPES[type] || 'application/octet-stream';
-      const contentUrl = URL.createObjectURL(blob);
+      const patchedBlob = new Blob([blob], { type: contentType });
+      const contentUrl = URL.createObjectURL(patchedBlob);
 
       // TODO: I think we don't need the line below. Web Chat should fallback to contentUrl if we don't set the thumbnailUrl for images.
       const thumbnailUrl = type in SUPPORTED_CONTENT_TYPES ? contentUrl : undefined;
@@ -62,7 +67,8 @@ export default function createUserMessageToDirectLineActivityMapper({
           thumbnailUrl,
           // `contentUrl` has to be renamed to `tempContentUrl`. Otherwise because it is a blob URI, it is patched out by packages/core/src/reducers/activities.js (see link)
           // https://github.com/microsoft/BotFramework-WebChat/blob/89bf57a500c50ed4b377f05e4bb0aaeea9e11586/packages/core/src/reducers/activities.js#L35-L39
-          tempContentUrl: contentUrl
+          tempContentUrl: contentUrl,
+          blob
         }
       ];
     }
@@ -100,6 +106,13 @@ export default function createUserMessageToDirectLineActivityMapper({
         activity.channelData.clientActivityID = clientActivityTags[0].replace("client_activity_id:", "");
       }
     }
+
+    // const isUserMessage = (messageType === Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage);
+    // const isMessageUpdate = (resourceType === Microsoft.CRM.Omnichannel.IC3Client.Model.ResourceType.MessageUpdate)
+    // if(isUserMessage && clientmessageid && !isMessageUpdate && activity.channelData.clientActivityID){
+    //   return;
+    // }
+
     return activity;
   };
 }

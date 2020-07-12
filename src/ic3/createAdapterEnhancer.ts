@@ -3,7 +3,6 @@
 import { AdapterCreator, AdapterEnhancer, ReadyState } from '../types/AdapterTypes';
 import { IC3AdapterState, StateKey } from '../types/ic3/IC3AdapterState';
 
-import { ActivityType } from '../types/DirectLineTypes';
 import { HostType } from '../types/ic3/HostType';
 import { IC3DirectLineActivity } from '../types/ic3/IC3DirectLineActivity';
 import { IIC3AdapterOptions } from '../types/ic3/IIC3AdapterOptions';
