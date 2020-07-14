@@ -1,18 +1,17 @@
 /// <reference path="../../../../types/ic3/external/Model.d.ts" />
 
 import { ActivityType, Role } from '../../../../types/DirectLineTypes';
+import { IC3AdapterState, StateKey } from '../../../../types/ic3/IC3AdapterState';
+
 import { AsyncMapper } from '../../../../types/ic3/AsyncMapper';
 import { GetStateFunction } from '../../../../types/AdapterTypes';
-import { IC3_CHANNEL_ID } from '../../../Constants';
-import { IC3AdapterState, StateKey } from '../../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../../types/ic3/IC3DirectLineActivity';
+import { IC3_CHANNEL_ID } from '../../../Constants';
 import uniqueId from '../../../utils/uniqueId';
 
-export default function createTypingMessageToDirectLineActivityMapper({
-  getState
-}: {
-  getState: GetStateFunction<IC3AdapterState>;
-}): AsyncMapper<Microsoft.CRM.Omnichannel.IC3Client.Model.IThread, IC3DirectLineActivity> {
+export default function createTypingMessageToDirectLineActivityMapper ({ getState }: { getState: GetStateFunction<IC3AdapterState>;}): 
+AsyncMapper<Microsoft.CRM.Omnichannel.IC3Client.Model.IThread, IC3DirectLineActivity> 
+{
   return () => async (thread: Microsoft.CRM.Omnichannel.IC3Client.Model.IThread) => {
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
@@ -21,8 +20,7 @@ export default function createTypingMessageToDirectLineActivityMapper({
     }
 
     const { id, members, properties, type } = thread;
-
-    return {
+    let ic3activity: IC3DirectLineActivity = {
       channelId: IC3_CHANNEL_ID,
       channelData: {
         members,
@@ -37,7 +35,8 @@ export default function createTypingMessageToDirectLineActivityMapper({
       },
       id: uniqueId(),
       timestamp: new Date().toISOString(),
-      type: ActivityType.Message
+      type: ActivityType.Message,
     };
+    return ic3activity;
   };
 }

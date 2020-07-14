@@ -13,6 +13,6 @@ export type IC3DirectLineActivity = IDirectLineActivity & {
     tags?: string[];
     type?: string;
     // uploadedFileMetadata: Microsoft.CRM.Omnichannel.IC3Client.Model.IFileMetadata
-    uploadFileMetadata: any;
+    uploadFileMetadata?: any;
   };
 };
