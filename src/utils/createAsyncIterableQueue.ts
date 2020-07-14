@@ -1,8 +1,11 @@
 /// <reference path="../types/external.d.ts" />
 
-import createDeferred, { DeferredPromise } from 'p-defer-es5';
-import is from 'core-js/features/object/is';
+import 'core-js/features/symbol';
+import 'core-js/features/async-iterator';
 
+import createDeferred, { DeferredPromise } from 'p-defer-es5';
+
+import is from 'core-js/features/object/is';
 import rejectOnAbort from './rejectOnAbort';
 
 export type AsyncIterableQueue<T> = {
