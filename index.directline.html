@@ -1,227 +1,232 @@
 <!DOCTYPE html>
 <html lang="en-US">
-  <head>
-    <title>Chat Adapter Prototype</title>
-    <script src="https://cdn.botframework.com/botframework-webchat/4.8.0/webchat.js"></script>
-    <script src="/dist/chat-adapter.js"></script>
-    <style type="text/css">
-      body,
-      html,
-      #root {
-        height: 100%;
+
+<head>
+  <title>Chat Adapter Prototype</title>
+  <script src="https://cdn.botframework.com/botframework-webchat/4.8.0/webchat.js"></script>
+  <script src="/dist/chat-adapter.js"></script>
+  <style type="text/css">
+    body,
+    html,
+    #root {
+      height: 100%;
+    }
+
+    body {
+      background-color: #f7f7f7;
+      margin: 0;
+    }
+
+    #root {
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      margin: auto;
+      min-width: 360px;
+      max-width: 720px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    function englishToHsilgne(value) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve(
+            value
+              .split(' ')
+              .reverse()
+              // .map(value => value.split('').reverse().join(''))
+              .join(' ')
+          );
+        }, 5000);
+      });
+    }
+
+    (async function () {
+      'use strict';
+
+      const tokenRes = await fetch('https://webchat-mockbot.azurewebsites.net/directline/token', { method: 'POST' });
+
+      if (!tokenRes.ok) {
+        throw new Error('Token service is down');
       }
 
-      body {
-        background-color: #f7f7f7;
-        margin: 0;
+      const { token, userID: userId } = await tokenRes.json();
+
+      const {
+        default: createAdapter,
+        applyIngressMiddleware,
+        applyEgressMiddleware,
+        CLOSED,
+        compose,
+        exportDLJSInterface,
+        OPEN
+      } = window.ChatAdapter;
+
+      const startConversationRes = await fetch('https://directline.botframework.com/v3/directline/conversations', {
+        headers: { accept: 'application/json', authorization: `Bearer ${token}` },
+        method: 'POST'
+      });
+
+      if (!startConversationRes.ok) {
+        return adapter.setReadyState(CLOSED);
       }
 
-      #root {
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-        margin: auto;
-        min-width: 360px;
-        max-width: 720px;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script>
-      function englishToHsilgne(value) {
-        return new Promise(resolve => {
-          setTimeout(() => {
-            resolve(
-              value
-                .split(' ')
-                .reverse()
-                // .map(value => value.split('').reverse().join(''))
-                .join(' ')
+      const { conversationId, streamUrl } = await startConversationRes.json();
+
+      // const directLine = window.WebChat.createDirectLine({ token });
+      const directLine = createAdapter(
+        {},
+        compose(
+          exportDLJSInterface(),
+
+          // hawo: Egress translation
+
+          // applyEgressMiddleware(() => next => async (activity, options) => {
+          //   const hsilgne = await englishToHsilgne(activity.text);
+
+          //   // For DL only
+          //   next(
+          //     {
+          //       ...activity,
+          //       channelData: {
+          //         ...activity.channelData,
+          //         timestamp: activity.timestamp
+          //       },
+          //       text: hsilgne
+          //     },
+          //     options
+          //   );
+
+          //   // For IC3 only
+          //   // next(
+          //   //   {
+          //   //     ...activity,
+          //   //     locale: 'US-en',
+          //   //     text: hsilgne
+          //   //   },
+          //   //   options
+          //   // );
+          // }),
+
+          // hawo: Ingress translation
+
+          // applyIngressMiddleware(() => next => async activity => {
+          //   // For DL only
+          //   if (activity.from.role === 'user') {
+          //     // This is because DL channel always return server timestamp on read-receipt.
+          //     // Also, DL weirdly send bot response as "US-en"
+          //     next({ ...activity, timestamp: activity.channelData.timestamp });
+          //   } else {
+          //     next(activity);
+
+          //     const hsilgne = await englishToHsilgne(activity.text);
+
+          //     next({ ...activity, text: hsilgne });
+          //   }
+
+          //   // For IC3 only
+          //   // next(activity);
+
+          //   // if (activity.locale === 'en-US') {
+          //   //   const hsilgne = await englishToHsilgne(activity.text);
+
+          //   //   next({ ...activity, text: hsilgne });
+          //   // }
+          // }),
+
+          // ingress middleware
+          next => options => {
+            const adapter = next(options);
+
+            adapter.setState('directLine.conversationId', conversationId);
+            adapter.setState('directLine.streamUrl', streamUrl);
+
+            adapter.subscribe(
+              new Observable(subscriber => {
+                const socket = new WebSocket(streamUrl);
+                const handleClose = () => subscriber.complete();
+                const handleMessage = ({ data }) => {
+                  if (!data) {
+                    return;
+                  }
+
+                  const { activities } = JSON.parse(data);
+
+                  activities.forEach(activity => {
+                    if (activity.from.id === userId) {
+                      activity = Object.assign({}, activity, { from: Object.assign({}, activity.from, { role: 'user' }) })
+                      // activity = { ...activity, from: { ...activity.from, role: 'user' } };
+                    }
+                    subscriber.next(activity);
+                  });
+                };
+
+                const handleOpen = () => adapter.setReadyState(OPEN);
+
+                socket.addEventListener('close', handleClose);
+                socket.addEventListener('message', handleMessage);
+                socket.addEventListener('open', handleOpen);
+
+                return () => {
+                  socket.removeEventListener('close', handleClose);
+                  socket.removeEventListener('message', handleMessage);
+                  socket.removeEventListener('open', handleOpen);
+                  socket.close();
+                };
+              })
             );
-          }, 5000);
-        });
-      }
 
-      (async function () {
-        'use strict';
+            return adapter;
+          },
+          applyEgressMiddleware(({ getState }) => {
+            return next => async (activity, options) => {
+              const conversationId = getState('directLine.conversationId');
 
-        const tokenRes = await fetch('https://webchat-mockbot.azurewebsites.net/directline/token', { method: 'POST' });
-
-        if (!tokenRes.ok) {
-          throw new Error('Token service is down');
-        }
-
-        const { token, userID: userId } = await tokenRes.json();
-
-        const {
-          default: createAdapter,
-          applyIngressMiddleware,
-          applyEgressMiddleware,
-          CLOSED,
-          compose,
-          exportDLJSInterface,
-          OPEN
-        } = window.ChatAdapter;
-
-        const startConversationRes = await fetch('https://directline.botframework.com/v3/directline/conversations', {
-          headers: { accept: 'application/json', authorization: `Bearer ${token}` },
-          method: 'POST'
-        });
-
-        if (!startConversationRes.ok) {
-          return adapter.setReadyState(CLOSED);
-        }
-
-        const { conversationId, streamUrl } = await startConversationRes.json();
-
-        // const directLine = window.WebChat.createDirectLine({ token });
-        const directLine = createAdapter(
-          {},
-          compose(
-            exportDLJSInterface(),
-
-            // hawo: Egress translation
-
-            applyEgressMiddleware(() => next => async (activity, options) => {
-              const hsilgne = await englishToHsilgne(activity.text);
-
-              // For DL only
-              next(
-                {
-                  ...activity,
-                  channelData: {
-                    ...activity.channelData,
-                    timestamp: activity.timestamp
-                  },
-                  text: hsilgne
-                },
-                options
-              );
-
-              // For IC3 only
-              // next(
-              //   {
-              //     ...activity,
-              //     locale: 'US-en',
-              //     text: hsilgne
-              //   },
-              //   options
-              // );
-            }),
-
-            // hawo: Ingress translation
-
-            applyIngressMiddleware(() => next => async activity => {
-              // For DL only
-              if (activity.from.role === 'user') {
-                // This is because DL channel always return server timestamp on read-receipt.
-                // Also, DL weirdly send bot response as "US-en"
-                next({ ...activity, timestamp: activity.channelData.timestamp });
-              } else {
-                next(activity);
-
-                const hsilgne = await englishToHsilgne(activity.text);
-
-                next({ ...activity, text: hsilgne });
+              if (!conversationId) {
+                throw new Error('Cannot egress before the connection is up.');
               }
 
-              // For IC3 only
-              // next(activity);
-
-              // if (activity.locale === 'en-US') {
-              //   const hsilgne = await englishToHsilgne(activity.text);
-
-              //   next({ ...activity, text: hsilgne });
-              // }
-            }),
-
-            // ingress middleware
-            next => options => {
-              const adapter = next(options);
-
-              adapter.setState('directLine.conversationId', conversationId);
-              adapter.setState('directLine.streamUrl', streamUrl);
-
-              adapter.subscribe(
-                new Observable(subscriber => {
-                  const socket = new WebSocket(streamUrl);
-                  const handleClose = () => subscriber.complete();
-                  const handleMessage = ({ data }) => {
-                    if (!data) {
-                      return;
-                    }
-                    
-                    const { activities } = JSON.parse(data);
-
-                    activities.forEach(activity => {
-                      if (activity.from.id === userId ) {
-                        activity = { ...activity, from: { ...activity.from, role: 'user' } };
-                      }
-                      subscriber.next(activity);
-                    });
-                  };
-
-                  const handleOpen = () => adapter.setReadyState(OPEN);
-
-                  socket.addEventListener('close', handleClose);
-                  socket.addEventListener('message', handleMessage);
-                  socket.addEventListener('open', handleOpen);
-
-                  return () => {
-                    socket.removeEventListener('close', handleClose);
-                    socket.removeEventListener('message', handleMessage);
-                    socket.removeEventListener('open', handleOpen);
-                    socket.close();
-                  };
-                })
+              const res = await fetch(
+                `https://directline.botframework.com/v3/directline/conversations/${conversationId}/activities`,
+                {
+                  body: JSON.stringify(activity),
+                  headers: {
+                    accept: 'application/json',
+                    authorization: `Bearer ${token}`,
+                    'content-type': 'application/json'
+                  },
+                  method: 'POST'
+                }
               );
 
-              return adapter;
-            },
-            applyEgressMiddleware(({ getState }) => {
-              return next => async (activity, options) => {
-                const conversationId = getState('directLine.conversationId');
+              if (!res.ok) {
+                throw new Error('Failed to post activity.');
+              }
 
-                if (!conversationId) {
-                  throw new Error('Cannot egress before the connection is up.');
-                }
+              const { id } = await res.json();
+              options.progress && options.progress(Object.assign({}, activity, { id }));
+              // options.progress && options.progress({ ...activity, id });
+            };
+          })
+        )
+      );
 
-                const res = await fetch(
-                  `https://directline.botframework.com/v3/directline/conversations/${conversationId}/activities`,
-                  {
-                    body: JSON.stringify(activity),
-                    headers: {
-                      accept: 'application/json',
-                      authorization: `Bearer ${token}`,
-                      'content-type': 'application/json'
-                    },
-                    method: 'POST'
-                  }
-                );
+      const store = window.WebChat.createStore({}, () => next => action => next(action));
 
-                if (!res.ok) {
-                  throw new Error('Failed to post activity.');
-                }
+      window.WebChat.renderWebChat(
+        {
+          directLine,
+          store
+        },
+        document.getElementById('root')
+      );
 
-                const { id } = await res.json();
-                options.progress && options.progress({ ...activity, id });
-              };
-            })
-          )
-        );
+      window.directLine = directLine;
+      window.store = store;
+    })();
+  </script>
+</body>
 
-        const store = window.WebChat.createStore({}, () => next => action => next(action));
-
-        window.WebChat.renderWebChat(
-          {
-            directLine,
-            store
-          },
-          document.getElementById('root')
-        );
-
-        window.directLine = directLine;
-        window.store = store;
-      })();
-    </script>
-  </body>
 </html>
