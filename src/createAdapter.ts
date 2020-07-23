@@ -1,20 +1,19 @@
 /// <reference path="./types/external.d.ts" />
 
-import EventTarget from 'event-target-shim-es5';
-
 import {
   Adapter,
-  AdapterState,
-  AdapterOptions,
   AdapterEnhancer,
+  AdapterOptions,
+  AdapterState,
   ReadyState,
   SealedAdapter
 } from './types/AdapterTypes';
-
+import Observable, { Subscription } from 'core-js/features/observable';
 import createAsyncIterableQueue, { AsyncIterableQueue } from './utils/createAsyncIterableQueue';
+
+import EventTarget from 'event-target-shim-es5';
 import createEvent from './utils/createEvent';
 import sealAdapter from './sealAdapter';
-import Observable, { Subscription } from 'core-js/features/observable';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any, any> = next => options => next(options);
 
@@ -55,6 +54,9 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
         close: () => {
           ingressQueues.forEach(ingressQueue => ingressQueue.end());
           ingressQueues.splice(0, Infinity);
+
+          activeSubscription && activeSubscription.unsubscribe();
+          activeSubscription = null;
         },
 
         // Egress middleware API

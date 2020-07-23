@@ -5,7 +5,6 @@ import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 
 import ConnectivityManager from '../../utils/ConnectivityManager';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
-import { IDirectLineActivity } from '../../../types/DirectLineTypes';
 import Observable from 'core-js/features/observable';
 import applySetStateMiddleware from '../../../applySetStateMiddleware';
 import { compose } from 'redux';
@@ -54,21 +53,24 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
               (async function () {
                 let waitTime = 5;
-                while(getReadyState() != ReadyState.OPEN && waitTime < 1000){
+                while(getReadyState() != ReadyState.OPEN && waitTime < 3000){
                   await timeout(waitTime);
                   waitTime *= 2;
                 }
                 (await conversation.getMessages()).forEach(async message => {
+                  if (unsubscribed) { return; }
                   let activity = await convertMessage(message);
                   !unsubscribed && next(activity);
                 });
 
                 conversation.registerOnNewMessage(async message => {
+                  if (unsubscribed) { return; }
                   let activity: any = await convertMessage(message);
                   !unsubscribed && next(activity);
                 });
 
                 conversation.registerOnThreadUpdate(async thread => {
+                  if (unsubscribed) { return; }
                   !unsubscribed && next(await convertThread(thread));
                 });
               })();
