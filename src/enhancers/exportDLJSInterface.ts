@@ -101,7 +101,9 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
         })
       ),
 
-      end: () => adapter.close(),
+      end: () => {
+        adapter.close();
+      },
 
       postActivity(activity: IDirectLineActivity) {
         return new Observable(observer => {
