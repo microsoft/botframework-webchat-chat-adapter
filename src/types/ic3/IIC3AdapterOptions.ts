@@ -3,6 +3,10 @@
 import { IChatToken } from './IChatToken';
 import { INotification } from './INotification';
 
+export interface FeatureConfig {
+  ShouldEnableInlinePlaying: boolean;
+}
+
 export interface IIC3AdapterOptions
   extends Microsoft.CRM.Omnichannel.IC3Client.Model.IClientSDKInitializationParameters {
   callbackOnNotification?: (notification: INotification) => void;
@@ -14,4 +18,5 @@ export interface IIC3AdapterOptions
   userId: string;
   visitor?: boolean;
   sendHeartBeat: boolean;
+  featureConfig?: FeatureConfig;
 }
