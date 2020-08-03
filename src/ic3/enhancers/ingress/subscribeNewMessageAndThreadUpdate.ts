@@ -11,6 +11,8 @@ import { compose } from 'redux';
 import createThreadToDirectLineActivityMapper from './mappers/createThreadToDirectLineActivityMapper';
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
+import { warn } from '../../telemetry/logger';
+import { TELEMETRY_EVENT_UNKNOWN_MESSAGE_TYPE } from '../../telemetry/telemetryEvents';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
   IC3DirectLineActivity,
@@ -20,11 +22,17 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
     const convertMessage = compose(
       createUserMessageToDirectLineActivityMapper({ getState }),
       createTypingMessageToDirectLineActivityMapper({ getState })
-    )(message => console.warn('IC3: Unknown type of message; ignoring message.', message));
+    )(message => {
+      warn(TELEMETRY_EVENT_UNKNOWN_MESSAGE_TYPE, {
+        Description: `Adapter: Unknown message type; ignoring message ${message}`
+      });
+    });
 
-    const convertThread = createThreadToDirectLineActivityMapper({ getState })(thread =>
-      console.warn('IC3: Unknown type of thread; ignoring thread.', thread)
-    );
+    const convertThread = createThreadToDirectLineActivityMapper({ getState })(thread => {
+      warn(TELEMETRY_EVENT_UNKNOWN_MESSAGE_TYPE, {
+        Description: `Adapter: Unknown message type; ignoring message ${thread}`
+      });
+    });
 
     function timeout(ms: number){
       return new Promise(resolve => setTimeout(() => {

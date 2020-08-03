@@ -1,8 +1,7 @@
 /// <reference path="../types/ic3/external/Model.d.ts" />
 /// <reference path="../types/ic3/external/SDK.d.ts" />
 
-import { Logger } from "./telemetry/logger";
-import { TelemetryEvents } from "./telemetry/telemetryEvents";
+import { TELEMETRY_EVENT_IC3_SDK_NOT_FOUND } from "./telemetry/telemetryEvents";
 
 const DEFAULT_SDK_URL = 'https://comms.omnichannelengagementhub.com/release/2019.12.27.1/Scripts/SDK/SDK.min.js';
 
@@ -20,7 +19,7 @@ export default function getSDKFromURL(
     script.addEventListener('load', () => resolve(Microsoft.CRM.Omnichannel.IC3Client.SDK.SDKProvider.getSDK(options)));
     script.addEventListener('error', ({ error }) =>
       {
-        Logger.getInstance().error(TelemetryEvents.IC3_SDK_NOT_FOUND, {
+        error(TELEMETRY_EVENT_IC3_SDK_NOT_FOUND, {
           Description: `Adapter: Failed to load IC3 SDK from URL: ${url}`
         });
         reject(error || new Error(`Failed to load IC3 SDK from URL: ${url}`))
