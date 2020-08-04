@@ -11,6 +11,10 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
   IC3AdapterState
 > {
   return ({ getState }) => next => async (activity: IC3DirectLineActivity) => {
+    if (getState(StateKey.Deprecated)) {
+      return;
+    }
+    
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
@@ -59,6 +63,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         message
       );
     } else {
+      console.log("HAHA sending", getState(StateKey.AdapterSequenceNo));
       await conversation.sendMessage(message);
     }
   };

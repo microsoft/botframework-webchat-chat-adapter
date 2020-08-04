@@ -12,6 +12,10 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
   IC3AdapterState
 > {
   return ({ getState }) => next => async (activity: IC3DirectLineActivity) => {
+    if (getState(StateKey.Deprecated)) {
+      return;
+    }
+
     if (activity.type !== ActivityType.Message || !(activity.attachments || []).length) {
       return next(activity);
     }

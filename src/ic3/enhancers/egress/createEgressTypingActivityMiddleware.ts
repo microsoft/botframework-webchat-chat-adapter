@@ -18,6 +18,10 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
   IC3AdapterState
 > {
   return ({ getState }) => next => (activity: IC3DirectLineActivity) => {
+    if (getState(StateKey.Deprecated)) {
+      return;
+    }
+    
     if (activity.type !== ActivityType.Typing) {
       return next(activity);
     }

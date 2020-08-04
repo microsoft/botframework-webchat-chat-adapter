@@ -15,6 +15,7 @@ import createAsyncIterableQueue, { AsyncIterableQueue } from './utils/createAsyn
 import createEvent from './utils/createEvent';
 import sealAdapter from './sealAdapter';
 import Observable, { Subscription } from 'core-js/features/observable';
+import { StateKey } from './types/ic3/IC3AdapterState';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any, any> = next => options => next(options);
 
@@ -53,6 +54,7 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
         },
 
         close: () => {
+          adapter.setState(StateKey.Deprecated, true);
           ingressQueues.forEach(ingressQueue => ingressQueue.end());
           ingressQueues.splice(0, Infinity);
         },
