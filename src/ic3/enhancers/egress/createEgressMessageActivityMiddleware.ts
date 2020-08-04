@@ -14,7 +14,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     if (getState(StateKey.Deprecated)) {
       return;
     }
-    
+
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
@@ -63,7 +63,6 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         message
       );
     } else {
-      console.log("HAHA sending", getState(StateKey.AdapterSequenceNo));
       await conversation.sendMessage(message);
     }
   };
