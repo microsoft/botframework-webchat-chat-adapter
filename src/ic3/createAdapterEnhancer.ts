@@ -12,8 +12,8 @@ import createEgressEnhancer from './enhancers/egress/index';
 import createIngressEnhancer from './enhancers/ingress/index';
 import getPlatformBotId from './utils/getPlatformBotId';
 import initializeIC3SDK from './initializeIC3SDK';
-import { TELEMETRY_EVENT_CHAT_TOKEN_NOT_FOUND, TELEMETRY_EVENT_IC3_SDK_INITIALIZE_STARTED, TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_STARTED, TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_SUCCESS } from './telemetry/telemetryEvents';
 import createLogger from './telemetry/createLogger';
+import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
 
 export default function createIC3Enhancer({
   chatToken,
@@ -32,7 +32,7 @@ export default function createIC3Enhancer({
   const adapterLogger = createLogger(logger);
 
   if (!chatToken) {
-    adapterLogger.error(TELEMETRY_EVENT_CHAT_TOKEN_NOT_FOUND, {
+    adapterLogger.error(TelemetryEvents.CHAT_TOKEN_NOT_FOUND, {
       Description: `Adapter: "chatToken" must be specified`
     });
     throw new Error('"chatToken" must be specified.');
@@ -62,7 +62,7 @@ export default function createIC3Enhancer({
 
       (async function () {
         if(!conversation){
-          adapterLogger.debug(TELEMETRY_EVENT_IC3_SDK_INITIALIZE_STARTED, {
+          adapterLogger.debug(TelemetryEvents.IC3_SDK_INITIALIZE_STARTED, {
             Description: `Adapter: No conversation found; initializing IC3 SDK`
           });
           const sdk = await initializeIC3SDK(
@@ -78,12 +78,12 @@ export default function createIC3Enhancer({
               visitor
             }
           );
-          adapterLogger.error(TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_STARTED, {
+          adapterLogger.debug(TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_STARTED, {
             Description: `Adapter: No conversation found; joinging conversation`
           });
           conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
-          adapterLogger.error(TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_SUCCESS, {
-            Description: `Adapter: No conversation found; join conversation failed`
+          adapterLogger.debug(TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_SUCCESS, {
+            Description: `Adapter: No conversation found; join conversation success`
           });
         }
 

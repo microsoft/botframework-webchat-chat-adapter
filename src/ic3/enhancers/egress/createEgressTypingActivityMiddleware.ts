@@ -6,6 +6,7 @@ import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { MessageTag } from '../../../types/ic3/MessageTag';
+import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
 
 const TYPING_INDICATOR_PAYLOAD = '{"isTyping":true}';
 
@@ -18,6 +19,8 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
   IC3AdapterState
 > {
   return ({ getState }) => next => (activity: IC3DirectLineActivity) => {
+    const logger = getState(StateKey.AdapterLogger);
+    
     if (activity.type !== ActivityType.Typing) {
       return next(activity);
     }
@@ -37,5 +40,9 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
     botId &&
       !isInternalActivity(activity) &&
       conversation.sendMessageToBot(botId, { payload: TYPING_INDICATOR_PAYLOAD });
+
+    logger.info(TelemetryEvents.SEND_TYPING_SUCCESS, {
+      Description: `Adapter: Successfully sent a typing indication`
+    });
   };
 }

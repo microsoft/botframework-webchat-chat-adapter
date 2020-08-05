@@ -1,10 +1,11 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
 import { ActivityType } from '../../../types/DirectLineTypes';
-import { IC3AdapterState } from '../../../types/ic3/IC3AdapterState';
+import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { IngressMiddleware } from '../../../applyIngressMiddleware';
 import updateIn from 'simple-update-in';
+import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
 
 const ADAPTIVE_CARD_ACTION_SUBMIT = 'Action.Submit';
 const ADAPTIVE_CARD_ACTION_TYPE_MAP: { [id: string]: string } = {
@@ -63,7 +64,9 @@ function processAdaptiveCardAttachments(attachments: any[]): any[] {
 }
 
 export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware<IC3DirectLineActivity, IC3AdapterState> {
-  return () => next => (activity: IC3DirectLineActivity) => {
+  return ({ getState }) => next => (activity: IC3DirectLineActivity) => {
+    const logger = getState(StateKey.AdapterLogger);
+
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
@@ -77,13 +80,17 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
     const xmlDoc = new DOMParser().parseFromString(text, CONTENT_TEXT_XML);
 
     if (xmlDoc.getElementsByTagName(TAG_PARSE_ERROR).length) {
-      console.warn(`IC3: [AdaptiveCard] Unable to parse XML; ignoring attachment.`);
+      logger.warn(TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR, {
+        Description: `Adapter: [AdaptiveCard] Unable to parse XML; ignoring attachment.`
+      });
 
       return next(activity);
     }
 
     if (xmlDoc.documentElement.nodeName !== CONTENT_URI_OBJECT) {
-      console.warn(`IC3: [AdaptiveCard] Wrong XML schema; ignoring attachment.`);
+      logger.warn(TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR, {
+        Description: `Adapter: [AdaptiveCard] Wrong XML schema; ignoring attachment.`
+      });
 
       return next(activity);
     }
@@ -91,7 +98,9 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
     const swiftElement = xmlDoc.getElementsByTagName(TAG_SWIFT)[0];
 
     if (!swiftElement) {
-      console.warn(`IC3: [AdaptiveCard] Did not contains <Swift>; ignoring attachment.`);
+      logger.warn(TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR, {
+        Description: `Adapter: [AdaptiveCard] Does not contain <Swift>; ignoring attachment.`
+      });
 
       return next(activity);
     }
@@ -100,7 +109,9 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
     const swiftJSON = base64DecodeAsUnicode(base64);
 
     if (!swiftJSON) {
-      console.warn(`IC3: [AdaptiveCard] Data is empty; ignoring attachment.`);
+      logger.warn(TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR, {
+        Description: `Adapter: [AdaptiveCard] Data is empty; ignoring attachment.`
+      });
 
       return next(activity);
     }
@@ -114,7 +125,9 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
     }
 
     if (!swift.attachments) {
-      console.warn(`IC3: [AdaptiveCard] Key 'attachments' not found; ignoring attachment.`);
+      logger.warn(TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR, {
+        Description: `Adapter: [AdaptiveCard] Key 'attachments' not found; ignoring attachment.`
+      });
 
       return next(activity);
     }
@@ -124,7 +137,10 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
     try {
       attachments = processAdaptiveCardAttachments(swift.attachments);
     } catch (error) {
-      console.warn('IC3: [AdaptiveCard] Failed to process attachments; ignoring attachment.', swift);
+      logger.error(TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR, {
+        Description: `Adapter: [AdaptiveCard] Failed to process attachments; ignoring attachment.`,
+        ExceptionDetails: error
+      });
 
       return next(activity);
     }

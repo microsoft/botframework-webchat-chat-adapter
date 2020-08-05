@@ -8,14 +8,19 @@ import { GetStateFunction } from '../../../../types/AdapterTypes';
 import { IC3DirectLineActivity } from '../../../../types/ic3/IC3DirectLineActivity';
 import { IC3_CHANNEL_ID } from '../../../Constants';
 import uniqueId from '../../../utils/uniqueId';
+import { TelemetryEvents } from '../../../../types/ic3/TelemetryEvents';
 
 export default function createTypingMessageToDirectLineActivityMapper ({ getState }: { getState: GetStateFunction<IC3AdapterState>;}): 
 AsyncMapper<Microsoft.CRM.Omnichannel.IC3Client.Model.IThread, IC3DirectLineActivity> 
 {
   return () => async (thread: Microsoft.CRM.Omnichannel.IC3Client.Model.IThread) => {
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
+    const logger = getState(StateKey.AdapterLogger);
 
     if (!conversation) {
+      logger.error(TelemetryEvents.CONVERSATION_NOT_FOUND, {
+        Description: `Adapter: Failed to ingress without an active conversation.`
+      });
       throw new Error('IC3: Failed to ingress without an active conversation.');
     }
 

@@ -1,12 +1,15 @@
 import getSDKFromURL from './getSDKFromURL';
-import { debug } from './telemetry/logger';
-import { TELEMETRY_EVENT_IC3_SDK_INITIALIZE_SUCCESS, TELEMETRY_EVENT_IC3_SDK_INITIALIZE_FAILURE } from './telemetry/telemetryEvents';
+import { IAdapterLogger } from './telemetry/IAdapterLogger';
+import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
+
 let _sdk: Microsoft.CRM.Omnichannel.IC3Client.Model.ISDK | null = null;
 let _sdkInfo: any;
+
 export default async function initializeIC3SDK(
   sdkURL: string | undefined,
   options: Microsoft.CRM.Omnichannel.IC3Client.Model.IClientSDKInitializationParameters,
-  sessionInfo: Microsoft.CRM.Omnichannel.IC3Client.Model.IInitializationInfo
+  sessionInfo: Microsoft.CRM.Omnichannel.IC3Client.Model.IInitializationInfo,
+  adapterLogger?: IAdapterLogger
 ): Promise<Microsoft.CRM.Omnichannel.IC3Client.Model.ISDK> {
   // TODO: The original code will always re-initialize on every call to this function.
   //       Looks like it does not make sense to cache the result because it always initialize.
@@ -16,15 +19,15 @@ export default async function initializeIC3SDK(
     sessionInfo: sessionInfo
   };
   try{
-    const sdk = await getSDKFromURL(sdkURL, options);
+    const sdk = await getSDKFromURL(sdkURL, options, adapterLogger);
     await sdk.initialize(sessionInfo);
-    debug(TELEMETRY_EVENT_IC3_SDK_INITIALIZE_SUCCESS, {
+    adapterLogger.debug(TelemetryEvents.IC3_SDK_INITIALIZE_SUCCESS, {
       Description: `Adapter: IC3 SDK initialization success`
     });
     _sdk = sdk;
   } catch(error){
     _sdk = null;
-    error(TELEMETRY_EVENT_IC3_SDK_INITIALIZE_FAILURE, {
+    adapterLogger.error(TelemetryEvents.IC3_SDK_INITIALIZE_FAILURE, {
       Description: `Adapter: IC3 SDK initialization failure`
     });
     throw error;

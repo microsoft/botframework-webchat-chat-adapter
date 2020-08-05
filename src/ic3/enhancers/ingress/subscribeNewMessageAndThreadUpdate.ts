@@ -11,26 +11,27 @@ import { compose } from 'redux';
 import createThreadToDirectLineActivityMapper from './mappers/createThreadToDirectLineActivityMapper';
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
-import { warn } from '../../telemetry/logger';
-import { TELEMETRY_EVENT_UNKNOWN_MESSAGE_TYPE } from '../../telemetry/telemetryEvents';
+import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
   IC3DirectLineActivity,
   IC3AdapterState
 > {
   return applySetStateMiddleware<IC3DirectLineActivity, IC3AdapterState>(({ getState, subscribe, getReadyState }) => {
+    const logger = getState(StateKey.AdapterLogger);
+
     const convertMessage = compose(
       createUserMessageToDirectLineActivityMapper({ getState }),
       createTypingMessageToDirectLineActivityMapper({ getState })
     )(message => {
-      warn(TELEMETRY_EVENT_UNKNOWN_MESSAGE_TYPE, {
+      logger.warn(TelemetryEvents.UNKNOWN_MESSAGE_TYPE, {
         Description: `Adapter: Unknown message type; ignoring message ${message}`
       });
     });
 
     const convertThread = createThreadToDirectLineActivityMapper({ getState })(thread => {
-      warn(TELEMETRY_EVENT_UNKNOWN_MESSAGE_TYPE, {
-        Description: `Adapter: Unknown message type; ignoring message ${thread}`
+      logger.warn(TelemetryEvents.UNKNOWN_THREAD_TYPE, {
+        Description: `Adapter: Unknown thread type; ignoring thread ${thread}`
       });
     });
 
@@ -47,7 +48,10 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
             new Observable<IC3DirectLineActivity>(subscriber => {
               const conversation = value as Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation;
               const next = subscriber.next.bind(subscriber);
-              window.addEventListener("reinitialize", async (event) => {              
+              window.addEventListener("reinitialize", async (event) => {  
+                logger.debug(TelemetryEvents.REHYDRATE_MESSAGES, {
+                  Description: `Re-hydrating received messages`
+                });          
                 if(ConnectivityManager.isInternetConnected()){
                   (await conversation.getMessages()).forEach(async message => {
                     let activity = await convertMessage(message);
@@ -70,17 +74,26 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   let activity = await convertMessage(message);
                   !unsubscribed && next(activity);
                 });
+                logger.debug(TelemetryEvents.GET_MESSAGES_SUCCESS, {
+                  Description: `Getting messages success on conv ${conversation.id}`
+                }); 
 
                 conversation.registerOnNewMessage(async message => {
                   if (unsubscribed) { return; }
                   let activity: any = await convertMessage(message);
                   !unsubscribed && next(activity);
                 });
+                logger.debug(TelemetryEvents.REGISTER_ON_NEW_MESSAGE, {
+                  Description: `Registering on new message success on conv ${conversation.id}`
+                }); 
 
                 conversation.registerOnThreadUpdate(async thread => {
                   if (unsubscribed) { return; }
                   !unsubscribed && next(await convertThread(thread));
                 });
+                logger.debug(TelemetryEvents.REGISTER_ON_THREAD_UPDATE, {
+                  Description: `Registering on thread update success on conv ${conversation.id}`
+                }); 
               })();
 
               return () => {
