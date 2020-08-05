@@ -26,7 +26,8 @@ export default function createIC3Enhancer({
   userId,
   visitor,
   sendHeartBeat = false,
-  conversation
+  conversation,
+  featureConfig
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
   const logger2 = createLogger(logger);
 
@@ -56,6 +57,7 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.Conversation, undefined);
       adapter.setState(StateKey.UserDisplayName, undefined);
       adapter.setState(StateKey.UserId, undefined);
+      adapter.setState(StateKey.FeatureConfig, undefined);
 
       (async function () {
         if(!conversation){
@@ -90,6 +92,7 @@ export default function createIC3Enhancer({
         adapter.setState(StateKey.Conversation, conversation);
         adapter.setState(StateKey.UserDisplayName, userDisplayName);
         adapter.setState(StateKey.UserId, userId);
+        adapter.setState(StateKey.FeatureConfig, featureConfig);
         adapter.setReadyState(ReadyState.OPEN);
       })();
 
