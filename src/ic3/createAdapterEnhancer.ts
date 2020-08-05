@@ -12,8 +12,8 @@ import createEgressEnhancer from './enhancers/egress/index';
 import createIngressEnhancer from './enhancers/ingress/index';
 import getPlatformBotId from './utils/getPlatformBotId';
 import initializeIC3SDK from './initializeIC3SDK';
-import { error, debug } from './telemetry/logger';
 import { TELEMETRY_EVENT_CHAT_TOKEN_NOT_FOUND, TELEMETRY_EVENT_IC3_SDK_INITIALIZE_STARTED, TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_STARTED, TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_SUCCESS } from './telemetry/telemetryEvents';
+import createLogger from './telemetry/createLogger';
 
 export default function createIC3Enhancer({
   chatToken,
@@ -29,10 +29,10 @@ export default function createIC3Enhancer({
   conversation,
   featureConfig
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
-  const logger2 = createLogger(logger);
+  const adapterLogger = createLogger(logger);
 
   if (!chatToken) {
-    error(TELEMETRY_EVENT_CHAT_TOKEN_NOT_FOUND, {
+    adapterLogger.error(TELEMETRY_EVENT_CHAT_TOKEN_NOT_FOUND, {
       Description: `Adapter: "chatToken" must be specified`
     });
     throw new Error('"chatToken" must be specified.');
@@ -58,10 +58,11 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.UserDisplayName, undefined);
       adapter.setState(StateKey.UserId, undefined);
       adapter.setState(StateKey.FeatureConfig, undefined);
+      adapter.setState(StateKey.AdapterLogger, undefined);
 
       (async function () {
         if(!conversation){
-          debug(TELEMETRY_EVENT_IC3_SDK_INITIALIZE_STARTED, {
+          adapterLogger.debug(TELEMETRY_EVENT_IC3_SDK_INITIALIZE_STARTED, {
             Description: `Adapter: No conversation found; initializing IC3 SDK`
           });
           const sdk = await initializeIC3SDK(
@@ -77,11 +78,11 @@ export default function createIC3Enhancer({
               visitor
             }
           );
-          error(TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_STARTED, {
+          adapterLogger.error(TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_STARTED, {
             Description: `Adapter: No conversation found; joinging conversation`
           });
           conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
-          error(TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_SUCCESS, {
+          adapterLogger.error(TELEMETRY_EVENT_IC3_SDK_JOIN_CONVERSATION_SUCCESS, {
             Description: `Adapter: No conversation found; join conversation failed`
           });
         }
@@ -93,6 +94,7 @@ export default function createIC3Enhancer({
         adapter.setState(StateKey.UserDisplayName, userDisplayName);
         adapter.setState(StateKey.UserId, userId);
         adapter.setState(StateKey.FeatureConfig, featureConfig);
+        adapter.setState(StateKey.AdapterLogger, adapterLogger);
         adapter.setReadyState(ReadyState.OPEN);
       })();
 
