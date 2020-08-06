@@ -8,8 +8,7 @@ const DEFAULT_SDK_URL = 'https://comms.omnichannelengagementhub.com/release/2019
 
 export default function getSDKFromURL(
   url: string | undefined,
-  options: Microsoft.CRM.Omnichannel.IC3Client.Model.IClientSDKInitializationParameters,
-  adapterLogger?: IAdapterLogger
+  options: Microsoft.CRM.Omnichannel.IC3Client.Model.IClientSDKInitializationParameters
 ) {
   return new Promise<Microsoft.CRM.Omnichannel.IC3Client.Model.ISDK>((resolve, reject) => {
     const script = document.createElement('script');
@@ -21,9 +20,12 @@ export default function getSDKFromURL(
     script.addEventListener('load', () => resolve(Microsoft.CRM.Omnichannel.IC3Client.SDK.SDKProvider.getSDK(options)));
     script.addEventListener('error', ({ error }) =>
       {
-        adapterLogger.error(TelemetryEvents.IC3_SDK_NOT_FOUND, {
-          Description: `Adapter: Failed to load IC3 SDK from URL: ${url}`
-        });
+        options?.logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+          {
+            Event: TelemetryEvents.IC3_SDK_NOT_FOUND,
+            Description: `Adapter: Failed to load IC3 SDK from URL: ${url}`
+          }
+        );
         reject(error || new Error(`Failed to load IC3 SDK from URL: ${url}`))
       }
     );

@@ -20,7 +20,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
     if (!conversation) {
-      getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
         {
           Event: TelemetryEvents.CONVERSATION_NOT_FOUND,
           Description: `Adapter: Failed to egress without an active conversation.`
@@ -78,7 +78,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         (channelData.uploadedFileMetadata as unknown) as Microsoft.CRM.Omnichannel.IC3Client.Model.IFileMetadata,
         message
       );
-      getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
           Event: TelemetryEvents.SEND_FILE_SUCCESS,
           Description: `Adapter: Successfully sent a file with clientmessageid ${message.clientmessageid}`
@@ -86,7 +86,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       );
     } else {
       await conversation.sendMessage(message);
-      getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
           Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
           Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}`

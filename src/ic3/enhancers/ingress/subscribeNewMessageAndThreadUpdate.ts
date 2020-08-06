@@ -22,7 +22,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
       createUserMessageToDirectLineActivityMapper({ getState }),
       createTypingMessageToDirectLineActivityMapper({ getState })
     )(message => {
-      getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
+      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
         {
           Event: TelemetryEvents.UNKNOWN_MESSAGE_TYPE,
           Description: `Adapter: Unknown message type; ignoring message ${message}`
@@ -31,7 +31,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
     });
 
     const convertThread = createThreadToDirectLineActivityMapper({ getState })(thread => {
-      getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
+      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
         {
           Event: TelemetryEvents.UNKNOWN_THREAD_TYPE,
           Description: `Adapter: Unknown thread type; ignoring thread ${thread}`
@@ -53,7 +53,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
               const conversation = value as Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation;
               const next = subscriber.next.bind(subscriber);
               window.addEventListener("reinitialize", async (event) => {  
-                getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                   {
                     Event: TelemetryEvents.REHYDRATE_MESSAGES,
                     Description: `Adapter: Re-hydrating received messages`
@@ -76,12 +76,19 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   await timeout(waitTime);
                   waitTime *= 2;
                 }
+                getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                  {
+                    Event: TelemetryEvents.ADAPTER_NOT_READY,
+                    Description: `Adapter: Adapter not ready. ReadyState is not OPEN`
+                  }
+                );
+
                 (await conversation.getMessages()).forEach(async message => {
                   if (unsubscribed) { return; }
                   let activity = await convertMessage(message);
                   !unsubscribed && next(activity);
                 });
-                getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                   {
                     Event: TelemetryEvents.GET_MESSAGES_SUCCESS,
                     Description: `Adapter: Getting messages success`
@@ -91,7 +98,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                 conversation.registerOnNewMessage(async message => {
                   if (unsubscribed) { return; }
                   let activity: any = await convertMessage(message);
-                  getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                  getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
                       Event: TelemetryEvents.MESSAGE_RECEIVED,
                       Description: `Adapter: Received a message with id ${activity.id}`
@@ -99,7 +106,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   );
                   !unsubscribed && next(activity);
                 });
-                getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                   {
                     Event: TelemetryEvents.REGISTER_ON_NEW_MESSAGE,
                     Description: `Adapter: Registering on new message success`
@@ -109,7 +116,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                 conversation.registerOnThreadUpdate(async thread => {
                   if (unsubscribed) { return; }
                   let activity: any = await convertThread(thread);
-                  getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                  getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
                       Event: TelemetryEvents.THREAD_UPDATE_RECEIVED,
                       Description: `Adapter: Received a thread update with id ${activity.id}`
@@ -117,7 +124,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   );
                   !unsubscribed && next(activity);
                 });
-                getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                   {
                     Event: TelemetryEvents.REGISTER_ON_THREAD_UPDATE,
                     Description: `Adapter: Registering on thread update success`

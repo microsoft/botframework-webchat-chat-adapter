@@ -19,6 +19,7 @@ export default function createIC3Enhancer({
   hostType,
   logger,
   protocolType,
+  sdkUrl,
   sdkURL,
   userDisplayName,
   userId,
@@ -26,7 +27,7 @@ export default function createIC3Enhancer({
   sendHeartBeat = false,
   conversation,
   featureConfig
-}: IIC3AdapterOptions): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
+}: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
 
   if (!chatToken) {
     logger.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
@@ -34,6 +35,13 @@ export default function createIC3Enhancer({
         Description: `Adapter: "chatToken" must be specified`
       });
     throw new Error('"chatToken" must be specified.');
+  }
+
+  if (sdkUrl && !sdkURL) {
+    console.warn(
+      'IC3: "sdkUrl" has been renamed to "sdkURL". Please rename accordingly to suppress this warning in the future.'
+    );
+    sdkURL = sdkUrl;
   }
 
   hostType = hostType ?? HostType.IFrame;
