@@ -91,6 +91,12 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                 conversation.registerOnNewMessage(async message => {
                   if (unsubscribed) { return; }
                   let activity: any = await convertMessage(message);
+                  getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                    {
+                      Event: TelemetryEvents.MESSAGE_RECEIVED,
+                      Description: `Adapter: Received a message with id ${activity.id}`
+                    }
+                  );
                   !unsubscribed && next(activity);
                 });
                 getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
@@ -102,7 +108,14 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
                 conversation.registerOnThreadUpdate(async thread => {
                   if (unsubscribed) { return; }
-                  !unsubscribed && next(await convertThread(thread));
+                  let activity: any = await convertThread(thread);
+                  getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                    {
+                      Event: TelemetryEvents.THREAD_UPDATE_RECEIVED,
+                      Description: `Adapter: Received a thread update with id ${activity.id}`
+                    }
+                  );
+                  !unsubscribed && next(activity);
                 });
                 getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                   {

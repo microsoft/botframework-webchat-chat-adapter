@@ -78,18 +78,18 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         (channelData.uploadedFileMetadata as unknown) as Microsoft.CRM.Omnichannel.IC3Client.Model.IFileMetadata,
         message
       );
-      getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.INFO,
+      getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
           Event: TelemetryEvents.SEND_FILE_SUCCESS,
-          Description: `Adapter: Successfully sent a file`
+          Description: `Adapter: Successfully sent a file with clientmessageid ${message.clientmessageid}`
         }
       );
     } else {
       await conversation.sendMessage(message);
-      getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.INFO,
+      getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
           Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-          Description: `Adapter: Successfully sent a message`
+          Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}`
         }
       );
     }
