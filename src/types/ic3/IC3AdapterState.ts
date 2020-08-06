@@ -1,5 +1,4 @@
 import { FeatureConfig } from "./IIC3AdapterOptions";
-import { IAdapterLogger } from "../../ic3/telemetry/IAdapterLogger";
 
 enum StateKey {
   BotId = 'ic3.botId',
@@ -7,7 +6,7 @@ enum StateKey {
   UserDisplayName = 'ic3.userDisplayName',
   UserId = 'ic3.userId',
   FeatureConfig = 'ic3.featureConfig',
-  AdapterLogger = 'ic3.adapterLogger'
+  Logger = 'ic3.logger'
 }
 
 export { StateKey };
@@ -18,5 +17,5 @@ export type IC3AdapterState = {
   [StateKey.UserDisplayName]: string;
   [StateKey.UserId]: string;
   [StateKey.FeatureConfig]: FeatureConfig;
-  [StateKey.AdapterLogger]: IAdapterLogger;
+  [StateKey.Logger]: Microsoft.CRM.Omnichannel.IC3Client.Model.ILogger;
 };

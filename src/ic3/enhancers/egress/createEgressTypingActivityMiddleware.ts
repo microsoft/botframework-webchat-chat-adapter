@@ -19,7 +19,6 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
   IC3AdapterState
 > {
   return ({ getState }) => next => (activity: IC3DirectLineActivity) => {
-    const logger = getState(StateKey.AdapterLogger);
     
     if (activity.type !== ActivityType.Typing) {
       return next(activity);
@@ -41,8 +40,11 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
       !isInternalActivity(activity) &&
       conversation.sendMessageToBot(botId, { payload: TYPING_INDICATOR_PAYLOAD });
 
-    logger.info(TelemetryEvents.SEND_TYPING_SUCCESS, {
-      Description: `Adapter: Successfully sent a typing indication`
-    });
+    getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.INFO,
+      {
+        Event: TelemetryEvents.SEND_TYPING_SUCCESS,
+        Description: `Adapter: Successfully sent a typing indication`
+      }
+    );
   };
 }
