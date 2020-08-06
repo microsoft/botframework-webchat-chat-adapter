@@ -76,12 +76,14 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   await timeout(waitTime);
                   waitTime *= 2;
                 }
+                if (getReadyState() != ReadyState.OPEN) {
                 getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
-                  {
-                    Event: TelemetryEvents.ADAPTER_NOT_READY,
-                    Description: `Adapter: Adapter not ready. ReadyState is not OPEN`
-                  }
-                );
+                    {
+                      Event: TelemetryEvents.ADAPTER_NOT_READY,
+                      Description: `Adapter: Adapter not ready. ReadyState is not OPEN`
+                    }
+                  );
+                }
 
                 (await conversation.getMessages()).forEach(async message => {
                   if (unsubscribed) { return; }
