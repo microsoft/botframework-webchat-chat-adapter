@@ -30,7 +30,7 @@ export default function createIC3Enhancer({
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
 
   if (!chatToken) {
-    logger.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+    logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
       { Event: TelemetryEvents.CHAT_TOKEN_NOT_FOUND, 
         Description: `Adapter: "chatToken" must be specified`
       });
@@ -61,7 +61,7 @@ export default function createIC3Enhancer({
 
       (async function () {
         if(!conversation){
-          logger.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
             { Event: TelemetryEvents.IC3_SDK_INITIALIZE_STARTED, 
               Description: `Adapter: No conversation found; initializing IC3 SDK`
             });
@@ -79,12 +79,12 @@ export default function createIC3Enhancer({
             }
           );
           
-          logger.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
             { Event: TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_STARTED, 
               Description: `Adapter: No conversation found; joinging conversation`
             });
           conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
-          logger.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
             { Event: TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_SUCCESS, 
               Description: `Adapter: No conversation found; join conversation success`
             });
