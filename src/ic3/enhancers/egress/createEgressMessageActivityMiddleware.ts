@@ -5,12 +5,14 @@ import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
+import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
 
 export default function createEgressMessageActivityMiddleware(): EgressMiddleware<
   IC3DirectLineActivity,
   IC3AdapterState
 > {
   return ({ getState }) => next => async (activity: IC3DirectLineActivity) => {
+
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
@@ -18,6 +20,12 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     const conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation = getState(StateKey.Conversation);
 
     if (!conversation) {
+      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+        {
+          Event: TelemetryEvents.CONVERSATION_NOT_FOUND,
+          Description: `Adapter: Failed to egress without an active conversation.`
+        }
+      );
       throw new Error('IC3: Failed to egress without an active conversation.');
     }
 
@@ -70,8 +78,20 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         (channelData.uploadedFileMetadata as unknown) as Microsoft.CRM.Omnichannel.IC3Client.Model.IFileMetadata,
         message
       );
+      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+        {
+          Event: TelemetryEvents.SEND_FILE_SUCCESS,
+          Description: `Adapter: Successfully sent a file with clientmessageid ${message.clientmessageid}`
+        }
+      );
     } else {
       await conversation.sendMessage(message);
+      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+        {
+          Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
+          Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}`
+        }
+      );
     }
   };
 }

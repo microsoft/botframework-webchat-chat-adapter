@@ -1,6 +1,10 @@
 import getSDKFromURL from './getSDKFromURL';
+import { IAdapterLogger } from './telemetry/IAdapterLogger';
+import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
+
 let _sdk: Microsoft.CRM.Omnichannel.IC3Client.Model.ISDK | null = null;
 let _sdkInfo: any;
+
 export default async function initializeIC3SDK(
   sdkURL: string | undefined,
   options: Microsoft.CRM.Omnichannel.IC3Client.Model.IClientSDKInitializationParameters,
@@ -16,9 +20,21 @@ export default async function initializeIC3SDK(
   try{
     const sdk = await getSDKFromURL(sdkURL, options);
     await sdk.initialize(sessionInfo);
+    options?.logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+      {
+        Event: TelemetryEvents.IC3_SDK_INITIALIZE_SUCCESS,
+        Description:  `Adapter: IC3 SDK initialization success`
+      }
+    );
     _sdk = sdk;
   } catch(error){
     _sdk = null;
+    options?.logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+      {
+        Event: TelemetryEvents.IC3_SDK_INITIALIZE_FAILURE,
+        Description: `Adapter: IC3 SDK initialization failure`
+      }
+    );
     throw error;
   }
 
