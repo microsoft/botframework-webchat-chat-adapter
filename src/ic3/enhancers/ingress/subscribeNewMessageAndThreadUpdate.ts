@@ -77,7 +77,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   waitTime *= 2;
                 }
                 if (getReadyState() != ReadyState.OPEN) {
-                getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                  getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
                     {
                       Event: TelemetryEvents.ADAPTER_NOT_READY,
                       Description: `Adapter: Adapter not ready. ReadyState is not OPEN`
