@@ -40,7 +40,7 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
       !isInternalActivity(activity) &&
       conversation.sendMessageToBot(botId, { payload: TYPING_INDICATOR_PAYLOAD });
 
-    getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.INFO,
+    getState(StateKey.Logger).logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
       {
         Event: TelemetryEvents.SEND_TYPING_SUCCESS,
         Description: `Adapter: Successfully sent a typing indication`
