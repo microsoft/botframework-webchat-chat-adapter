@@ -55,8 +55,6 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.BotId, undefined);
       adapter.setState(StateKey.Conversation, undefined);
       adapter.setState(StateKey.UserDisplayName, undefined);
-      adapter.setState(StateKey.Deprecated, undefined);
-      adapter.setState(StateKey.AdapterSequenceNo, undefined);
       adapter.setState(StateKey.UserId, undefined);
       adapter.setState(StateKey.FeatureConfig, undefined);
       adapter.setState(StateKey.Logger, undefined);
@@ -97,8 +95,6 @@ export default function createIC3Enhancer({
         adapter.setState(StateKey.BotId, botId);
         adapter.setState(StateKey.Conversation, conversation);
         adapter.setState(StateKey.UserDisplayName, userDisplayName);
-        adapter.setState(StateKey.Deprecated, false);
-        adapter.setState(StateKey.AdapterSequenceNo, new Date().getTime());
         adapter.setState(StateKey.UserId, userId);
         adapter.setState(StateKey.FeatureConfig, featureConfig);
         adapter.setState(StateKey.Logger, logger);

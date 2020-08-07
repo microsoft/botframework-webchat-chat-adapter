@@ -48,7 +48,7 @@
     "src/types/**/*.d.ts"
   ],
   "scripts": {
-    "tsc": "tsc --p ./src/tsconfig.json 2>&1 || true && echo Please ignore tsc errors for now!",
+    "tsc": "tsc --p ./src/tsconfig.json 2>&1 || echo Please ignore tsc errors for now!",
     "build": "npm run build:babel && npm run build:webpack && npm run tsc",
     "build:babel": "babel src/ --copy-files --extensions .js,.ts,.tsx --no-copy-ignored --out-dir lib/ --verbose",
     "build:webpack": "webpack",
