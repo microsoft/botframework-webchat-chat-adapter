@@ -1,10 +1,10 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
+import { AdapterEnhancer, ReadyState } from '../../../types/AdapterTypes';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 
-import { AdapterEnhancer } from '../../../types/AdapterTypes';
+import ConnectivityManager from '../../utils/ConnectivityManager';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
-import { IDirectLineActivity } from '../../../types/DirectLineTypes';
 import Observable from 'core-js/features/observable';
 import applySetStateMiddleware from '../../../applySetStateMiddleware';
 import { compose } from 'redux';
@@ -16,7 +16,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return applySetStateMiddleware<IC3DirectLineActivity, IC3AdapterState>(({ getState, subscribe }) => {
+  return applySetStateMiddleware<IC3DirectLineActivity, IC3AdapterState>(({ getState, subscribe, getReadyState }) => {
     const convertMessage = compose(
       createUserMessageToDirectLineActivityMapper({ getState }),
       createTypingMessageToDirectLineActivityMapper({ getState })
@@ -26,6 +26,12 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
       console.warn('IC3: Unknown type of thread; ignoring thread.', thread)
     );
 
+    function timeout(ms: number){
+      return new Promise(resolve => setTimeout(() => {
+        resolve();
+      }, ms));
+    }
+
     return next => (key: keyof IC3AdapterState, value: any) => {
       key === StateKey.Conversation &&
         subscribe(
@@ -33,22 +39,38 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
             new Observable<IC3DirectLineActivity>(subscriber => {
               const conversation = value as Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation;
               const next = subscriber.next.bind(subscriber);
+              window.addEventListener("reinitialize", async (event) => {              
+                if(ConnectivityManager.isInternetConnected()){
+                  (await conversation.getMessages()).forEach(async message => {
+                    let activity = await convertMessage(message);
+                    !unsubscribed && next(activity);
+                  });
+                }
+              });
 
               // TODO: Currently, there is no way to unsubscribe. We are using this flag to fake an "unregisterOnXXX".
               let unsubscribed: boolean;
 
               (async function () {
+                let waitTime = 5;
+                while(getReadyState() != ReadyState.OPEN && waitTime < 3000){
+                  await timeout(waitTime);
+                  waitTime *= 2;
+                }
                 (await conversation.getMessages()).forEach(async message => {
+                  if (unsubscribed) { return; }
                   let activity = await convertMessage(message);
                   !unsubscribed && next(activity);
                 });
 
                 conversation.registerOnNewMessage(async message => {
+                  if (unsubscribed) { return; }
                   let activity: any = await convertMessage(message);
                   !unsubscribed && next(activity);
                 });
 
                 conversation.registerOnThreadUpdate(async thread => {
+                  if (unsubscribed) { return; }
                   !unsubscribed && next(await convertThread(thread));
                 });
               })();

@@ -43,7 +43,10 @@ declare module 'event-target-shim-es5' {
     dispatchEvent(event: Event): boolean;
     removeEventListener(name: string, listener: EventListener): void;
   }
-
+  export function defineEventAttribute(
+    prototype: EventTarget,
+    eventName: string
+  ): void;
   export type EventListener = (event: Event) => void;
 }
 

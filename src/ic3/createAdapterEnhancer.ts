@@ -3,7 +3,6 @@
 import { AdapterCreator, AdapterEnhancer, ReadyState } from '../types/AdapterTypes';
 import { IC3AdapterState, StateKey } from '../types/ic3/IC3AdapterState';
 
-import { ActivityType } from '../types/DirectLineTypes';
 import { HostType } from '../types/ic3/HostType';
 import { IC3DirectLineActivity } from '../types/ic3/IC3DirectLineActivity';
 import { IIC3AdapterOptions } from '../types/ic3/IIC3AdapterOptions';
@@ -25,7 +24,8 @@ export default function createIC3Enhancer({
   userId,
   visitor,
   sendHeartBeat = false,
-  conversation
+  conversation,
+  featureConfig
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
   if (!chatToken) {
     throw new Error('"chatToken" must be specified.');
@@ -52,6 +52,7 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.Deprecated, undefined);
       adapter.setState(StateKey.AdapterSequenceNo, undefined);
       adapter.setState(StateKey.UserId, undefined);
+      adapter.setState(StateKey.FeatureConfig, undefined);
 
       (async function () {
         if(!conversation){
@@ -79,6 +80,7 @@ export default function createIC3Enhancer({
         adapter.setState(StateKey.Deprecated, false);
         adapter.setState(StateKey.AdapterSequenceNo, new Date().getTime());
         adapter.setState(StateKey.UserId, userId);
+        adapter.setState(StateKey.FeatureConfig, featureConfig);
         adapter.setReadyState(ReadyState.OPEN);
       })();
 

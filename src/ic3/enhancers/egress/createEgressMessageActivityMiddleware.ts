@@ -54,7 +54,19 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
 
     // attach client activity id tag
     if(activity.channelData && activity.channelData.clientActivityID){
-      message.tags.push("client_activity_id:" + activity.channelData.clientActivityID);
+      if(hasTargetTag(message, "client_activity_id:")){
+        for(let index = 0; index < message.tags.length; index ++ ){
+          if(message.tags[index].indexOf("client_activity_id:") > -1){
+            message.tags[index] = "client_activity_id:" + activity.channelData.clientActivityID;
+            break;
+          }
+        }
+        if (activity.previousClientActivityID){
+          message.tags.push("previousClientActivityID:" + activity.previousClientActivityID)
+        }
+      }else{
+        message.tags.push("client_activity_id:" + activity.channelData.clientActivityID);
+      }
     }
 
     if (channelData.uploadedFileMetadata) {
@@ -67,4 +79,10 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       await conversation.sendMessage(message);
     }
   };
+}
+
+function hasTargetTag(message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage, key: string): boolean {
+  if (!message || !message.tags || message.tags.length === 0 || !key) return false;
+  let targetTags = message.tags.filter(tag => tag.indexOf(key) > -1);
+  return targetTags.length > 0;
 }

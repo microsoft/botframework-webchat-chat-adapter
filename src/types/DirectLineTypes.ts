@@ -50,6 +50,7 @@ interface IDirectLineActivity {
   type: ActivityType;
   value?: any;
   messageid?: string;
+  previousClientActivityID?: string;
 }
 
 export { ActivityType, Role };

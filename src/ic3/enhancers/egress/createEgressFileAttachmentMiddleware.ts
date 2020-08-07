@@ -36,7 +36,8 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
     );
 
     await Promise.all(
-      attachments.map(async ({ contentType, contentUrl, name }) => {
+      attachments.map(async (attachment) => {
+        const { contentType, contentUrl, name } = attachment;
         const res = await fetch(contentUrl);
 
         if (!res.ok) {
@@ -51,6 +52,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         file.name = name || '';
         file.lastModified = +now;
         file.lastModifiedDate = now.toISOString();
+        attachment.blob = blobPart;
 
         const uploadedFileMetadata: any = await conversation.uploadFile(file as File);
 
