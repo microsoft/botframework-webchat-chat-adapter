@@ -1,5 +1,4 @@
 import getSDKFromURL from './getSDKFromURL';
-import { IAdapterLogger } from './telemetry/IAdapterLogger';
 import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
 
 let _sdk: Microsoft.CRM.Omnichannel.IC3Client.Model.ISDK | null = null;

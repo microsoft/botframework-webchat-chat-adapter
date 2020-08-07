@@ -43,7 +43,7 @@ window.Microsoft || ((window as any ).Microsoft = {});
       {},
       compose(
         exportDLJSInterface(), 
-        createIC3AdapterEnhancer(options,),
+        createIC3AdapterEnhancer(options),
       )
     )
 );
