@@ -12,6 +12,7 @@ import createEgressEnhancer from './enhancers/egress/index';
 import createIngressEnhancer from './enhancers/ingress/index';
 import getPlatformBotId from './utils/getPlatformBotId';
 import initializeIC3SDK from './initializeIC3SDK';
+import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
 
 export default function createIC3Enhancer({
   chatToken,
@@ -27,7 +28,12 @@ export default function createIC3Enhancer({
   conversation,
   featureConfig
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
+
   if (!chatToken) {
+    logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+      { Event: TelemetryEvents.CHAT_TOKEN_NOT_FOUND, 
+        Description: `Adapter: "chatToken" must be specified`
+      });
     throw new Error('"chatToken" must be specified.');
   }
 
@@ -53,9 +59,14 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.AdapterSequenceNo, undefined);
       adapter.setState(StateKey.UserId, undefined);
       adapter.setState(StateKey.FeatureConfig, undefined);
+      adapter.setState(StateKey.Logger, undefined);
 
       (async function () {
         if(!conversation){
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            { Event: TelemetryEvents.IC3_SDK_INITIALIZE_STARTED, 
+              Description: `Adapter: No conversation found; initializing IC3 SDK`
+            });
           const sdk = await initializeIC3SDK(
             sdkURL,
             {
@@ -69,7 +80,16 @@ export default function createIC3Enhancer({
               visitor
             }
           );
+          
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            { Event: TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_STARTED, 
+              Description: `Adapter: No conversation found; joinging conversation`
+            });
           conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            { Event: TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_SUCCESS, 
+              Description: `Adapter: No conversation found; join conversation success`
+            });
         }
 
         const botId = await getPlatformBotId(conversation);
@@ -81,6 +101,7 @@ export default function createIC3Enhancer({
         adapter.setState(StateKey.AdapterSequenceNo, new Date().getTime());
         adapter.setState(StateKey.UserId, userId);
         adapter.setState(StateKey.FeatureConfig, featureConfig);
+        adapter.setState(StateKey.Logger, logger);
         adapter.setReadyState(ReadyState.OPEN);
       })();
 

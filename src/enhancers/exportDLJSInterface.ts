@@ -13,6 +13,8 @@ import Observable, { Observer } from 'core-js/features/observable';
 import AbortController from 'abort-controller-es5';
 import { IDirectLineActivity } from '../types/DirectLineTypes';
 import shareObservable from '../utils/shareObservable';
+import { StateKey } from '../types/ic3/IC3AdapterState';
+import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
 
 export enum ConnectionStatus {
   Uninitialized = 0,
@@ -51,6 +53,16 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
           await timeout(waitTime);
           waitTime = waitTime*2;
         }
+
+        if (!connectionStatusObserver) {
+          adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+            {
+              Event: TelemetryEvents.ADAPTER_NOT_READY,
+              Description: `Adapter: Adapter not ready. ConnectionStatusObserver is null`
+            }
+          );
+        }
+
         connectionStatusObserver.next(ConnectionStatus.Connected);
       }else{
         connectionStatusObserver.next(ConnectionStatus.Connected);
