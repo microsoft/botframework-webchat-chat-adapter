@@ -14,6 +14,7 @@ import createAsyncIterableQueue, { AsyncIterableQueue } from './utils/createAsyn
 import EventTarget from 'event-target-shim-es5';
 import createEvent from './utils/createEvent';
 import sealAdapter from './sealAdapter';
+import { StateKey } from './types/ic3/IC3AdapterState';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any, any> = next => options => next(options);
 
@@ -57,6 +58,9 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
 
           activeSubscription && activeSubscription.unsubscribe();
           activeSubscription = null;
+
+          const conv = adapter.getState(StateKey.Conversation);
+          conv?.disconnect();
         },
 
         // Egress middleware API
