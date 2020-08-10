@@ -23,7 +23,7 @@ AsyncMapper<Microsoft.CRM.Omnichannel.IC3Client.Model.IThread, IC3DirectLineActi
           Description: `Adapter: Failed to ingress thread update without an active conversation.`
         }
       );
-      throw new Error('IC3: Failed to ingress thread update an active conversation.');
+      throw new Error('IC3: Failed to ingress thread update without an active conversation.');
     }
 
     const { id, members, properties, type } = thread;
