@@ -1,4 +1,4 @@
-import createDeferred from 'p-defer';
+import createDeferred from 'p-defer-es5';
 
 interface AbortSignal extends EventTarget {
   aborted: boolean;

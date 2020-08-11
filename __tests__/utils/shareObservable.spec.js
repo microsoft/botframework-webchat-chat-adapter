@@ -1,4 +1,4 @@
-import createDeferred from 'p-defer';
+import createDeferred from 'p-defer-es5';
 import Observable from 'core-js/features/observable';
 
 import observableToArray from '../__jest__/observableToArray';

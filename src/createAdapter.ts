@@ -14,6 +14,8 @@ import createAsyncIterableQueue, { AsyncIterableQueue } from './utils/createAsyn
 import EventTarget from 'event-target-shim-es5';
 import createEvent from './utils/createEvent';
 import sealAdapter from './sealAdapter';
+import { StateKey } from './types/ic3/IC3AdapterState';
+import { TelemetryEvents } from './types/ic3/TelemetryEvents';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any, any> = next => options => next(options);
 
@@ -57,6 +59,13 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
 
           activeSubscription && activeSubscription.unsubscribe();
           activeSubscription = null;
+
+          adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            { Event: TelemetryEvents.ENDING_CONNECTION, 
+              Description: `Adapter: Conversation ended. Ending IC3 connection`
+            });;
+          const conv = adapter.getState(StateKey.Conversation);
+          conv?.disconnect();
         },
 
         // Egress middleware API

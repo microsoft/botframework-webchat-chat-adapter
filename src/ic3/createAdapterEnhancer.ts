@@ -12,6 +12,7 @@ import createEgressEnhancer from './enhancers/egress/index';
 import createIngressEnhancer from './enhancers/ingress/index';
 import getPlatformBotId from './utils/getPlatformBotId';
 import initializeIC3SDK from './initializeIC3SDK';
+import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
 
 export default function createIC3Enhancer({
   chatToken,
@@ -24,11 +25,9 @@ export default function createIC3Enhancer({
   userId,
   visitor,
   sendHeartBeat = false,
-  conversation
+  conversation,
+  featureConfig
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
-  if (!chatToken) {
-    throw new Error('"chatToken" must be specified.');
-  }
 
   if (sdkUrl && !sdkURL) {
     console.warn(
@@ -49,6 +48,8 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.Conversation, undefined);
       adapter.setState(StateKey.UserDisplayName, undefined);
       adapter.setState(StateKey.UserId, undefined);
+      adapter.setState(StateKey.FeatureConfig, undefined);
+      adapter.setState(StateKey.Logger, undefined);
 
       (async function () {
         if(!conversation){
@@ -65,7 +66,16 @@ export default function createIC3Enhancer({
               visitor
             }
           );
+          
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            { Event: TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_STARTED, 
+              Description: `Adapter: No conversation found; joining conversation`
+            });
           conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            { Event: TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_SUCCESS, 
+              Description: `Adapter: No conversation found; join conversation success`
+            });
         }
 
         const botId = await getPlatformBotId(conversation);
@@ -74,6 +84,8 @@ export default function createIC3Enhancer({
         adapter.setState(StateKey.Conversation, conversation);
         adapter.setState(StateKey.UserDisplayName, userDisplayName);
         adapter.setState(StateKey.UserId, userId);
+        adapter.setState(StateKey.FeatureConfig, featureConfig);
+        adapter.setState(StateKey.Logger, logger);
         adapter.setReadyState(ReadyState.OPEN);
       })();
 
