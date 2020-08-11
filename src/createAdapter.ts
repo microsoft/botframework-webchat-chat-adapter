@@ -60,7 +60,7 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
           activeSubscription && activeSubscription.unsubscribe();
           activeSubscription = null;
 
-          mutableAdapterState[StateKey.Logger]?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+          adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
             { Event: TelemetryEvents.ENDING_CONNECTION, 
               Description: `Adapter: Conversation ended. Ending IC3 connection`
             });;
