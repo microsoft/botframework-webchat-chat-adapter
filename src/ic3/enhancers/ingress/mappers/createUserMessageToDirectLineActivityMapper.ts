@@ -64,12 +64,6 @@ export default function createUserMessageToDirectLineActivityMapper({
   return next => async (message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage) => {
     
     if (message.messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage) {
-      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
-        {
-          Event: TelemetryEvents.CONVERSATION_NOT_FOUND,
-          Description: `Adapter: Failed to ingress without an active conversation.`
-        }
-      );
       return next(message);
     }
 
@@ -79,10 +73,10 @@ export default function createUserMessageToDirectLineActivityMapper({
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
         {
           Event: TelemetryEvents.CONVERSATION_NOT_FOUND,
-          Description: `Adapter: Failed to ingress without an active conversation.`
+          Description: `Adapter: Failed to ingress message without an active conversation.`
         }
       );
-      throw new Error('IC3: Failed to ingress without an active conversation.');
+      throw new Error('IC3: Failed to ingress message without an active conversation.');
     }
     
     const {
