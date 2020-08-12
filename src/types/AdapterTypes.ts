@@ -32,6 +32,7 @@ interface Adapter<TActivity, TAdapterState extends AdapterState> extends EventTa
   setReadyState: (readyState: ReadyState) => void;
   setState: SetStateFunction<TAdapterState>;
   subscribe: SubscribeFunction<TActivity>;
+  updateChatToken: (token: string, regionGTMS?: any) => void;
 }
 
 interface MiddlewareAPI<TActivity, TAdapterState extends AdapterState> {

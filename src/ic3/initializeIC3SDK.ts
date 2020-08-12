@@ -59,3 +59,8 @@ export function getSdk(): Microsoft.CRM.Omnichannel.IC3Client.Model.ISDK | null 
 export function getParams(): any {
   return _sdkInfo;
 }
+
+export async function reInitializeSDK(sessionInfo: Microsoft.CRM.Omnichannel.IC3Client.Model.IInitializationInfo) {
+  _sdkInfo.sessionInfo = sessionInfo;
+  await _sdk.initialize(sessionInfo);
+}

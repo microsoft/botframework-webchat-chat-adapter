@@ -16,6 +16,7 @@ import createEvent from './utils/createEvent';
 import sealAdapter from './sealAdapter';
 import { StateKey } from './types/ic3/IC3AdapterState';
 import { TelemetryEvents } from './types/ic3/TelemetryEvents';
+import { getParams, getSdk, reInitializeSDK } from './ic3/initializeIC3SDK';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any, any> = next => options => next(options);
 
@@ -154,6 +155,17 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
               adapter.ingress(value);
             }
           });
+        },
+
+        updateChatToken: async (token: string, regionGTMS?: any) => {
+          if (getSdk()) {
+            const sessionInfo = getParams()?.sessionInfo;
+            if (regionGTMS) {
+              sessionInfo.regionGtms = regionGTMS;
+            }
+            sessionInfo.token = token;
+            await reInitializeSDK(sessionInfo);
+          }
         }
       };
     }

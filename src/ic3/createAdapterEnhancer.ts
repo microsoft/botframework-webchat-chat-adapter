@@ -50,6 +50,7 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.UserId, undefined);
       adapter.setState(StateKey.FeatureConfig, undefined);
       adapter.setState(StateKey.Logger, undefined);
+      adapter.setState(StateKey.Visitor, undefined);
 
       (async function () {
         if(!conversation){
@@ -86,6 +87,7 @@ export default function createIC3Enhancer({
         adapter.setState(StateKey.UserId, userId);
         adapter.setState(StateKey.FeatureConfig, featureConfig);
         adapter.setState(StateKey.Logger, logger);
+        adapter.setState(StateKey.Visitor, visitor);
         adapter.setReadyState(ReadyState.OPEN);
       })();
 

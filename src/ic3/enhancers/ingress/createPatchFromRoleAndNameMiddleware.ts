@@ -16,9 +16,14 @@ export default function createPatchFromRoleAndNameMiddleware(): IngressMiddlewar
     } = activity;
 
     const userId = getState(StateKey.UserId);
+    const visitor = getState(StateKey.Visitor);
+    let patchedRole;
 
-    // TODO: Why use "id.includes" instead of string equal?
-    const patchedRole = role === Role.Channel ? role : id.includes(userId) ? Role.User : Role.Bot;
+    if (visitor) {
+      patchedRole = id.includes("contacts/8:") ? Role.User : Role.Bot; // hardcoded signature for IC3 visitor
+    } else {
+      patchedRole = role === Role.Channel ? role : id.includes(userId) ? Role.User : Role.Bot;
+    }
 
     //Taking out for easier debugging
     let patchedActivity = {
