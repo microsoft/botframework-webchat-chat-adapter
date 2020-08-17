@@ -20,7 +20,8 @@ const SUPPORTED_FUNCTIONS = [
   'removeEventListener',
   'setReadyState',
   'setState',
-  'subscribe'
+  'subscribe',
+  'updateChatToken'
 ];
 
 // Only create adapter when activities is being iterated.
@@ -130,6 +131,14 @@ export default function createLazyEnhancer<TActivity, TAdapterState extends Adap
         }
 
         return adapter.setReadyState(...args);
+      },
+
+      updateChatToken: (...args) => {
+        if (!adapter) {
+          throw new Error('You must call activities() first.');
+        }
+
+        return adapter.updateChatToken(...args);
       }
     };
   };
