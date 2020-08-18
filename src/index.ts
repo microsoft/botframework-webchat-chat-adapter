@@ -38,12 +38,13 @@ window.Microsoft || ((window as any ).Microsoft = {});
 (window.Microsoft as any).BotFramework = updateIn(
   (window.Microsoft as any).BotFramework || {},
   ['WebChat', 'createIC3Adapter'],
-  () => (options: IIC3AdapterOptions) =>
+  () => (options: IIC3AdapterOptions, logger: Microsoft.CRM.Omnichannel.IC3Client.Model.ILogger) =>
+    // TODO: Why is logger separated out? In the original code, we can put it in options and make it look flushed.
     createAdapter(
       {},
       compose(
         exportDLJSInterface(), 
-        createIC3AdapterEnhancer(options),
+        createIC3AdapterEnhancer({ ...options, logger }),
       )
     )
 );

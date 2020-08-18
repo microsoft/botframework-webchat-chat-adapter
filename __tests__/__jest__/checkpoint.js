@@ -1,4 +1,4 @@
-import createDeferred from 'p-defer-es5';
+import createDeferred from 'p-defer';
 
 export default function checkpoint() {
   const { promise: promise1, resolve: resolve1 } = createDeferred();

@@ -1,6 +1,7 @@
 /// <reference path="../types/ic3/external/Model.d.ts" />
 /// <reference path="../types/ic3/external/SDK.d.ts" />
 
+import { IAdapterLogger } from "./telemetry/IAdapterLogger";
 import { TelemetryEvents } from "../types/ic3/TelemetryEvents";
 
 const DEFAULT_SDK_URL = 'https://comms.omnichannelengagementhub.com/release/2019.12.27.1/Scripts/SDK/SDK.min.js';

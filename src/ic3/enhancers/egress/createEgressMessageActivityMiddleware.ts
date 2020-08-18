@@ -52,7 +52,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         type: Microsoft.CRM.Omnichannel.IC3Client.Model.PersonType.User
       },
       timestamp: new Date(timestamp),
-      tags: channelData.tags ?? [],
+      tags: channelData.tags,
       clientmessageid: uniqueClientMessageId
     };
 
