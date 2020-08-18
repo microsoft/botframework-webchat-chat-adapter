@@ -7,8 +7,8 @@ import { AsyncMapper } from '../../../../types/ic3/AsyncMapper';
 import { GetStateFunction } from '../../../../types/AdapterTypes';
 import { IC3DirectLineActivity } from '../../../../types/ic3/IC3DirectLineActivity';
 import { IC3_CHANNEL_ID } from '../../../Constants';
-import uniqueId from '../../../utils/uniqueId';
 import { TelemetryEvents } from '../../../../types/ic3/TelemetryEvents';
+import uniqueId from '../../../utils/uniqueId';
 
 const IMAGE_CONTENT_TYPES: { [type: string]: string } = {
   //image
@@ -64,12 +64,6 @@ export default function createUserMessageToDirectLineActivityMapper({
   return next => async (message: Microsoft.CRM.Omnichannel.IC3Client.Model.IMessage) => {
     
     if (message.messageType !== Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage) {
-      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
-        {
-          Event: TelemetryEvents.CONVERSATION_NOT_FOUND,
-          Description: `Adapter: Failed to ingress without an active conversation.`
-        }
-      );
       return next(message);
     }
 
@@ -79,10 +73,10 @@ export default function createUserMessageToDirectLineActivityMapper({
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
         {
           Event: TelemetryEvents.CONVERSATION_NOT_FOUND,
-          Description: `Adapter: Failed to ingress without an active conversation.`
+          Description: `Adapter: Failed to ingress message without an active conversation.`
         }
       );
-      throw new Error('IC3: Failed to ingress without an active conversation.');
+      throw new Error('IC3: Failed to ingress message without an active conversation.');
     }
     
     const {

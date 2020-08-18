@@ -7,12 +7,12 @@ import { HostType } from '../types/ic3/HostType';
 import { IC3DirectLineActivity } from '../types/ic3/IC3DirectLineActivity';
 import { IIC3AdapterOptions } from '../types/ic3/IIC3AdapterOptions';
 import { ProtocolType } from '../types/ic3/ProtocolType';
+import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
 import { compose } from 'redux';
 import createEgressEnhancer from './enhancers/egress/index';
 import createIngressEnhancer from './enhancers/ingress/index';
 import getPlatformBotId from './utils/getPlatformBotId';
 import initializeIC3SDK from './initializeIC3SDK';
-import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
 
 export default function createIC3Enhancer({
   chatToken,
@@ -29,13 +29,6 @@ export default function createIC3Enhancer({
   featureConfig
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
 
-  if (!chatToken) {
-    logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
-      { Event: TelemetryEvents.CHAT_TOKEN_NOT_FOUND, 
-        Description: `Adapter: "chatToken" must be specified`
-      });
-    throw new Error('"chatToken" must be specified.');
-  }
 
   if (sdkUrl && !sdkURL) {
     console.warn(
@@ -61,10 +54,6 @@ export default function createIC3Enhancer({
 
       (async function () {
         if(!conversation){
-          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
-            { Event: TelemetryEvents.IC3_SDK_INITIALIZE_STARTED, 
-              Description: `Adapter: No conversation found; initializing IC3 SDK`
-            });
           const sdk = await initializeIC3SDK(
             sdkURL,
             {
@@ -81,7 +70,7 @@ export default function createIC3Enhancer({
           
           logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
             { Event: TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_STARTED, 
-              Description: `Adapter: No conversation found; joinging conversation`
+              Description: `Adapter: No conversation found; joining conversation`
             });
           conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
           logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
