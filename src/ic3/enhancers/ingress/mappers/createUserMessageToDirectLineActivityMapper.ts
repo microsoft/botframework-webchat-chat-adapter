@@ -101,13 +101,11 @@ export default function createUserMessageToDirectLineActivityMapper({
       if ( !!IMAGE_CONTENT_TYPES[type]) {
         contentType = IMAGE_CONTENT_TYPES[type];
       }else {
-        if(getState(StateKey.FeatureConfig).ShouldEnableInlinePlaying){
-          if ( !!AUDIO_CONTENT_TYPES[type]) {
+        if(getState(StateKey.FeatureConfig).ShouldEnableInlineAudioPlaying && !!AUDIO_CONTENT_TYPES[type] ){
             contentType = AUDIO_CONTENT_TYPES[type];
-          }
-          else if( !!VIDEO_CONTENT_TYPES[type]) {
+        }
+        else if(getState(StateKey.FeatureConfig).ShouldEnableInlineVideoPlaying && !!VIDEO_CONTENT_TYPES[type]) {
             contentType = VIDEO_CONTENT_TYPES[type];
-          }
         }
       }
       const patchedBlob = new Blob([blob], { type: contentType });
