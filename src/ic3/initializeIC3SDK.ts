@@ -1,5 +1,5 @@
-import getSDKFromURL from './getSDKFromURL';
 import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
+import getSDKFromURL from './getSDKFromURL';
 
 let _sdk: Microsoft.CRM.Omnichannel.IC3Client.Model.ISDK | null = null;
 let _sdkInfo: any;
@@ -20,11 +20,10 @@ export default async function initializeIC3SDK(
     if (!sessionInfo.token) {
       options?.logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
         { Event: TelemetryEvents.CHAT_TOKEN_NOT_FOUND, 
-          Description: `Adapter: "chatToken" must be specified`
+          Description: `Adapter: chatToken must be specified`
         });
-      throw new Error('"chatToken" must be specified.');
+      throw new Error('chatToken must be specified.');
     }
-
     const sdk = await getSDKFromURL(sdkURL, options);
     options?.logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
       { Event: TelemetryEvents.IC3_SDK_INITIALIZE_STARTED, 

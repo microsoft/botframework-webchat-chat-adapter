@@ -7,8 +7,8 @@ import { AsyncMapper } from '../../../../types/ic3/AsyncMapper';
 import { GetStateFunction } from '../../../../types/AdapterTypes';
 import { IC3DirectLineActivity } from '../../../../types/ic3/IC3DirectLineActivity';
 import { IC3_CHANNEL_ID } from '../../../Constants';
-import uniqueId from '../../../utils/uniqueId';
 import { TelemetryEvents } from '../../../../types/ic3/TelemetryEvents';
+import uniqueId from '../../../utils/uniqueId';
 
 const IMAGE_CONTENT_TYPES: { [type: string]: string } = {
   //image
@@ -101,13 +101,11 @@ export default function createUserMessageToDirectLineActivityMapper({
       if ( !!IMAGE_CONTENT_TYPES[type]) {
         contentType = IMAGE_CONTENT_TYPES[type];
       }else {
-        if(getState(StateKey.FeatureConfig).ShouldEnableInlinePlaying){
-          if ( !!AUDIO_CONTENT_TYPES[type]) {
+        if(getState(StateKey.FeatureConfig).ShouldEnableInlineAudioPlaying && !!AUDIO_CONTENT_TYPES[type] ){
             contentType = AUDIO_CONTENT_TYPES[type];
-          }
-          else if( !!VIDEO_CONTENT_TYPES[type]) {
+        }
+        else if(getState(StateKey.FeatureConfig).ShouldEnableInlineVideoPlaying && !!VIDEO_CONTENT_TYPES[type]) {
             contentType = VIDEO_CONTENT_TYPES[type];
-          }
         }
       }
       const patchedBlob = new Blob([blob], { type: contentType });

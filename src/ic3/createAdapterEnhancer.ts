@@ -7,12 +7,12 @@ import { HostType } from '../types/ic3/HostType';
 import { IC3DirectLineActivity } from '../types/ic3/IC3DirectLineActivity';
 import { IIC3AdapterOptions } from '../types/ic3/IIC3AdapterOptions';
 import { ProtocolType } from '../types/ic3/ProtocolType';
+import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
 import { compose } from 'redux';
 import createEgressEnhancer from './enhancers/egress/index';
 import createIngressEnhancer from './enhancers/ingress/index';
 import getPlatformBotId from './utils/getPlatformBotId';
 import initializeIC3SDK from './initializeIC3SDK';
-import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
 
 export default function createIC3Enhancer({
   chatToken,
@@ -28,6 +28,7 @@ export default function createIC3Enhancer({
   conversation,
   featureConfig
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
+
 
   if (sdkUrl && !sdkURL) {
     console.warn(

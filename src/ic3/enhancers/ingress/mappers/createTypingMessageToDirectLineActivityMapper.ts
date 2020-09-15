@@ -7,8 +7,8 @@ import { AsyncMapper } from '../../../../types/ic3/AsyncMapper';
 import { GetStateFunction } from '../../../../types/AdapterTypes';
 import { IC3DirectLineActivity } from '../../../../types/ic3/IC3DirectLineActivity';
 import { IC3_CHANNEL_ID } from '../../../Constants';
-import uniqueId from '../../../utils/uniqueId';
 import { TelemetryEvents } from '../../../../types/ic3/TelemetryEvents';
+import uniqueId from '../../../utils/uniqueId';
 
 export default function createTypingMessageToDirectLineActivityMapper({
   getState
