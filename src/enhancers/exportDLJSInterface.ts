@@ -49,7 +49,7 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
 
     adapter.addEventListener('open', async () => {
       if(!connectionStatusObserver){
-        adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+        adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
           {
             Event: TelemetryEvents.ADAPTER_NOT_READY,
             Description: `Adapter: ConnectionStatusObserver is null, start waiting!`
@@ -102,7 +102,7 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
           (async function () {
             try {
               for await (const activity of adapter.activities({ signal: abortController.signal })) {
-                (window as any).ic3Logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                   {
                     Event: TelemetryEvents.MESSAGE_RECEIVED,
                     Description: `Adapter: Posted a message to DL interface with id ${activity.id}`,
@@ -114,7 +114,7 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
               observer.complete();
             } catch (error) {
               observer.error(error);
-              (window as any).ic3Logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+              adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
                 {
                   Event: TelemetryEvents.ADAPTER_NOT_READY,
                   Description: `Adapter: failed to post message to DL interface`,

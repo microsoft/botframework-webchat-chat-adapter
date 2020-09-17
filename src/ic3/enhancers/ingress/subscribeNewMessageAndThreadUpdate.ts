@@ -82,7 +82,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.INFO,
                     {
                       Event: TelemetryEvents.ADAPTER_STATE_UPDATE,
-                      Description: `Adapter: connectionStatusObserverReady state after waitting for ${waitTime} ms: `+getState(StateKey.ConnectionStatusObserverReady)
+                      Description: `Adapter: connectionStatusObserverReady state after waiting for ${waitTime} ms: `+getState(StateKey.ConnectionStatusObserverReady)
                     }
                   );
                 }
