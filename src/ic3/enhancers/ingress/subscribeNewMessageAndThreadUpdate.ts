@@ -6,12 +6,13 @@ import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
 import ConnectivityManager from '../../utils/ConnectivityManager';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import Observable from 'core-js/features/observable';
+import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
 import applySetStateMiddleware from '../../../applySetStateMiddleware';
 import { compose } from 'redux';
 import createThreadToDirectLineActivityMapper from './mappers/createThreadToDirectLineActivityMapper';
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
-import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
+import { logMessagefilter } from '../../../utils/logMessageFilter';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
   IC3DirectLineActivity,
@@ -71,10 +72,19 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
               let unsubscribed: boolean;
 
               (async function () {
-                let waitTime = 5;
-                while(getReadyState() != ReadyState.OPEN && waitTime < 3000){
+                let waitTime = 2;
+                while((getReadyState() != ReadyState.OPEN || !getState(StateKey.ConnectionStatusObserverReady)) && waitTime <= 2048){
                   await timeout(waitTime);
                   waitTime *= 2;
+                }
+                //log only 
+                if(waitTime > 2) {
+                  getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.INFO,
+                    {
+                      Event: TelemetryEvents.ADAPTER_STATE_UPDATE,
+                      Description: `Adapter: connectionStatusObserverReady state after waitting for ${waitTime} ms: `+getState(StateKey.ConnectionStatusObserverReady)
+                    }
+                  );
                 }
                 if (getReadyState() != ReadyState.OPEN) {
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
@@ -84,10 +94,25 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                     }
                   );
                 }
+                if (!getState(StateKey.ConnectionStatusObserverReady)) {
+                  getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                    {
+                      Event: TelemetryEvents.ADAPTER_NOT_READY,
+                      Description: `Adapter: Adapter not ready. ConnectionStatusObserverReady is false`
+                    }
+                  );
+                }
 
                 (await conversation.getMessages()).forEach(async message => {
                   if (unsubscribed) { return; }
-                  let activity = await convertMessage(message);
+                  let activity: any = await convertMessage(message);
+                  getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                    {
+                      Event: TelemetryEvents.REHYDRATE_MESSAGES,
+                      Description: `Adapter: rehydrate message with id ${activity.id}`,
+                      CustomProperties: logMessagefilter(activity)
+                    }
+                  );
                   !unsubscribed && next(activity);
                 });
                 getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
@@ -103,7 +128,8 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
                       Event: TelemetryEvents.MESSAGE_RECEIVED,
-                      Description: `Adapter: Received a message with id ${activity.id}`
+                      Description: `Adapter: Received a message with id ${activity.id}`,
+                      CustomProperties: logMessagefilter(activity)
                     }
                   );
                   !unsubscribed && next(activity);
@@ -121,7 +147,8 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
                       Event: TelemetryEvents.THREAD_UPDATE_RECEIVED,
-                      Description: `Adapter: Received a thread update with id ${activity.id}`
+                      Description: `Adapter: Received a thread update with id ${activity.id}`,
+                      CustomProperties: logMessagefilter(activity)
                     }
                   );
                   !unsubscribed && next(activity);
