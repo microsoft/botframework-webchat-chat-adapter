@@ -140,6 +140,7 @@ export default function createUserMessageToDirectLineActivityMapper({
       channelId: IC3_CHANNEL_ID,
       channelData: {
         tags,
+        fromUserId : properties?.fromUserId,
         clientmessageid
       },
       conversation: { id: conversation.id },
