@@ -25,7 +25,10 @@ export function logMessagefilter(message: IDirectLineActivity): string {
   }
   let logActivity: LogDLActivity = {
     attachmentsCount: message.attachments? message.attachments.length : 0,
-    channelData: message.channelData,
+    channelData: {
+        tags: message.channelData?.tags,
+        clientmessageid: message.channelData?.clientmessageid
+    },
     channelId: message.channelId,
     conversation: {
       id: message.conversation?.id
