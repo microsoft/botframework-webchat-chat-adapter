@@ -20,8 +20,9 @@ export interface LogDLActivity {
   previousClientActivityID?: string;
 }
 export function logMessagefilter(message: IDirectLineActivity): string {
+  let result = "Failed to stringify activity.";
   if(!message) {
-    return null;
+    return result;
   }
   let logActivity: LogDLActivity = {
     attachmentsCount: message.attachments? message.attachments.length : 0,
@@ -45,7 +46,7 @@ export function logMessagefilter(message: IDirectLineActivity): string {
     messageid: message.messageid,
     previousClientActivityID: message.previousClientActivityID
   };
-  let result = "Failed to stringify activity.";
+
   try {
     result = JSON.stringify(logActivity);
   } catch (error) {
