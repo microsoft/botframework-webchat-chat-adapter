@@ -51,6 +51,7 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.UserId, undefined);
       adapter.setState(StateKey.FeatureConfig, undefined);
       adapter.setState(StateKey.Logger, undefined);
+      adapter.setState(StateKey.ConnectionStatusObserverReady, false);
 
       (async function () {
         if(!conversation){

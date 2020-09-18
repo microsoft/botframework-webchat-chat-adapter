@@ -12,9 +12,10 @@ import Observable, { Observer } from 'core-js/features/observable';
 
 import AbortController from 'abort-controller-es5';
 import { IDirectLineActivity } from '../types/DirectLineTypes';
-import shareObservable from '../utils/shareObservable';
 import { StateKey } from '../types/ic3/IC3AdapterState';
 import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
+import { logMessagefilter } from '../utils/logMessageFilter';
+import shareObservable from '../utils/shareObservable';
 
 export enum ConnectionStatus {
   Uninitialized = 0,
@@ -48,8 +49,14 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
 
     adapter.addEventListener('open', async () => {
       if(!connectionStatusObserver){
-        let waitTime = 5;
-        while(!connectionStatusObserver && waitTime < 2000){
+        adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
+          {
+            Event: TelemetryEvents.ADAPTER_NOT_READY,
+            Description: `Adapter: ConnectionStatusObserver is null, start waiting!`
+          }
+        );
+        let waitTime = 2;
+        while(!connectionStatusObserver && waitTime <= 2048){
           await timeout(waitTime);
           waitTime = waitTime*2;
         }
@@ -58,18 +65,28 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
           adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
             {
               Event: TelemetryEvents.ADAPTER_NOT_READY,
-              Description: `Adapter: Adapter not ready. ConnectionStatusObserver is null`
+              Description: `Adapter: Adapter not ready. ConnectionStatusObserver is null. Wait time: ${waitTime}.`
             }
           );
         }
-
-        connectionStatusObserver.next(ConnectionStatus.Connected);
-      }else{
-        connectionStatusObserver.next(ConnectionStatus.Connected);
       }
+      connectionStatusObserver.next(ConnectionStatus.Connected);
+      adapter.setState(StateKey.ConnectionStatusObserverReady, true);
+      adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.INFO,
+        {
+          Event: TelemetryEvents.ADAPTER_STATE_UPDATE,
+          Description: `Adapter: ConnectionStatusObserverReady has been set to true.`
+        }
+      );
     });
 
     adapter.addEventListener('error', () => {
+      adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+        {
+          Event: TelemetryEvents.ADAPTER_NOT_READY,
+          Description: `Adapter: connection received error event!`
+        }
+      );
       connectionStatusObserver.next(
         adapter.getReadyState() === ReadyState.CLOSED ? ConnectionStatus.FailedToConnect : ConnectionStatus.Connecting
       );
@@ -85,12 +102,25 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
           (async function () {
             try {
               for await (const activity of adapter.activities({ signal: abortController.signal })) {
+                adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                  {
+                    Event: TelemetryEvents.MESSAGE_RECEIVED,
+                    Description: `Adapter: Posted a message to DL interface with id ${activity.id}`,
+                  }
+                );
                 observer.next(activity);
               }
 
               observer.complete();
             } catch (error) {
               observer.error(error);
+              adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                {
+                  Event: TelemetryEvents.ADAPTER_NOT_READY,
+                  Description: `Adapter: failed to post message to DL interface`,
+                  ExceptionDetails: error
+                }
+              );
             }
           })();
 
@@ -104,7 +134,6 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
         new Observable(observer => {
           observer.next(ConnectionStatus.Uninitialized);
           observer.next(ConnectionStatus.Connecting);
-
           connectionStatusObserver = observer;
 
           return () => {
@@ -120,6 +149,13 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
       postActivity(activity: IDirectLineActivity) {
         return new Observable(observer => {
           (async function () {
+            adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+              {
+                Event: TelemetryEvents.MESSAGE_POSTED_TO_EGRESS,
+                Description: `Adapter: Posting message to egress middleware.`,
+                CustomProperties: logMessagefilter(activity)
+              }
+            );
             await adapter.egress(activity, 
               {
               progress: ({ id }: { id?: string }) => id && observer.next(id)
