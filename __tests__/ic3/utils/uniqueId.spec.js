@@ -1,7 +1,7 @@
 import uniqueId from './../../../src/ic3/utils/uniqueId';
 
 describe('uniqueId test', () => {
-    test('', () => {
+    test('should return correct value', () => {
         spyOn(Number.prototype, 'toString').and.returnValue('123');
         spyOn(String.prototype, 'substr').and.returnValue('3');
         const result = uniqueId();
