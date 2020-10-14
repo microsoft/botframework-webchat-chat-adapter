@@ -154,6 +154,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     ErrorCode?: string;
     ExceptionDetails?: object;
     ShouldBubbleToHost?: boolean;
+    CustomProperties?: string;
   }
 
   interface IIC3TelemetryCustomData {
