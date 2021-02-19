@@ -159,6 +159,34 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                     Description: `Adapter: Registering on thread update success`
                   }
                 ); 
+
+                conversation.registerOnIC3Error(async error => {
+                  if (unsubscribed) { return; }
+                  getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                    {
+                      Event: TelemetryEvents.IC3_ERROR_RECEIVED,
+                      Description: `Adapter: Received an ic3 error ${error}`
+                    }
+                  );
+                  (await conversation.getMessages()).forEach(async message => {
+                    if (unsubscribed) { return; }
+                    let activity: any = await convertMessage(message);
+                    getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                      {
+                        Event: TelemetryEvents.REHYDRATE_MESSAGES,
+                        Description: `Adapter: rehydrate message with id ${activity.id} on ic3 error`,
+                        CustomProperties: logMessagefilter(activity)
+                      }
+                    );
+                    !unsubscribed && next(activity);
+                  });
+                });
+                getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                  {
+                    Event: TelemetryEvents.REGISTER_ON_IC3_ERROR,
+                    Description: `Adapter: Registering on ic3 error success`
+                  }
+                ); 
               })();
 
               return () => {
