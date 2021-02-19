@@ -104,7 +104,15 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                 }
 
                 (await conversation.getMessages()).forEach(async message => {
-                  if (unsubscribed) { return; }
+                  if (unsubscribed) {
+                    getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                      {
+                        Event: TelemetryEvents.ADAPTER_UNSUBSCRIBED,
+                        Description: `Adapter: Unsubscribed state when trying to process getMessages`
+                      }
+                    );
+                    return;
+                  }
                   let activity: any = await convertMessage(message);
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
@@ -123,7 +131,15 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                 ); 
 
                 conversation.registerOnNewMessage(async message => {
-                  if (unsubscribed) { return; }
+                  if (unsubscribed) {
+                    getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                      {
+                        Event: TelemetryEvents.ADAPTER_UNSUBSCRIBED,
+                        Description: `Adapter: Unsubscribed state when trying to process onNewMessage`
+                      }
+                    );
+                    return;
+                  }
                   let activity: any = await convertMessage(message);
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
@@ -142,7 +158,15 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                 ); 
 
                 conversation.registerOnThreadUpdate(async thread => {
-                  if (unsubscribed) { return; }
+                  if (unsubscribed) {
+                    getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                      {
+                        Event: TelemetryEvents.ADAPTER_UNSUBSCRIBED,
+                        Description: `Adapter: Unsubscribed state when trying to process onThreadUpdate`
+                      }
+                    );
+                    return;
+                  }
                   let activity: any = await convertThread(thread);
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
@@ -161,7 +185,15 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                 ); 
 
                 conversation.registerOnIC3Error(async error => {
-                  if (unsubscribed) { return; }
+                  if (unsubscribed) { 
+                    getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                      {
+                        Event: TelemetryEvents.ADAPTER_UNSUBSCRIBED,
+                        Description: `Adapter: Unsubscribed state when trying to process onIC3Error`
+                      }
+                    );
+                    return;
+                  }
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
                       Event: TelemetryEvents.IC3_ERROR_RECEIVED,
@@ -169,7 +201,6 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                     }
                   );
                   (await conversation.getMessages()).forEach(async message => {
-                    if (unsubscribed) { return; }
                     let activity: any = await convertMessage(message);
                     getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                       {
