@@ -278,6 +278,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     hostType: HostType;
     protocolType: ProtocolType;
     logger?: ILogger;
+    documentbody?: string;
   }
 }
 
