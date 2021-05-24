@@ -313,6 +313,9 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     initialize(sessionInfo: IInitializationInfo): Promise<void>;
     update(sessionInfo: IInitializationInfo): Promise<void>;
     dispose(): Promise<void>;
+    getPreviousPollingStartTime(): Promise<number>;
+    registerOnIC3Error(callback: (error: any) => void): Promise<void>; // tslint:disable-line:no-any
+    registerOnIC3FatalError(callback: (error: any) => void): Promise<void>; // tslint:disable-line:no-any
     joinConversation(conversationId: string, sendHeartBeat?: boolean): Promise<IConversation>;
   }
 }
