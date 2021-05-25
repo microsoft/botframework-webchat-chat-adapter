@@ -52,7 +52,6 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
         },
 
         close: () => {
-          adapter.setState(StateKey.Deprecated, true);
           ingressQueues.forEach(ingressQueue => ingressQueue.end());
           ingressQueues.splice(0, Infinity);
 
