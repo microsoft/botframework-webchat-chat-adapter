@@ -289,6 +289,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     regionGtms?: IRegionGtms;
     conversationGenerator?: ConversationGenerator;
     visitor?: boolean;
+    forceStart?: boolean;
   }
 }
 
