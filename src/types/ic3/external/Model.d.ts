@@ -252,6 +252,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     deliveryMode: DeliveryMode;
     fileMetadata?: IFileMetadata;
     resourceType?: ResourceType;
+    translatedMessage?: string;
   }
 }
 
