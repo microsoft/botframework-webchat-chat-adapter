@@ -2,14 +2,14 @@
 
 export default async function getPlatformBotId(
   conversation: Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation
-): Promise<string> {
+): Promise<string[]> {
   try {
     const members = await conversation.getMembers();
-    const { id } =
-      members.find(thisMember => thisMember.type === Microsoft.CRM.Omnichannel.IC3Client.Model.PersonType.Bot) || {};
+    const bots = members.filter(thisMember => thisMember.type === Microsoft.CRM.Omnichannel.IC3Client.Model.PersonType.Bot) || [];
+    const botIds = bots.map(thisMember => thisMember.id);
 
-    if (id) {
-      return id;
+    if (botIds) {
+      return botIds;
     }
 
     console.warn('IC3: Bot ID was not found because the conversation does not have a member with "type" set to "PersonType.Bot".');
