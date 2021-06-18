@@ -263,7 +263,8 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     getMessages(): Promise<IMessage[]>;
     registerOnNewMessage(callback: (message: IMessage) => void): Promise<void>;
     registerOnThreadUpdate(callback: (message: IThread) => void): Promise<void>;
-    registerOnIC3ErrorRecovery(callback: (error: any) => void): Promise<void>;
+    registerOnIC3ErrorRecovery(callback: (error: any) => void): Promise<void>; // tslint:disable-line:no-any
+    registerOnIC3FatalError(callback: (error: any) => void): Promise<void>; // tslint:disable-line:no-any
     disconnect(): Promise<void>;
     downloadFile(fileMetadata: IFileMetadata): Promise<Blob>;
     getFileStatus(fileMetadata: IFileMetadata): Promise<FileStatus>;
