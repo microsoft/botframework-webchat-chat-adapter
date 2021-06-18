@@ -252,6 +252,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     deliveryMode: DeliveryMode;
     fileMetadata?: IFileMetadata;
     resourceType?: ResourceType;
+    translatedMessage?: string;
   }
 }
 
@@ -262,7 +263,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     getMessages(): Promise<IMessage[]>;
     registerOnNewMessage(callback: (message: IMessage) => void): Promise<void>;
     registerOnThreadUpdate(callback: (message: IThread) => void): Promise<void>;
-    registerOnIC3Error(callback: (error: any) => void): Promise<void>;
+    registerOnIC3ErrorRecovery(callback: (error: any) => void): Promise<void>;
     disconnect(): Promise<void>;
     downloadFile(fileMetadata: IFileMetadata): Promise<Blob>;
     getFileStatus(fileMetadata: IFileMetadata): Promise<FileStatus>;
