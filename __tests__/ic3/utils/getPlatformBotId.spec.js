@@ -37,7 +37,7 @@ describe('getPlatformBotId tests', () => {
         ]
         const conversation = { getMembers: () => members }
         const result = await getPlatformBotId(conversation);
-        expect(result).toEqual(botId);
+        expect(result).toEqual([botId]);
     });
 
     test('should call console.warn with correct message when no bot', async () => {
