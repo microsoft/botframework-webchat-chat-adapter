@@ -8,7 +8,7 @@ export default async function getPlatformBotId(
     const bots = members.filter(thisMember => thisMember.type === Microsoft.CRM.Omnichannel.IC3Client.Model.PersonType.Bot) || [];
     const botIds = bots.map(thisMember => thisMember.id);
 
-    if (botIds) {
+    if (botIds && botIds.length > 0) {
       return botIds;
     }
 
