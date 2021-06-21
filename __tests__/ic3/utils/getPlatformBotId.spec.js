@@ -27,7 +27,7 @@ describe('getPlatformBotId tests', () => {
     });
 
     test('should return correct id', async () => {
-        const botId = 'bot_id';
+        const botId = ['bot_id'];
         const members = [
             {
                 displayName: 'Bot',
