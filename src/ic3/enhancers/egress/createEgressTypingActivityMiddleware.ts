@@ -37,9 +37,9 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
     const botIds = getState(StateKey.BotId);
 
     if (botIds && botIds.length && !isInternalActivity(activity)) {
-      botIds.forEach((botId: string) => {
-          conversation.sendMessageToBot(botId, { payload: TYPING_INDICATOR_PAYLOAD });
-      });
+      for (let i = 0; i < botIds.length; i++) {
+        conversation.sendMessageToBot(botIds[i], { payload: TYPING_INDICATOR_PAYLOAD });
+      }
     }
 
     getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
