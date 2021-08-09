@@ -6,13 +6,29 @@ import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
+import { compose } from 'redux';
+import createTypingMessageToDirectLineActivityMapper from '../ingress/mappers/createThreadToDirectLineActivityMapper';
+import createUserMessageToDirectLineActivityMapper from '../ingress/mappers/createUserMessageToDirectLineActivityMapper';
+import { addToMessageIdSet } from '../../../utils/ackedMessageSet';
+
 
 export default function createEgressMessageActivityMiddleware(): EgressMiddleware<
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ getState }) => next => async (activity: IC3DirectLineActivity) => {
+  return ({ingress, getState }) => next => async (activity: IC3DirectLineActivity) => {
 
+    const convertMessage = compose(
+      createUserMessageToDirectLineActivityMapper({ getState }),
+      createTypingMessageToDirectLineActivityMapper({ getState })
+    )((message: any) => {
+      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
+        {
+          Event: TelemetryEvents.UNKNOWN_MESSAGE_TYPE,
+          Description: `Adapter: Unknown message type; ignoring message ${message}`
+        }
+      );
+    });
     if (activity.type !== ActivityType.Message) {
       return next(activity);
     }
@@ -85,13 +101,19 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         }
       );
     } else {
-      await conversation.sendMessage(message);
+      const response = await conversation.sendMessage(message);
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
           Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
           Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}`
         }
       );
+      if (ingress && response?.status === 201 && response?.contextid && response?.clientmessageid) {
+        const ackActivity:any = await convertMessage(message);
+        ackActivity.channelData.clientActivityID = activity.channelData.clientActivityID;
+        addToMessageIdSet(message.clientmessageid);
+        ingress(ackActivity);
+      }
     }
   };
 }
