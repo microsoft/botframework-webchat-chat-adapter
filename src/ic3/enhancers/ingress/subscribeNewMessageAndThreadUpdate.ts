@@ -13,6 +13,7 @@ import createThreadToDirectLineActivityMapper from './mappers/createThreadToDire
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
 import { logMessagefilter } from '../../../utils/logMessageFilter';
+import { alreadyAcked, removeFromMessageIdSet } from '../../../utils/ackedMessageSet';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
   IC3DirectLineActivity,
@@ -148,7 +149,12 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                       CustomProperties: logMessagefilter(activity)
                     }
                   );
-                  !unsubscribed && next(activity);
+                  if (alreadyAcked(message.clientmessageid)) {
+                    removeFromMessageIdSet(message.clientmessageid);
+                  }
+                  else {
+                    !unsubscribed && next(activity);
+                  }
                 });
                 getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                   {
