@@ -149,7 +149,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                       CustomProperties: logMessagefilter(activity)
                     }
                   );
-                  if(alreadyAcked(message.clientmessageid)) {
+                  if (alreadyAcked(message.clientmessageid)) {
                     removeFromMessageIdSet(message.clientmessageid);
                   }
                   else {

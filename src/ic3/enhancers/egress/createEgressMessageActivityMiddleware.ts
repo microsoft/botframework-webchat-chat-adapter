@@ -25,7 +25,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
         {
           Event: TelemetryEvents.UNKNOWN_MESSAGE_TYPE,
-          Description: `Adapter: Unknown message type; ignoring message ${message}`
+          Description: `Adapter: Unknown message type; ignoring ack message ${message?.clientmessageid}`
         }
       );
     });
