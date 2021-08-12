@@ -6,11 +6,11 @@ import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
+import { Translated } from '../../Constants';
+import { addToMessageIdSet } from '../../../utils/ackedMessageSet';
 import { compose } from 'redux';
 import createTypingMessageToDirectLineActivityMapper from '../ingress/mappers/createThreadToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from '../ingress/mappers/createUserMessageToDirectLineActivityMapper';
-import { addToMessageIdSet } from '../../../utils/ackedMessageSet';
-
 
 export default function createEgressMessageActivityMiddleware(): EgressMiddleware<
   IC3DirectLineActivity,
@@ -108,10 +108,10 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
           Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}`
         }
       );
-      if (ingress && response?.status === 201 && response?.contextid && response?.clientmessageid) {
+      if (ingress && response?.status === 201 && response?.contextid && response?.clientmessageid && !hasTargetTag(message, Translated)) {
         const ackActivity:any = await convertMessage(message);
         ackActivity.channelData.clientActivityID = activity.channelData.clientActivityID;
-        addToMessageIdSet(message.clientmessageid);
+        if (addToMessageIdSet) addToMessageIdSet(message.clientmessageid);
         ingress(ackActivity);
       }
     }

@@ -2,8 +2,11 @@
 
 import { AdapterEnhancer, ReadyState } from '../../../types/AdapterTypes';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+import { MissingAckFromPollingError, Reinitialize, ReloadAllMessageInterval } from '../../Constants';
+import { alreadyAcked, removeFromMessageIdSet } from '../../../utils/ackedMessageSet';
 
 import ConnectivityManager from '../../utils/ConnectivityManager';
+import { ConversationControllCallbackOnEvent } from '../../createAdapterEnhancer';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import Observable from 'core-js/features/observable';
 import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
@@ -13,7 +16,6 @@ import createThreadToDirectLineActivityMapper from './mappers/createThreadToDire
 import createTypingMessageToDirectLineActivityMapper from './mappers/createTypingMessageToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from './mappers/createUserMessageToDirectLineActivityMapper';
 import { logMessagefilter } from '../../../utils/logMessageFilter';
-import { alreadyAcked, removeFromMessageIdSet } from '../../../utils/ackedMessageSet';
 
 export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): AdapterEnhancer<
   IC3DirectLineActivity,
@@ -54,23 +56,56 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
             new Observable<IC3DirectLineActivity>(subscriber => {
               const conversation = value as Microsoft.CRM.Omnichannel.IC3Client.Model.IConversation;
               const next = subscriber.next.bind(subscriber);
-              window.addEventListener("reinitialize", async (event) => {  
+              let triggerReload = false;
+              let fetchingInProcess = false;
+              // TODO: Currently, there is no way to unsubscribe. We are using this flag to fake an "unregisterOnXXX".
+              let unsubscribed: boolean;
+              let reloadTimer  = window.setInterval(() => {
+                if (triggerReload && conversation && !unsubscribed && !fetchingInProcess) {
+                  getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                    {
+                      Event: TelemetryEvents.REHYDRATE_MESSAGES,
+                      Description: `Adapter: Reload all messages due to poll ack missing`
+                    }
+                  );
+                  reloadMessages();
+                }
+              }, ReloadAllMessageInterval);
+              let agentMessagesSeen: Set<string> = new Set();
+
+              const reloadMessages = async () => {
+                fetchingInProcess = true;
+                const allMessages = await conversation.getMessages();
+                allMessages.forEach(async message => {
+                  const { clientmessageid, messageType, deliveryMode } = message;
+                  const isUserMessage = (messageType === Microsoft.CRM.Omnichannel.IC3Client.Model.MessageType.UserMessage)
+                    && (deliveryMode === Microsoft.CRM.Omnichannel.IC3Client.Model.DeliveryMode.Bridged);
+                    if (clientmessageid && isUserMessage && !agentMessagesSeen.has(clientmessageid)) {
+                      let activity = await convertMessage(message);
+                      agentMessagesSeen.add(clientmessageid);
+                      !unsubscribed && next(activity);
+                    }
+                });
+                getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                  {
+                    Event: TelemetryEvents.REHYDRATE_MESSAGES,
+                    Description: `Adapter: reloaded ${allMessages?.length} messages`
+                  }
+                );
+                fetchingInProcess = false;
+              }
+
+              window.addEventListener(Reinitialize, async (event) => {  
                 getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                   {
                     Event: TelemetryEvents.REHYDRATE_MESSAGES,
                     Description: `Adapter: Re-hydrating received messages`
                   }
-                );          
+                );
                 if(ConnectivityManager.isInternetConnected()){
-                  (await conversation.getMessages()).forEach(async message => {
-                    let activity = await convertMessage(message);
-                    !unsubscribed && next(activity);
-                  });
+                  reloadMessages();
                 }
               });
-
-              // TODO: Currently, there is no way to unsubscribe. We are using this flag to fake an "unregisterOnXXX".
-              let unsubscribed: boolean;
 
               (async function () {
                 let waitTime = 2;
@@ -188,7 +223,29 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                     Event: TelemetryEvents.REGISTER_ON_THREAD_UPDATE,
                     Description: `Adapter: Registering on thread update success`
                   }
-                ); 
+                );
+
+                conversation.registerOnIC3FatalError((error) => {
+                  if (unsubscribed) {
+                    getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                      {
+                        Event: TelemetryEvents.TRIGGER_IC3_FATAL_ERROR,
+                        Description: `Adapter: triggering on IC3 fatal error but adapter already unsubscribed`
+                      }
+                    );
+                    return;
+                  }
+                  if (error.errorCode === MissingAckFromPollingError) {
+                    getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                      {
+                        Event: TelemetryEvents.TRIGGER_IC3_FATAL_ERROR,
+                        Description: `Adapter: missing ack from long poll for message: ${error.messages} for conversation: ${conversation?.id}`
+                      }
+                    );
+                    triggerReload = true;
+                    if (ConversationControllCallbackOnEvent) ConversationControllCallbackOnEvent({errorCode: MissingAckFromPollingError, message: "Ack message on polling failed"});
+                  }
+                });
 
                 conversation.registerOnIC3ErrorRecovery(async error => {
                   if (unsubscribed) { 
@@ -200,6 +257,19 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                     );
                     return;
                   }
+
+                  if (error.errorCode === MissingAckFromPollingError) {
+                    if (triggerReload) {
+                      getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+                        {
+                          Event: TelemetryEvents.REGISTER_ON_IC3_ERROR_RECOVERY,
+                          Description: `Adapter: recovered from missing ack from polling error, conversation id: ${conversation?.id} message: ${error?.messages}`
+                        }
+                      ); 
+                      triggerReload = false;
+                    }
+                  }
+
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
                       Event: TelemetryEvents.IC3_ERROR_RECEIVED,
@@ -228,6 +298,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
               return () => {
                 unsubscribed = true;
+                if (reloadTimer === 0 || !!reloadTimer) clearInterval(reloadTimer);
               };
             })
         );

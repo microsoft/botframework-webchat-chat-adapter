@@ -14,6 +14,8 @@ import createIngressEnhancer from './enhancers/ingress/index';
 import getPlatformBotId from './utils/getPlatformBotId';
 import initializeIC3SDK from './initializeIC3SDK';
 
+export let ConversationControllCallbackOnEvent: (event:any) => void;
+
 export default function createIC3Enhancer({
   chatToken,
   hostType,
@@ -26,7 +28,8 @@ export default function createIC3Enhancer({
   visitor,
   sendHeartBeat = false,
   conversation,
-  featureConfig
+  featureConfig,
+  callbackOnEvent
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
 
 
@@ -35,6 +38,10 @@ export default function createIC3Enhancer({
       'IC3: "sdkUrl" has been renamed to "sdkURL". Please rename accordingly to suppress this warning in the future.'
     );
     sdkURL = sdkUrl;
+  }
+
+  if (callbackOnEvent) {
+    ConversationControllCallbackOnEvent = callbackOnEvent;
   }
 
   hostType = hostType ?? HostType.IFrame;
