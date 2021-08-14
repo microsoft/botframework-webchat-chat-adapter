@@ -104,7 +104,7 @@ describe('createSubscribeNewMessageAndThreadUpdateEnhancer test', () => {
             subscribe,
             getReadyState: () => {}
         })(next)(StateKey.Conversation, conversation);
-        jest.runAllTimers();
+        // jest.runAllTimers();
         expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('DEBUG', {
             Event: TelemetryEvents.REHYDRATE_MESSAGES,
             Description: `Adapter: Re-hydrating received messages`
