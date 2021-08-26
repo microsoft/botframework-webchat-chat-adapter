@@ -184,7 +184,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   }
                 ); 
 
-                conversation.registerOnIC3Error(async error => {
+                conversation.registerOnIC3ErrorRecovery(async error => {
                   if (unsubscribed) { 
                     getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
                       {
