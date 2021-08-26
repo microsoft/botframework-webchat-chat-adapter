@@ -56,7 +56,7 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
           }
         );
         let waitTime = 2;
-        while(!connectionStatusObserver && waitTime <= 2048){
+        while(!connectionStatusObserver && waitTime <= 4096){
           await timeout(waitTime);
           waitTime = waitTime*2;
         }
