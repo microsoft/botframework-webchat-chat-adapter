@@ -18,7 +18,7 @@ describe('createEgressTypingActivityMiddleware test', () => {
                 }
             }
             case StateKey.UserDisplayName: return StateKey.UserDisplayName;
-            case StateKey.BotId: return StateKey.BotId
+            case StateKey.BotId: return [StateKey.BotId]
             case StateKey.Logger: return { logClientSdkTelemetryEvent: logClientSdkTelemetryEventSpy};
             default: return null
         }

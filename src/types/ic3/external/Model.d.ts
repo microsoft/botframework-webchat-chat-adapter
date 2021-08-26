@@ -259,7 +259,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
 declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
   interface IConversation {
     id: string;
-    sendMessage(message: IMessage): Promise<void>;
+    sendMessage(message: IMessage): Promise<any>;
     getMessages(): Promise<IMessage[]>;
     registerOnNewMessage(callback: (message: IMessage) => void): Promise<void>;
     registerOnThreadUpdate(callback: (message: IThread) => void): Promise<void>;
@@ -269,7 +269,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     downloadFile(fileMetadata: IFileMetadata): Promise<Blob>;
     getFileStatus(fileMetadata: IFileMetadata): Promise<FileStatus>;
     indicateTypingStatus(typingStatus: TypingStatus, optionalProperties?: IMessageProperties): Promise<void>;
-    sendFileMessage(fileMedata: Model.IFileMetadata, message: IMessage): Promise<void>;
+    sendFileMessage(fileMedata: Model.IFileMetadata, message: IMessage): Promise<any>;
     sendMessageToBot(botId: string, botMessage: IBotMessage): Promise<void>;
     getMembers(): Promise<IPerson[]>;
     uploadFile(fileToSend: File, fileSharingProtocolType?: FileSharingProtocolType): Promise<IFileMetadata>;

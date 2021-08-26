@@ -34,11 +34,13 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
       imdisplayname: getState(StateKey.UserDisplayName) || activity.from.name || ''
     });
 
-    const botId = getState(StateKey.BotId);
+    const botIds = getState(StateKey.BotId);
 
-    botId &&
-      !isInternalActivity(activity) &&
-      conversation.sendMessageToBot(botId, { payload: TYPING_INDICATOR_PAYLOAD });
+    if (botIds && botIds.length && !isInternalActivity(activity)) {
+      for (let i = 0; i < botIds.length; i++) {
+        conversation.sendMessageToBot(botIds[i], { payload: TYPING_INDICATOR_PAYLOAD });
+      }
+    }
 
     getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
       {
