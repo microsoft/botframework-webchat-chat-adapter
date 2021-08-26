@@ -109,7 +109,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
               (async function () {
                 let waitTime = 2;
-                while((getReadyState() != ReadyState.OPEN || !getState(StateKey.ConnectionStatusObserverReady)) && waitTime <= 2048){
+                while((getReadyState() != ReadyState.OPEN || !getState(StateKey.ConnectionStatusObserverReady)) && waitTime <= 4096){
                   await timeout(waitTime);
                   waitTime *= 2;
                 }
