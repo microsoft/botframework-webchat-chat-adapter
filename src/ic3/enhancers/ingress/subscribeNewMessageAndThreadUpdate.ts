@@ -2,7 +2,7 @@
 
 import { AdapterEnhancer, ReadyState } from '../../../types/AdapterTypes';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
-import { MissingAckFromPollingError, Reinitialize, ReloadAllMessageInterval } from '../../Constants';
+import { MissingAckFromPollingError, Reinitialize, ReloadAllMessageInterval, TranslationMessageTag } from '../../Constants';
 import { alreadyAcked, removeFromMessageIdSet } from '../../../utils/ackedMessageSet';
 
 import ConnectivityManager from '../../utils/ConnectivityManager';
@@ -186,6 +186,9 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   );
                   if (alreadyAcked(message.clientmessageid)) {
                     removeFromMessageIdSet(message.clientmessageid);
+                    if (message.tags?.includes(TranslationMessageTag)) {
+                      !unsubscribed && next(activity);
+                    }
                   }
                   else {
                     !unsubscribed && next(activity);
