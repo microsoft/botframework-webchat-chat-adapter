@@ -11,6 +11,8 @@ import {
 import Observable, { Observer } from 'core-js/features/observable';
 
 import AbortController from 'abort-controller-es5';
+import { ConnectionStatusObserverNotReadyError } from '../ic3/Constants';
+import { ConversationControllCallbackOnEvent } from '../ic3/createAdapterEnhancer';
 import { IDirectLineActivity } from '../types/DirectLineTypes';
 import { StateKey } from '../types/ic3/IC3AdapterState';
 import { TelemetryEvents } from '../types/ic3/TelemetryEvents';
@@ -46,31 +48,63 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
   ): Adapter<IDirectLineActivity, TAdapterState> & IDirectLineJS => {
     const adapter = next(options);
     let connectionStatusObserver: Observer<ConnectionStatus>;
-
-    adapter.addEventListener('open', async () => {
+    adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+      {
+        Event: TelemetryEvents.ADAPTER_DL_INTERFACE_EVENT,
+        Description: `Adapter: Creating DL interface with adapter ID: ${adapter.id} ic3 chat ID: ${adapter.getState(StateKey.ChatId)}`
+      }
+    );
+    let waitedTime = 2;
+    adapter.addEventListener('open', async (event) => {
       if(!connectionStatusObserver){
         adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
           {
             Event: TelemetryEvents.ADAPTER_NOT_READY,
-            Description: `Adapter: ConnectionStatusObserver is null, start waiting!`
+            Description: `Adapter: ConnectionStatusObserver is null, start waiting!`,
+            CustomProperties: {
+              event
+            }
           }
         );
-        let waitTime = 2;
-        while(!connectionStatusObserver && waitTime <= 4096){
-          await timeout(waitTime);
-          waitTime = waitTime*2;
+        while(!connectionStatusObserver && waitedTime <= 4096){
+          await timeout(waitedTime);
+          waitedTime = waitedTime*2;
         }
-
-        if (!connectionStatusObserver) {
+      }
+      if (!connectionStatusObserver) {
+        adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+          {
+            Event: TelemetryEvents.ADAPTER_NOT_READY,
+            Description: `Adapter: Adapter not ready. ConnectionStatusObserver is null. Wait time: ${waitedTime}.`
+          }
+        );
+        try {
+          ConversationControllCallbackOnEvent({
+            errorCode: ConnectionStatusObserverNotReadyError,
+            message: `Adapter: adapter ID: ${adapter.id}`,
+            property: {
+              conversationId: adapter.getState(StateKey.ChatId) || ""
+            }
+          });
+        } catch (error) {
           adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
             {
               Event: TelemetryEvents.ADAPTER_NOT_READY,
-              Description: `Adapter: Adapter not ready. ConnectionStatusObserver is null. Wait time: ${waitTime}.`
+              Description: `Adapter: Adapter not ready. Failed to call.`,
+              ExceptionDetails: error
             }
           );
         }
       }
-      connectionStatusObserver.next(ConnectionStatus.Connected);
+      else {
+        adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+          {
+            Event: TelemetryEvents.ADAPTER_DL_INTERFACE_EVENT,
+            Description: `Adapter: ConnectionStatusObserver dispatched connected event!`
+          }
+        );
+        connectionStatusObserver.next(ConnectionStatus.Connected);
+      }
       adapter.setState(StateKey.ConnectionStatusObserverReady, true);
       adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.INFO,
         {
@@ -92,7 +126,7 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
       );
     });
 
-    return {
+    let dlAdapter = {
       ...adapter,
 
       activity$: shareObservable(
@@ -127,22 +161,46 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
           return () => {
             abortController.abort();
           };
-        })
+        }),
+        "activity generator",
+        adapter.getState(StateKey.Logger)
       ),
-
       connectionStatus$: shareObservable(
-        new Observable(observer => {
+        new Observable((observer: any) => {
           observer.next(ConnectionStatus.Uninitialized);
           observer.next(ConnectionStatus.Connecting);
           connectionStatusObserver = observer;
+          adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            {
+              Event: TelemetryEvents.ADAPTER_DL_INTERFACE_EVENT,
+              Description: `Adapter: connection status observer subscribed`,
+              CustomProperties: {
+                ObserverStatus: observer?.closed? "observer closed": "observer opened"
+              }
+            }
+          );
 
           return () => {
+            adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+              {
+                Event: TelemetryEvents.ADAPTER_DL_INTERFACE_EVENT,
+                Description: `Adapter: connection status observer unsubscribed`
+              }
+            );
             connectionStatusObserver = undefined;
           };
-        })
+        }),
+        "connectionStatus generator",
+        adapter.getState(StateKey.Logger)
       ),
 
       end: () => {
+        adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+          {
+            Event: TelemetryEvents.ADAPTER_DL_INTERFACE_EVENT,
+            Description: `Adapter: ended`,
+          }
+        );
         adapter.close();
       },
 
@@ -166,5 +224,16 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
         });
       }
     };
+    adapter.getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+      {
+        Event: TelemetryEvents.ADAPTER_DL_INTERFACE_EVENT,
+        Description: `Adapter: directline interface initialized successful`,
+        CustomProperties: {
+          "Adapter ID": adapter.id,
+          "chat ID": adapter.getState(StateKey.ChatId)
+        }
+      }
+    );
+    return dlAdapter;
   };
 }

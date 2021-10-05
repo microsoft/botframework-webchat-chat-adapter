@@ -57,8 +57,9 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.UserDisplayName, undefined);
       adapter.setState(StateKey.UserId, undefined);
       adapter.setState(StateKey.FeatureConfig, undefined);
-      adapter.setState(StateKey.Logger, undefined);
+      adapter.setState(StateKey.Logger, logger);
       adapter.setState(StateKey.ConnectionStatusObserverReady, false);
+      adapter.setState(StateKey.ChatId, chatToken.chatId);
 
       (async function () {
         if(!conversation){
@@ -94,7 +95,6 @@ export default function createIC3Enhancer({
         adapter.setState(StateKey.UserDisplayName, userDisplayName);
         adapter.setState(StateKey.UserId, userId);
         adapter.setState(StateKey.FeatureConfig, featureConfig);
-        adapter.setState(StateKey.Logger, logger);
         adapter.setReadyState(ReadyState.OPEN);
       })();
 
