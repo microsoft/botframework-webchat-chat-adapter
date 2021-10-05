@@ -105,7 +105,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
           Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-          Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}, chat ID: ${getState(StateKey.ChatId)}, adapter ID: ${adapter.id}`
+          Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}, chat ID: ${getState(StateKey.ChatId)}, adapter ID: ${adapter?.id? adapter.id : ""}`
         }
       );
       if (ingress && response?.status === 201 && response?.contextid && response?.clientmessageid && !hasTargetTag(message, Translated)) {
