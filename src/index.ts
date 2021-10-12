@@ -1,12 +1,15 @@
 import { Adapter, ReadyState } from './types/AdapterTypes';
-import { compose } from 'redux';
+
+import { IIC3AdapterOptions } from './types/ic3/IIC3AdapterOptions';
 import applyEgressMiddleware from './applyEgressMiddleware';
 import applyIngressMiddleware from './applyIngressMiddleware';
 import applySetStateMiddleware from './applySetStateMiddleware';
 import applySubscribeMiddleware from './applySubscribeMiddleware';
+import { compose } from 'redux';
 import createAdapter from './createAdapter';
 import createIC3AdapterEnhancer from './ic3/createAdapterEnhancer';
 import exportDLJSInterface from './enhancers/exportDLJSInterface';
+import updateIn from 'simple-update-in';
 
 export default createAdapter;
 
@@ -30,8 +33,6 @@ export type { Adapter };
 // TODO: Expose the IC3 adapter in a better way.
 // TODO: Allow devs to insert enhancer to modify the behavior of the final adapter.
 
-import { IIC3AdapterOptions } from './types/ic3/IIC3AdapterOptions';
-import updateIn from 'simple-update-in';
 
 window.Microsoft || ((window as any ).Microsoft = {});
 
@@ -45,6 +46,7 @@ window.Microsoft || ((window as any ).Microsoft = {});
       compose(
         exportDLJSInterface(), 
         createIC3AdapterEnhancer({ ...options, logger }),
-      )
+      ),
+      logger
     )
 );

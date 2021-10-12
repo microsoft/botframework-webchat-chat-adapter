@@ -1,8 +1,8 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
 import { AdapterEnhancer, ReadyState } from '../../../types/AdapterTypes';
+import { ConnectionStatusObserverWaitingTime, MissingAckFromPollingError, Reinitialize, ReloadAllMessageInterval, TranslationMessageTag } from '../../Constants';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
-import { MissingAckFromPollingError, Reinitialize, ReloadAllMessageInterval, TranslationMessageTag } from '../../Constants';
 import { alreadyAcked, removeFromMessageIdSet } from '../../../utils/ackedMessageSet';
 
 import ConnectivityManager from '../../utils/ConnectivityManager';
@@ -21,7 +21,8 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return applySetStateMiddleware<IC3DirectLineActivity, IC3AdapterState>(({ getState, subscribe, getReadyState }) => {
+  return applySetStateMiddleware<IC3DirectLineActivity, IC3AdapterState>((adapterMiddleware) => {
+    const { getState, subscribe, getReadyState } = adapterMiddleware;
     const convertMessage = compose(
       createUserMessageToDirectLineActivityMapper({ getState }),
       createTypingMessageToDirectLineActivityMapper({ getState })
@@ -109,7 +110,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
               (async function () {
                 let waitTime = 2;
-                while((getReadyState() != ReadyState.OPEN || !getState(StateKey.ConnectionStatusObserverReady)) && waitTime <= 4096){
+                while((getReadyState() != ReadyState.OPEN || !getState(StateKey.ConnectionStatusObserverReady)) && waitTime <= ConnectionStatusObserverWaitingTime){
                   await timeout(waitTime);
                   waitTime *= 2;
                 }
@@ -134,7 +135,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
                     {
                       Event: TelemetryEvents.ADAPTER_NOT_READY,
-                      Description: `Adapter: Adapter not ready. ConnectionStatusObserverReady is false`
+                      Description: `Adapter: Adapter not ready. ConnectionStatusObserverReady is false: adapter ID: ${adapterMiddleware.id}`
                     }
                   );
                 }
@@ -167,16 +168,16 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                 ); 
 
                 conversation.registerOnNewMessage(async message => {
+                  let activity: any = await convertMessage(message);
                   if (unsubscribed) {
-                    getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+                    getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
                       {
                         Event: TelemetryEvents.ADAPTER_UNSUBSCRIBED,
-                        Description: `Adapter: Unsubscribed state when trying to process onNewMessage`
+                        Description: `Adapter: Unsubscribed state when trying to process onNewMessage, webchat control may be already closed. ${logMessagefilter(activity)}`
                       }
                     );
                     return;
                   }
-                  let activity: any = await convertMessage(message);
                   getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                     {
                       Event: TelemetryEvents.MESSAGE_RECEIVED,

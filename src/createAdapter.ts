@@ -12,19 +12,27 @@ import Observable, { Subscription } from 'core-js/features/observable';
 import createAsyncIterableQueue, { AsyncIterableQueue } from './utils/createAsyncIterableQueue';
 
 import EventTarget from 'event-target-shim-es5';
+import { TelemetryEvents } from './types/ic3/TelemetryEvents';
 import createEvent from './utils/createEvent';
 import sealAdapter from './sealAdapter';
+import uniqueId from './ic3/utils/uniqueId';
 
 const DEFAULT_ENHANCER: AdapterEnhancer<any, any> = next => options => next(options);
 
 export default function createAdapter<TActivity, TAdapterState extends AdapterState>(
   options: AdapterOptions = {},
-  enhancer: AdapterEnhancer<TActivity, TAdapterState> = DEFAULT_ENHANCER
+  enhancer: AdapterEnhancer<TActivity, TAdapterState> = DEFAULT_ENHANCER,
+  logger?: any
 ): SealedAdapter<TActivity, TAdapterState> {
   let mutableAdapterState: TAdapterState = {} as TAdapterState;
   let sealed: boolean;
   let activeSubscription: Subscription;
-
+  logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+    {
+      Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+      Description: `Adapter: start init adapter`,
+    }
+  );
   const adapter = enhancer(
     (): Adapter<TActivity, TAdapterState> => {
       const eventTarget = new EventTarget();
@@ -32,6 +40,7 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
       let readyStatePropertyValue = ReadyState.CONNECTING;
 
       return {
+        id: uniqueId().toString(),
         addEventListener: eventTarget.addEventListener.bind(eventTarget),
         dispatchEvent: eventTarget.dispatchEvent.bind(eventTarget),
         removeEventListener: eventTarget.removeEventListener.bind(eventTarget),
@@ -52,6 +61,12 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
         },
 
         close: () => {
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            {
+              Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+              Description: `Adapter: adapter closed`,
+            }
+          );
           ingressQueues.forEach(ingressQueue => ingressQueue.end());
           ingressQueues.splice(0, Infinity);
 
@@ -61,6 +76,12 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
 
         // Egress middleware API
         egress: (): Promise<void> => {
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+            {
+              Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+              Description: `Adapter: There are no enhancers registered for egress().`,
+            }
+          );
           return Promise.reject(new Error('There are no enhancers registered for egress().'));
         },
 
@@ -77,6 +98,12 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
 
         setState: (name: keyof TAdapterState, value: any) => {
           if (sealed && !(name in mutableAdapterState)) {
+            logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+              {
+                Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+                Description: `Adapter: Cannot set config "${name}" because it was not set before being sealed.`,
+              }
+            );
             throw new Error(`Cannot set config "${name}" because it was not set before being sealed.`);
           }
 
@@ -91,12 +118,27 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
           }
 
           if (readyStatePropertyValue === ReadyState.CLOSED) {
+            logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+              {
+                Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+                Description: `Adapter: Cannot change "readyState" after it is CLOSED.`,
+              }
+            );
             throw new Error('Cannot change "readyState" after it is CLOSED.');
           } else if (
             readyState !== ReadyState.CLOSED &&
             readyState !== ReadyState.CONNECTING &&
             readyState !== ReadyState.OPEN
           ) {
+            logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+              {
+                Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+                Description: `"readyState" must be either CLOSED, CONNECTING or OPEN.`,
+                CustomProperties: {
+                  "ReadyState": readyState
+                }
+              }
+            );
             throw new Error('"readyState" must be either CLOSED, CONNECTING or OPEN.');
           }
 
@@ -106,21 +148,37 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
             activeSubscription && activeSubscription.unsubscribe();
             activeSubscription = null;
           }
-
-          eventTarget.dispatchEvent(createEvent(readyState === ReadyState.OPEN ? 'open' : 'error'));
+          let event = readyState === ReadyState.OPEN ? 'open' : 'error';
+          eventTarget.dispatchEvent(createEvent(event));
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            {
+              Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+              Description: `Adapter: dispatching event: ${event}`,
+            }
+          );
         },
 
         subscribe: (observable: Observable<TActivity> | false) => {
           activeSubscription && activeSubscription.unsubscribe();
           activeSubscription = null;
-
           if (!observable) {
+            logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
+              {
+                Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+                Description: `Adapter:observable is still null, returning.`,
+              }
+            );
             return;
           }
+          logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
+            {
+              Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+              Description: `Adapter: start subscribing.`,
+            }
+          );
 
           let subscription: Subscription;
-
-          observable.subscribe({
+          let subscribee = {
             start(thisSubscription: Subscription) {
               activeSubscription = thisSubscription;
               subscription = thisSubscription;
@@ -143,20 +201,25 @@ export default function createAdapter<TActivity, TAdapterState extends AdapterSt
 
             next(value: TActivity) {
               adapter.ingress(value);
-            }
-          });
+            },
+          };
+          observable.subscribe(subscribee);
         }
       };
     }
   )(options);
-
   if (Object.getPrototypeOf(adapter) !== Object.prototype) {
+    logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
+      {
+        Event: TelemetryEvents.CREATE_ADAPTER_EVENT,
+        Description: `Object returned from enhancer must not be a class object.`,
+      }
+    );
     throw new Error('Object returned from enhancer must not be a class object.');
   }
 
   const sealedAdapter = sealAdapter(adapter, mutableAdapterState);
 
   sealed = true;
-
   return sealedAdapter;
 }

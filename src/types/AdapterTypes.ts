@@ -19,6 +19,7 @@ type SealedAdapter<TActivity, TAdapterState extends AdapterState> = {
   ingress: IngressFunction<TActivity>;
   readyState: ReadyState;
   subscribe: SubscribeFunction<TActivity>;
+  id?: string;
 } & EventTarget &
   TAdapterState;
 
@@ -32,6 +33,7 @@ interface Adapter<TActivity, TAdapterState extends AdapterState> extends EventTa
   setReadyState: (readyState: ReadyState) => void;
   setState: SetStateFunction<TAdapterState>;
   subscribe: SubscribeFunction<TActivity>;
+  id?: string;
 }
 
 interface MiddlewareAPI<TActivity, TAdapterState extends AdapterState> {
@@ -43,6 +45,7 @@ interface MiddlewareAPI<TActivity, TAdapterState extends AdapterState> {
   setReadyState: (readyState: ReadyState) => void;
   setState: SetStateFunction<TAdapterState>;
   subscribe: SubscribeFunction<TActivity>;
+  id?: string;
 }
 
 type EgressOptions<TActivity> = {

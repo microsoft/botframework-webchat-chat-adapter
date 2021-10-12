@@ -1,7 +1,7 @@
-import createEgressMessageActivityMiddleware from './../../../../src/ic3/enhancers/egress/createEgressMessageActivityMiddleware';
 import { ActivityType } from './../../../../src/types/DirectLineTypes';
-import { TelemetryEvents } from './../../../../src/types/ic3/TelemetryEvents';
 import { StateKey } from './../../../../src/types/ic3/IC3AdapterState';
+import { TelemetryEvents } from './../../../../src/types/ic3/TelemetryEvents';
+import createEgressMessageActivityMiddleware from './../../../../src/ic3/enhancers/egress/createEgressMessageActivityMiddleware';
 
 describe('test createEgressMessageActivityMiddleware', () => {
     let globalMicrosoftBefore;
@@ -24,6 +24,7 @@ describe('test createEgressMessageActivityMiddleware', () => {
             }
             case StateKey.UserDisplayName: return StateKey.UserDisplayName;
             case StateKey.Logger: return { logClientSdkTelemetryEvent: logClientSdkTelemetryEventSpy};
+            case StateKey.ChatId: return "1234";
             default: return null
         }
     }
@@ -91,7 +92,7 @@ describe('test createEgressMessageActivityMiddleware', () => {
             'DEBUG',
             {
                 Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}`
+                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}, chat ID: 1234, adapter ID: `
             }
         );
         expect(sendMessageMock).toHaveBeenCalledWith(expectedMessage);
@@ -122,7 +123,7 @@ describe('test createEgressMessageActivityMiddleware', () => {
             'DEBUG',
             {
                 Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}`
+                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}, chat ID: 1234, adapter ID: `
             }
         );
         expect(sendMessageMock).toHaveBeenCalledWith(expectedMessage);
@@ -157,7 +158,7 @@ describe('test createEgressMessageActivityMiddleware', () => {
             'DEBUG',
             {
                 Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}`
+                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}, chat ID: 1234, adapter ID: `
             }
         );
         expect(sendMessageMock).toHaveBeenCalledWith(expectedMessage);
