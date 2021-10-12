@@ -8,10 +8,10 @@ import {
   AdapterState,
   ReadyState
 } from '../types/AdapterTypes';
+import { ConnectionStatusObserverNotReadyError, ConnectionStatusObserverWaitingTime } from '../ic3/Constants';
 import Observable, { Observer } from 'core-js/features/observable';
 
 import AbortController from 'abort-controller-es5';
-import { ConnectionStatusObserverNotReadyError } from '../ic3/Constants';
 import { ConversationControllCallbackOnEvent } from '../ic3/createAdapterEnhancer';
 import { IDirectLineActivity } from '../types/DirectLineTypes';
 import { StateKey } from '../types/ic3/IC3AdapterState';
@@ -62,11 +62,11 @@ export default function exportDLJSInterface<TAdapterState extends AdapterState>(
             Event: TelemetryEvents.ADAPTER_NOT_READY,
             Description: `Adapter: ConnectionStatusObserver is null, start waiting!`,
             CustomProperties: {
-              event
+              eventType: event?.type
             }
           }
         );
-        while(!connectionStatusObserver && waitedTime <= 4096){
+        while(!connectionStatusObserver && waitedTime <= ConnectionStatusObserverWaitingTime){
           await timeout(waitedTime);
           waitedTime = waitedTime*2;
         }
