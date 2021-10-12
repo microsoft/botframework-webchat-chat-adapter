@@ -1,8 +1,8 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
 import { AdapterEnhancer, ReadyState } from '../../../types/AdapterTypes';
+import { ConnectionStatusObserverWaitingTime, MissingAckFromPollingError, Reinitialize, ReloadAllMessageInterval, TranslationMessageTag } from '../../Constants';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
-import { MissingAckFromPollingError, Reinitialize, ReloadAllMessageInterval, TranslationMessageTag } from '../../Constants';
 import { alreadyAcked, removeFromMessageIdSet } from '../../../utils/ackedMessageSet';
 
 import ConnectivityManager from '../../utils/ConnectivityManager';
@@ -110,7 +110,7 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
 
               (async function () {
                 let waitTime = 2;
-                while((getReadyState() != ReadyState.OPEN || !getState(StateKey.ConnectionStatusObserverReady)) && waitTime <= 4096){
+                while((getReadyState() != ReadyState.OPEN || !getState(StateKey.ConnectionStatusObserverReady)) && waitTime <= ConnectionStatusObserverWaitingTime){
                   await timeout(waitTime);
                   waitTime *= 2;
                 }
