@@ -16,8 +16,8 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
   IC3DirectLineActivity,
   IC3AdapterState
 > {
-  return ({ingress, getState }) => next => async (activity: IC3DirectLineActivity) => {
-
+  return (adapter) => next => async (activity: IC3DirectLineActivity) => {
+    const {ingress, getState} = adapter;
     const convertMessage = compose(
       createUserMessageToDirectLineActivityMapper({ getState }),
       createTypingMessageToDirectLineActivityMapper({ getState })
@@ -105,7 +105,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
           Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-          Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}`
+          Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}, chat ID: ${getState(StateKey.ChatId)}, adapter ID: ${adapter?.id? adapter.id : ""}`
         }
       );
       if (ingress && response?.status === 201 && response?.contextid && response?.clientmessageid && !hasTargetTag(message, Translated)) {

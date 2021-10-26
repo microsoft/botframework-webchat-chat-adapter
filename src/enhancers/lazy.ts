@@ -2,9 +2,9 @@
 
 import {
   Adapter,
-  AdapterState,
   AdapterCreator,
   AdapterOptions,
+  AdapterState,
   IterateActivitiesOptions
 } from '../types/AdapterTypes';
 
@@ -20,7 +20,8 @@ const SUPPORTED_FUNCTIONS = [
   'removeEventListener',
   'setReadyState',
   'setState',
-  'subscribe'
+  'subscribe',
+  'id'
 ];
 
 // Only create adapter when activities is being iterated.

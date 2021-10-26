@@ -1,7 +1,8 @@
-import createIC3Enhancer from './../../src/ic3/createAdapterEnhancer';
-import { StateKey } from './../../src/types/ic3/IC3AdapterState';
-import * as initializeIC3SDK from './../../src/ic3/initializeIC3SDK';
 import * as getPlatformBotId from './../../src/ic3/utils/getPlatformBotId';
+import * as initializeIC3SDK from './../../src/ic3/initializeIC3SDK';
+
+import { StateKey } from './../../src/types/ic3/IC3AdapterState';
+import createIC3Enhancer from './../../src/ic3/createAdapterEnhancer';
 
 jest.mock('redux', () => ({
     compose: (param1, param2, param3) => param1
@@ -65,7 +66,6 @@ describe('createAdapterEnhancer tests', () => {
         expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.UserDisplayName, undefined);
         expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.UserId, undefined);
         expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.FeatureConfig, undefined);
-        expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.Logger, undefined);
         expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.ConnectionStatusObserverReady, false);
         expect(initializeIC3SDK.default).toHaveBeenCalledWith(
             ic3AdapterOptions.sdkUrl,
@@ -104,7 +104,6 @@ describe('createAdapterEnhancer tests', () => {
         expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.UserDisplayName, undefined);
         expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.UserId, undefined);
         expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.FeatureConfig, undefined);
-        expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.Logger, undefined);
         expect(mockAdapter.setState).toHaveBeenCalledWith(StateKey.ConnectionStatusObserverReady, false);
         expect(initializeIC3SDK.default).not.toHaveBeenCalled();
         expect(result).toEqual(mockAdapter);
