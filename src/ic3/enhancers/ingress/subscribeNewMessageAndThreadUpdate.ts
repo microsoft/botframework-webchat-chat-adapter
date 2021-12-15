@@ -241,13 +241,8 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                   );
                   if (alreadyAcked(message.clientmessageid)) {
                     removeFromMessageIdSet(message.clientmessageid);
-                    if (message.tags?.includes(TranslationMessageTag)) {
-                      !unsubscribed && next(activity);
-                    }
                   }
-                  else {
-                    !unsubscribed && next(activity);
-                  }
+                  !unsubscribed && next(activity);
                 });
                 getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
                   {
