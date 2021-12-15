@@ -13,6 +13,7 @@ import createEgressEnhancer from './enhancers/egress/index';
 import createIngressEnhancer from './enhancers/ingress/index';
 import getPlatformBotId from './utils/getPlatformBotId';
 import initializeIC3SDK from './initializeIC3SDK';
+import { stringifyHelper } from '../utils/logMessageFilter';
 
 export let ConversationControllCallbackOnEvent: (event:any) => void;
 
@@ -29,7 +30,8 @@ export default function createIC3Enhancer({
   sendHeartBeat = false,
   conversation,
   featureConfig,
-  callbackOnEvent
+  callbackOnEvent,
+  liveworkitemId = ""
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
 
 
@@ -60,6 +62,7 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.Logger, logger);
       adapter.setState(StateKey.ConnectionStatusObserverReady, false);
       adapter.setState(StateKey.ChatId, chatToken.chatId);
+      adapter.setState(StateKey.LiveworkItemId, liveworkitemId);
 
       (async function () {
         if(!conversation){
@@ -79,7 +82,11 @@ export default function createIC3Enhancer({
           
           logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
             { Event: TelemetryEvents.IC3_SDK_JOIN_CONVERSATION_STARTED, 
-              Description: `Adapter: No conversation found; joining conversation`
+              Description: `Adapter: No conversation found; joining conversation`,
+              CustomProperties: stringifyHelper({
+                [StateKey.ChatId] : chatToken.chatId,
+                [StateKey.LiveworkItemId]: liveworkitemId
+              })
             });
           conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);
           logger?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,

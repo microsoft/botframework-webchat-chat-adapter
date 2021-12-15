@@ -8,7 +8,8 @@ enum StateKey {
   FeatureConfig = 'ic3.featureConfig',
   Logger = 'ic3.logger',
   ConnectionStatusObserverReady = 'dl.connectionStatusObserverReady',
-  ChatId = "ic3.chatId"
+  ChatId = "ic3.chatId",
+  LiveworkItemId = "ic3.liveworkItemId"
 }
 
 export { StateKey };
@@ -22,4 +23,5 @@ export type IC3AdapterState = {
   [StateKey.Logger]: Microsoft.CRM.Omnichannel.IC3Client.Model.ILogger;
   [StateKey.ConnectionStatusObserverReady]: boolean;
   [StateKey.ChatId] : string;
+  [StateKey.LiveworkItemId] : string;
 };

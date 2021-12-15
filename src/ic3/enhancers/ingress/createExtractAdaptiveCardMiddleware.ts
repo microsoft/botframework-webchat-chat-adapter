@@ -1,11 +1,13 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
-import { ActivityType } from '../../../types/DirectLineTypes';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+import { extendError, stringifyHelper } from '../../../utils/logMessageFilter';
+
+import { ActivityType } from '../../../types/DirectLineTypes';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { IngressMiddleware } from '../../../applyIngressMiddleware';
-import updateIn from 'simple-update-in';
 import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
+import updateIn from 'simple-update-in';
 
 const ADAPTIVE_CARD_ACTION_SUBMIT = 'Action.Submit';
 const ADAPTIVE_CARD_ACTION_TYPE_MAP: { [id: string]: string } = {
@@ -82,7 +84,13 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
         {
           Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-          Description: `Adapter: [AdaptiveCard] Unable to parse XML; ignoring attachment.`
+          Description: `Adapter: [AdaptiveCard] Unable to parse XML; ignoring attachment.`,
+          CustomProperties: stringifyHelper({
+            activityId: activity?.id,
+            messageId: activity?.messageid,
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
 
@@ -93,7 +101,13 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
         {
           Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-          Description: `Adapter: [AdaptiveCard] Wrong XML schema; ignoring attachment.`
+          Description: `Adapter: [AdaptiveCard] Wrong XML schema; ignoring attachment.`,
+          CustomProperties: stringifyHelper({
+            activityId: activity?.id,
+            messageId: activity?.messageid,
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
 
@@ -106,7 +120,13 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
         {
           Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-          Description: `Adapter: [AdaptiveCard] Does not contain <Swift>; ignoring attachment.`
+          Description: `Adapter: [AdaptiveCard] Does not contain <Swift>; ignoring attachment.`,
+          CustomProperties: stringifyHelper({
+            activityId: activity?.id,
+            messageId: activity?.messageid,
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
 
@@ -120,7 +140,13 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
         {
           Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-          Description: `Adapter: [AdaptiveCard] Data is empty; ignoring attachment.`
+          Description: `Adapter: [AdaptiveCard] Data is empty; ignoring attachment.`,
+          CustomProperties: stringifyHelper({
+            activityId: activity?.id,
+            messageId: activity?.messageid,
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
 
@@ -139,7 +165,13 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
         {
           Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-          Description: `Adapter: [AdaptiveCard] Key 'attachments' not found; ignoring attachment.`
+          Description: `Adapter: [AdaptiveCard] Key 'attachments' not found; ignoring attachment.`,
+          CustomProperties: stringifyHelper({
+            activityId: activity?.id,
+            messageId: activity?.messageid,
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
 
@@ -155,7 +187,13 @@ export default function createExtractAdaptiveCardMiddleware(): IngressMiddleware
         {
           Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
           Description: `Adapter: [AdaptiveCard] Failed to process attachments; ignoring attachment.`,
-          ExceptionDetails: error
+          ExceptionDetails: extendError(error),
+          CustomProperties: stringifyHelper({
+            activityId: activity?.id,
+            messageId: activity?.messageid,
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
 

@@ -1,6 +1,7 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+import { getAdapterContextDetails, stringifyHelper } from '../../../utils/logMessageFilter';
 
 import { ActivityType } from '../../../types/DirectLineTypes';
 import { EgressMiddleware } from '../../../applyEgressMiddleware';
@@ -25,7 +26,12 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.WARN,
         {
           Event: TelemetryEvents.UNKNOWN_MESSAGE_TYPE,
-          Description: `Adapter: Unknown message type; ignoring ack message ${message?.clientmessageid}`
+          Description: `Adapter: Unknown message type; ignoring ack message ${message?.clientmessageid}`,
+          CustomProperties: stringifyHelper({
+            messageId: message?.clientmessageid,
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
     });
@@ -39,7 +45,11 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.ERROR,
         {
           Event: TelemetryEvents.CONVERSATION_NOT_FOUND,
-          Description: `Adapter: Failed to egress without an active conversation.`
+          Description: `Adapter: Failed to egress without an active conversation.`,
+          CustomProperties: stringifyHelper({
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
       throw new Error('IC3: Failed to egress without an active conversation.');
@@ -97,7 +107,12 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
           Event: TelemetryEvents.SEND_FILE_SUCCESS,
-          Description: `Adapter: Successfully sent a file with clientmessageid ${message.clientmessageid}`
+          Description: `Adapter: Successfully sent a file with clientmessageid ${message.clientmessageid}`,
+          CustomProperties: stringifyHelper({
+            messageId: message?.clientmessageid,
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
     } else {
@@ -105,7 +120,12 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
           Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-          Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}, chat ID: ${getState(StateKey.ChatId)}, adapter ID: ${adapter?.id? adapter.id : ""}`
+          Description: `Adapter: Successfully sent a message with clientmessageid ${message.clientmessageid}, chat ID: ${getState(StateKey.ChatId)}, adapter ID: ${adapter?.id? adapter.id : ""}`,
+          CustomProperties: stringifyHelper({
+            messageId: message?.clientmessageid,
+            [StateKey.ChatId]: getState(StateKey.ChatId),
+            [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+          })
         }
       );
       if (ingress && response?.status === 201 && response?.contextid && response?.clientmessageid && !hasTargetTag(message, Translated)) {
