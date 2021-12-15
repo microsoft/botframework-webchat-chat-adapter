@@ -94,7 +94,7 @@ export function stringifyHelper(obj: any) {
     }
     let tempResult = JSON.stringify(obj);
     if (tempResult !== undefined && tempResult !== null) {
-      result = tempResult;
+      return tempResult;
     }
   }
   catch (e) {
