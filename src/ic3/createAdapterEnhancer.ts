@@ -31,7 +31,7 @@ export default function createIC3Enhancer({
   conversation,
   featureConfig,
   callbackOnEvent,
-  liveworkitemId = ""
+  liveworkItemId = ""
 }: IIC3AdapterOptions & { sdkUrl?: string }): AdapterEnhancer<IC3DirectLineActivity, IC3AdapterState> {
 
 
@@ -62,7 +62,7 @@ export default function createIC3Enhancer({
       adapter.setState(StateKey.Logger, logger);
       adapter.setState(StateKey.ConnectionStatusObserverReady, false);
       adapter.setState(StateKey.ChatId, chatToken.chatId);
-      adapter.setState(StateKey.LiveworkItemId, liveworkitemId);
+      adapter.setState(StateKey.LiveworkItemId, liveworkItemId);
 
       (async function () {
         if(!conversation){
@@ -85,7 +85,7 @@ export default function createIC3Enhancer({
               Description: `Adapter: No conversation found; joining conversation`,
               CustomProperties: stringifyHelper({
                 [StateKey.ChatId] : chatToken.chatId,
-                [StateKey.LiveworkItemId]: liveworkitemId
+                [StateKey.LiveworkItemId]: liveworkItemId
               })
             });
           conversation = await sdk.joinConversation(chatToken.chatId, sendHeartBeat);

@@ -92,7 +92,8 @@ describe('test createEgressMessageActivityMiddleware', () => {
             'DEBUG',
             {
                 Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}, chat ID: 1234, adapter ID: `
+                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}, chat ID: 1234, adapter ID: `,
+                CustomProperties: expect.anything()
             }
         );
         expect(sendMessageMock).toHaveBeenCalledWith(expectedMessage);
@@ -123,7 +124,8 @@ describe('test createEgressMessageActivityMiddleware', () => {
             'DEBUG',
             {
                 Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}, chat ID: 1234, adapter ID: `
+                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}, chat ID: 1234, adapter ID: `,
+                CustomProperties: expect.anything()
             }
         );
         expect(sendMessageMock).toHaveBeenCalledWith(expectedMessage);
@@ -155,11 +157,7 @@ describe('test createEgressMessageActivityMiddleware', () => {
             timestamp: new Date(activity.timestamp)
         }
         expect(logClientSdkTelemetryEventSpy).toHaveBeenCalledWith(
-            'DEBUG',
-            {
-                Event: TelemetryEvents.SEND_MESSAGE_SUCCESS,
-                Description: `Adapter: Successfully sent a message with clientmessageid ${testDateNowValue}, chat ID: 1234, adapter ID: `
-            }
+            'DEBUG', expect.anything()
         );
         expect(sendMessageMock).toHaveBeenCalledWith(expectedMessage);
     });
@@ -195,7 +193,8 @@ describe('test createEgressMessageActivityMiddleware', () => {
             'DEBUG',
             {
                 Event: TelemetryEvents.SEND_FILE_SUCCESS,
-                Description: `Adapter: Successfully sent a file with clientmessageid ${testDateNowValue}`
+                Description: `Adapter: Successfully sent a file with clientmessageid ${testDateNowValue}`,
+                CustomProperties: expect.anything()
             }
         );
         expect(sendFileMessageMock).toHaveBeenCalledWith(activity.channelData.uploadedFileMetadata, expectedMessage);
