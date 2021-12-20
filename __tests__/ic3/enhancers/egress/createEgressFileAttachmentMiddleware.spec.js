@@ -1,7 +1,7 @@
-import createEgressMessageActivityMiddleware from './../../../../src/ic3/enhancers/egress/createEgressFileAttachmentMiddleware';
+import { ActivityType } from './../../../../src/types/DirectLineTypes';
 import { StateKey } from './../../../../src/types/ic3/IC3AdapterState';
 import { TelemetryEvents } from './../../../../src/types/ic3/TelemetryEvents';
-import { ActivityType } from './../../../../src/types/DirectLineTypes';
+import createEgressMessageActivityMiddleware from './../../../../src/ic3/enhancers/egress/createEgressFileAttachmentMiddleware';
 
 describe('createEgressFileAttachmentMiddleware test', () => {
     let globalMicrosoftBefore;
@@ -49,7 +49,8 @@ describe('createEgressFileAttachmentMiddleware test', () => {
             expect(e).toEqual(new Error('IC3: Failed to egress without an active conversation.'));
             expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('ERROR', {
                 Event: TelemetryEvents.CONVERSATION_NOT_FOUND,
-                Description: `Adapter: Failed to egress without an active conversation.`
+                Description: `Adapter: Failed to egress without an active conversation.`,
+                CustomProperties: expect.anything()
             });
         }
     });
@@ -113,7 +114,8 @@ describe('createEgressFileAttachmentMiddleware test', () => {
             expect(e).toEqual(new Error('IC3: Failed to fetch attachment to send.'));
             expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('ERROR', {
                 Event: TelemetryEvents.FETCH_ATTACHMENT_FAILED,
-                Description: `Adapter: Failed to fetch attachment to send.`
+                Description: `Adapter: Failed to fetch attachment to send.`,
+                CustomProperties: expect.anything()
             });
         }
     });

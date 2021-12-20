@@ -20,4 +20,5 @@ export interface IIC3AdapterOptions
   visitor?: boolean;
   sendHeartBeat: boolean;
   featureConfig?: FeatureConfig;
+  liveworkItemId?: string;
 }

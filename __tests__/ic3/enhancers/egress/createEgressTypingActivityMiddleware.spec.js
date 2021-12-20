@@ -1,7 +1,7 @@
-import createEgressTypingActivityMiddleware from './../../../../src/ic3/enhancers/egress/createEgressTypingActivityMiddleware';
 import { ActivityType } from './../../../../src/types/DirectLineTypes';
-import { TelemetryEvents } from './../../../../src/types/ic3/TelemetryEvents';
 import { StateKey } from './../../../../src/types/ic3/IC3AdapterState';
+import { TelemetryEvents } from './../../../../src/types/ic3/TelemetryEvents';
+import createEgressTypingActivityMiddleware from './../../../../src/ic3/enhancers/egress/createEgressTypingActivityMiddleware';
 
 describe('createEgressTypingActivityMiddleware test', () => {
     let globalMicrosoftBefore;
@@ -72,7 +72,8 @@ describe('createEgressTypingActivityMiddleware test', () => {
         });
         expect(logClientSdkTelemetryEventSpy).toHaveBeenCalledWith('DEBUG', {
             Event: TelemetryEvents.SEND_TYPING_SUCCESS,
-            Description: `Adapter: Successfully sent a typing indication`
+            Description: `Adapter: Successfully sent a typing indication`,
+            CustomProperties: expect.anything()
         });
     });
 });

@@ -1,6 +1,6 @@
-import createExtractAdaptiveCardMiddleware from './../../../../src/ic3/enhancers/ingress/createExtractAdaptiveCardMiddleware';
 import { ActivityType } from './../../../../src/types/DirectLineTypes';
 import { TelemetryEvents } from './../../../../src/types/ic3/TelemetryEvents';
+import createExtractAdaptiveCardMiddleware from './../../../../src/ic3/enhancers/ingress/createExtractAdaptiveCardMiddleware';
 
 describe('createExtractAdaptiveCardMiddleware test', () => {
     let globalMicrosoftBefore;
@@ -51,7 +51,8 @@ describe('createExtractAdaptiveCardMiddleware test', () => {
         expect(result).toBe(next);
         expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('WARN', {
             Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-            Description: `Adapter: [AdaptiveCard] Unable to parse XML; ignoring attachment.`
+            Description: expect.anything(),
+            CustomProperties: expect.anything()
         });
     });
 
@@ -67,7 +68,8 @@ describe('createExtractAdaptiveCardMiddleware test', () => {
         expect(result).toBe(next);
         expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('WARN', {
             Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-            Description: `Adapter: [AdaptiveCard] Wrong XML schema; ignoring attachment.`
+            Description: expect.anything(),
+            CustomProperties: expect.anything()
         });
     });
 
@@ -83,7 +85,8 @@ describe('createExtractAdaptiveCardMiddleware test', () => {
         expect(result).toBe(next);
         expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('WARN', {
             Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-            Description: `Adapter: [AdaptiveCard] Does not contain <Swift>; ignoring attachment.`
+            Description: expect.anything(),
+            CustomProperties: expect.anything()
         });
     });
 
@@ -102,7 +105,8 @@ describe('createExtractAdaptiveCardMiddleware test', () => {
         expect(result).toBe(next);
         expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('WARN', {
             Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-            Description: `Adapter: [AdaptiveCard] Data is empty; ignoring attachment.`
+            Description: expect.anything(),
+            CustomProperties: expect.anything()
         });
     });
 
@@ -138,7 +142,8 @@ describe('createExtractAdaptiveCardMiddleware test', () => {
         expect(result).toBe(next);
         expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('WARN', {
             Event: TelemetryEvents.ADAPTIVE_CARD_PROCESSING_ERROR,
-            Description: `Adapter: [AdaptiveCard] Key 'attachments' not found; ignoring attachment.`
+            Description: expect.anything(),
+            CustomProperties: expect.anything()
         });
     });
 

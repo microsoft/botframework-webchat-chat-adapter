@@ -7,6 +7,7 @@ import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { MessageTag } from '../../../types/ic3/MessageTag';
 import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
+import { stringifyHelper } from '../../../utils/logMessageFilter';
 
 const TYPING_INDICATOR_PAYLOAD = '{"isTyping":true}';
 
@@ -45,7 +46,11 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
     getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
       {
         Event: TelemetryEvents.SEND_TYPING_SUCCESS,
-        Description: `Adapter: Successfully sent a typing indication`
+        Description: `Adapter: Successfully sent a typing indication`,
+        CustomProperties: stringifyHelper({
+          [StateKey.ChatId]: getState(StateKey.ChatId),
+          [StateKey.LiveworkItemId]: getState(StateKey.LiveworkItemId)
+        })
       }
     );
   };
