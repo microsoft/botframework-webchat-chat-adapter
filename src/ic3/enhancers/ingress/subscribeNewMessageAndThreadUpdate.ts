@@ -3,7 +3,7 @@
 import { AdapterEnhancer, ReadyState } from '../../../types/AdapterTypes';
 import { ConnectionStatusObserverWaitingTime, MissingAckFromPollingError, Reinitialize, ReloadAllMessageInterval, TranslationMessageTag } from '../../Constants';
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
-import { alreadyAcked, removeFromMessageIdSet } from '../../../utils/ackedMessageSet';
+import { addToMessageIdMap, alreadyAcked } from '../../../utils/ackedMessageMap';
 import { extendError, logMessagefilter, stringifyHelper } from '../../../utils/logMessageFilter';
 
 import ConnectivityManager from '../../utils/ConnectivityManager';
@@ -239,8 +239,9 @@ export default function createSubscribeNewMessageAndThreadUpdateEnhancer(): Adap
                       })
                     }
                   );
-                  if (alreadyAcked(message.clientmessageid)) {
-                    removeFromMessageIdSet(message.clientmessageid);
+                  // the receipt message had been successfully polled back, add to map to avoid further update on the activity status
+                  if (!alreadyAcked(message.clientmessageid)) {
+                    addToMessageIdMap(message.clientmessageid);
                   }
                   !unsubscribed && next(activity);
                 });

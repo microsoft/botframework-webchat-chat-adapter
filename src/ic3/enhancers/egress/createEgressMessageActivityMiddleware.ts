@@ -8,7 +8,7 @@ import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
 import { Translated } from '../../Constants';
-import { addToMessageIdSet } from '../../../utils/ackedMessageSet';
+import { alreadyAcked } from '../../../utils/ackedMessageMap';
 import { compose } from 'redux';
 import createTypingMessageToDirectLineActivityMapper from '../ingress/mappers/createThreadToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from '../ingress/mappers/createUserMessageToDirectLineActivityMapper';
@@ -131,8 +131,12 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
       if (ingress && response?.status === 201 && response?.contextid && response?.clientmessageid && !hasTargetTag(message, Translated)) {
         const ackActivity:any = await convertMessage(message);
         ackActivity.channelData.clientActivityID = activity.channelData.clientActivityID;
-        if (addToMessageIdSet) addToMessageIdSet(message.clientmessageid);
-        ingress(ackActivity);
+        /**
+         * set message to "sent" state only if polling has not fetched the message back yet
+         */
+        if (!alreadyAcked(message.clientmessageid)) {
+          ingress(ackActivity);
+        }
       }
     }
   };
