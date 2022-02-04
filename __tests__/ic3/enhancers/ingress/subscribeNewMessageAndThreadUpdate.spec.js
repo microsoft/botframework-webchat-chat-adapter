@@ -1,11 +1,12 @@
-import createSubscribeNewMessageAndThreadUpdateEnhancer from './../../../../src/ic3/enhancers/ingress/subscribeNewMessageAndThreadUpdate';
-import * as redux from 'redux';
 import * as applySetStateMiddleware from './../../../../src/applySetStateMiddleware';
 import * as createThreadToDirectLineActivityMapper from './../../../../src/ic3/enhancers/ingress/mappers/createThreadToDirectLineActivityMapper';
+import * as redux from 'redux';
+
+import ConnectivityManager from './../../../../src/ic3/utils/ConnectivityManager';
+import { ReadyState } from './../../../../src/types/AdapterTypes';
 import { StateKey } from './../../../../src/types/ic3/IC3AdapterState';
 import { TelemetryEvents } from './../../../../src/types/ic3/TelemetryEvents';
-import { ReadyState } from './../../../../src/types/AdapterTypes';
-import ConnectivityManager from './../../../../src/ic3/utils/ConnectivityManager';
+import createSubscribeNewMessageAndThreadUpdateEnhancer from './../../../../src/ic3/enhancers/ingress/subscribeNewMessageAndThreadUpdate';
 
 describe('createSubscribeNewMessageAndThreadUpdateEnhancer test', () => {
     let globalMicrosoftBefore;
@@ -68,19 +69,9 @@ describe('createSubscribeNewMessageAndThreadUpdateEnhancer test', () => {
             subscribe,
             getReadyState: () => ReadyState.OPEN
         })(next)(StateKey.Conversation, conversation);
-        expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('DEBUG', {
-            Event: TelemetryEvents.REHYDRATE_MESSAGES,
-            Description: `Adapter: Re-hydrating received messages`
-        });
         expect(window.addEventListener).toHaveBeenCalledWith('reinitialize', expect.any(Function));
-        expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('DEBUG', {
-            Event: TelemetryEvents.REGISTER_ON_NEW_MESSAGE,
-            Description: `Adapter: Registering on new message success`
-        });
-        expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('DEBUG', {
-            Event: TelemetryEvents.GET_MESSAGES_SUCCESS,
-            Description: `Adapter: Getting messages success`
-        });
+        expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('DEBUG', expect.anything());
+        expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('WARN', expect.anything());
         expect(redux.compose).toHaveBeenCalled();
     });
 
@@ -105,10 +96,8 @@ describe('createSubscribeNewMessageAndThreadUpdateEnhancer test', () => {
             getReadyState: () => {}
         })(next)(StateKey.Conversation, conversation);
         // jest.runAllTimers();
-        expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('DEBUG', {
-            Event: TelemetryEvents.REHYDRATE_MESSAGES,
-            Description: `Adapter: Re-hydrating received messages`
-        });
+        expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('DEBUG', expect.anything());
+        expect(mockLogClientSdkTelemetryEvent).toHaveBeenCalledWith('WARN', expect.anything());
         expect(window.addEventListener).toHaveBeenCalledWith('reinitialize', expect.any(Function));
         expect(redux.compose).toHaveBeenCalled();
     });
