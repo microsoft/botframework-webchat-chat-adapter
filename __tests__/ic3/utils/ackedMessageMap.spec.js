@@ -18,7 +18,7 @@ describe('ackMessageMap test suite', () => {
         clearAll();
     });
 
-    test('non-expired entries should NOT be cleared', () => {
+    test('non expired entries should NOT be cleared', () => {
         for(let i = 0; i<5000; i ++) {
             addToMessageIdMap(uniqueId());
         }
