@@ -205,7 +205,6 @@ describe('test createEgressMessageActivityMiddleware', () => {
         await createEgressMessageActivityMiddleware()({getState: fakeGetState, ingress: fakeIngress})(next)(activity);
         expect(fakeIngress).toHaveBeenCalled();
         sendingMessageClass.clearAll();
-        sendingMessageClass.testCallingFromSendingMap();
     });
 
 
