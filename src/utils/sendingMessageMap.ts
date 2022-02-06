@@ -37,7 +37,3 @@ export function size() {
 export function clearAll() {
     messageIdMap.clear();
 }
-
-export function testCallingFromSendingMap() {
-    console.log("debugging: calling from sending message map");
-}
