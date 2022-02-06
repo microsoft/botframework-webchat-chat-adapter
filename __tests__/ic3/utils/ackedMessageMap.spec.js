@@ -1,50 +1,30 @@
-import {addToMessageIdMap, alreadyAcked} from './../../../src/utils/ackedMessageMap.ts'
-import { clearAll, removeFromMessageIdMap } from './../../../src/utils/ackedMessageMap';
+import * as sendingMessageMapClass from './../../../src/utils/sendingMessageMap.ts'
 
 import uniqueId from './../../../src/ic3/utils/uniqueId';
 
-describe('ackMessageMap test suite', () => {
-    test('out of ttl entries should be cleared', () => {
-        for(let i = 0; i<5000; i ++) {
-            addToMessageIdMap(uniqueId());
+describe('sendingMessageMap test suite', () => {
+    test('clear the map if 5000 message inserted', () => {
+        for(let i = 0; i<=5000; i ++) {
+            sendingMessageMapClass.addToSendingMessageIdMap(uniqueId(), {});
         }
-        let uid = uniqueId();
-        addToMessageIdMap(uid, Date.now() - 3 * 60 * 1000);
-        let result = alreadyAcked(uid);
-        expect(result).toBeTruthy();
-        addToMessageIdMap("e9a18310-2080-4149-bced-4aa3afe8f995");
-        result = alreadyAcked(uid)
-        expect(result).toBeFalsy();
-        clearAll();
-    });
-
-    test('non expired entries should NOT be cleared', () => {
-        for(let i = 0; i<5000; i ++) {
-            addToMessageIdMap(uniqueId());
-        }
-        let uid = uniqueId();
-        addToMessageIdMap(uid, Date.now() - 1 * 60 * 1000);
-        let result = alreadyAcked(uid);
-        expect(result).toBeTruthy();
-        addToMessageIdMap("e9a18310-2080-4149-bced-4aa3afe8f995");
-        result = alreadyAcked(uid)
-        expect(result).toBeTruthy();
-        clearAll();
+        expect(sendingMessageMapClass.size()).toBe(5001);
+        sendingMessageMapClass.addToSendingMessageIdMap(uniqueId(), {});
+        expect(sendingMessageMapClass.size()).toBe(1);
     });
 
     test('can successfully add message to the map', () => {
         let uid = uniqueId();
-        addToMessageIdMap(uid);
-        let result = alreadyAcked(uid);
+        sendingMessageMapClass.addToSendingMessageIdMap(uid, {});
+        let result = sendingMessageMapClass.isStillSending(uid);
         expect(result).toBeTruthy();
-        removeFromMessageIdMap(uid);
+        sendingMessageMapClass.removeFromSendingMessageIdMap(uid);
     });
 
     test('can successfully verify a message not in the map', () => {
         let uid = "25bd2632-788a-48ba-9ac8-a0a8b0ac9eb3";
-        addToMessageIdMap(uid);
-        let result = alreadyAcked("88b40926-5d27-4dee-bce6-536c5ca563bd");
+        sendingMessageMapClass.addToSendingMessageIdMap(uid, {});
+        let result = sendingMessageMapClass.isStillSending("88b40926-5d27-4dee-bce6-536c5ca563bd");
         expect(result).toBeFalsy();
-        removeFromMessageIdMap(uid);
+        sendingMessageMapClass.removeFromSendingMessageIdMap(uid);
     });
 });

@@ -1,6 +1,7 @@
 /// <reference path="../../../types/ic3/external/Model.d.ts" />
 
 import { IC3AdapterState, StateKey } from '../../../types/ic3/IC3AdapterState';
+import { addToSendingMessageIdMap, getMessageFromSendingMap, isStillSending } from '../../../utils/sendingMessageMap';
 import { getAdapterContextDetails, stringifyHelper } from '../../../utils/logMessageFilter';
 
 import { ActivityType } from '../../../types/DirectLineTypes';
@@ -8,7 +9,6 @@ import { EgressMiddleware } from '../../../applyEgressMiddleware';
 import { IC3DirectLineActivity } from '../../../types/ic3/IC3DirectLineActivity';
 import { TelemetryEvents } from '../../../types/ic3/TelemetryEvents';
 import { Translated } from '../../Constants';
-import { alreadyAcked } from '../../../utils/ackedMessageMap';
 import { compose } from 'redux';
 import createTypingMessageToDirectLineActivityMapper from '../ingress/mappers/createThreadToDirectLineActivityMapper';
 import createUserMessageToDirectLineActivityMapper from '../ingress/mappers/createUserMessageToDirectLineActivityMapper';
@@ -116,6 +116,7 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         }
       );
     } else {
+      addToSendingMessageIdMap(message.clientmessageid, activity);
       const response = await conversation.sendMessage(message);
       getState(StateKey.Logger)?.logClientSdkTelemetryEvent(Microsoft.CRM.Omnichannel.IC3Client.Model.LogLevel.DEBUG,
         {
@@ -129,13 +130,12 @@ export default function createEgressMessageActivityMiddleware(): EgressMiddlewar
         }
       );
       if (ingress && response?.status === 201 && response?.contextid && response?.clientmessageid && !hasTargetTag(message, Translated)) {
-        const ackActivity:any = await convertMessage(message);
-        ackActivity.channelData.clientActivityID = activity.channelData.clientActivityID;
         /**
          * set message to "sent" state only if polling has not fetched the message back yet
          */
-        if (!alreadyAcked(message.clientmessageid)) {
-          ingress(ackActivity);
+        if (isStillSending(message.clientmessageid)) {
+          let ackActivity = getMessageFromSendingMap(message.clientmessageid);
+          ackActivity && ingress(ackActivity);
         }
       }
     }
