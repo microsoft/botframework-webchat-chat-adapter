@@ -1,6 +1,5 @@
 const messageIdMap = new Map<string, any>();
 const MAX_CAPACITY = 5000;
-//const TTL = 2 * 60 * 1000; // default: 2 mins, if a message receipt cannot be received within 2mins after been delivered, it is highly possible that polling had failed.
 
 function checkAndCleanSendingMessageMap() {
     if (messageIdMap.size > MAX_CAPACITY) {
