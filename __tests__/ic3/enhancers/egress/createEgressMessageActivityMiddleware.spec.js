@@ -1,3 +1,7 @@
+import * as sendingMessageClass from './../../../../src/utils/sendingMessageMap';
+
+import createUserMessageToDirectLineActivityMapper, {testExportFromCreateUserMessageToDirectLineActivityMapper} from "./../../../../src/ic3/enhancers/ingress/mappers/createUserMessageToDirectLineActivityMapper";
+
 import { ActivityType } from './../../../../src/types/DirectLineTypes';
 import { StateKey } from './../../../../src/types/ic3/IC3AdapterState';
 import { TelemetryEvents } from './../../../../src/types/ic3/TelemetryEvents';
@@ -160,6 +164,131 @@ describe('test createEgressMessageActivityMiddleware', () => {
             'DEBUG', expect.anything()
         );
         expect(sendMessageMock).toHaveBeenCalledWith(expectedMessage);
+    });
+
+    it("should ack message if status 201 returned", async () => {
+        const clientActivityId = 'client_activity_id:1'
+        const activity = {
+            type: ActivityType.Message,
+            channelData: {
+                clientActivityID: testActivityId,
+                tags: [clientActivityId, 'testTag']
+            },
+            from: { id: 'testFromId' },
+            timestamp: 123,
+            value: {}
+        };
+        const fakeGetState = (key) => {
+            switch(key) {
+                case StateKey.Conversation: {
+                    return {
+                        sendMessage: () => {
+                            console.log("fake send message called");
+                            return Promise.resolve({
+                                status: 201,
+                                contextid: "4308e7a8-4acc-4ff3-92dd-36eee65ff987",
+                                clientmessageid: "609789f4-78ca-4e30-9703-af03619f8940"
+                            })
+                        },
+                        sendFileMessage: sendFileMessageMock
+                    }
+                }
+                case StateKey.UserDisplayName: return StateKey.UserDisplayName;
+                case StateKey.Logger: return { logClientSdkTelemetryEvent: logClientSdkTelemetryEventSpy};
+                case StateKey.ChatId: return "1234";
+                default: return null
+            }
+        }
+
+        const fakeIngress = jest.fn();
+
+        await createEgressMessageActivityMiddleware()({getState: fakeGetState, ingress: fakeIngress})(next)(activity);
+        expect(fakeIngress).toHaveBeenCalled();
+        sendingMessageClass.clearAll();
+    });
+
+
+    it("should not ack message if status 201 not returned", async () => {
+        const clientActivityId = 'client_activity_id:1'
+        const activity = {
+            type: ActivityType.Message,
+            channelData: {
+                clientActivityID: testActivityId,
+                tags: [clientActivityId, 'testTag']
+            },
+            from: { id: 'testFromId' },
+            timestamp: 123,
+            value: {}
+        };
+        const fakeGetState = (key) => {
+            switch(key) {
+                case StateKey.Conversation: {
+                    return {
+                        sendMessage: () => {
+                            console.log("fake send message called");
+                            return Promise.resolve({
+                                status: 400,
+                                contextid: "4308e7a8-4acc-4ff3-92dd-36eee65ff987",
+                                clientmessageid: "609789f4-78ca-4e30-9703-af03619f8940"
+                            })
+                        },
+                        sendFileMessage: sendFileMessageMock
+                    }
+                }
+                case StateKey.UserDisplayName: return StateKey.UserDisplayName;
+                case StateKey.Logger: return { logClientSdkTelemetryEvent: logClientSdkTelemetryEventSpy};
+                case StateKey.ChatId: return "1234";
+                default: return null
+            }
+        }
+
+        const fakeIngress = jest.fn();
+
+        await createEgressMessageActivityMiddleware()({getState: fakeGetState, ingress: fakeIngress})(next)(activity);
+        expect(fakeIngress).not.toHaveBeenCalled();
+    });
+
+    it("should not ack message if message is not in the sending map", async () => {
+        const clientActivityId = 'client_activity_id:1'
+        const activity = {
+            type: ActivityType.Message,
+            channelData: {
+                clientActivityID: testActivityId,
+                tags: [clientActivityId, 'testTag']
+            },
+            from: { id: 'testFromId' },
+            timestamp: 123,
+            value: {}
+        };
+        const fakeGetState = (key) => {
+            switch(key) {
+                case StateKey.Conversation: {
+                    return {
+                        sendMessage: () => {
+                            console.log("fake send message called");
+                            return Promise.resolve({
+                                status: 201,
+                                contextid: "4308e7a8-4acc-4ff3-92dd-36eee65ff987",
+                                clientmessageid: "609789f4-78ca-4e30-9703-af03619f8940"
+                            })
+                        },
+                        sendFileMessage: sendFileMessageMock
+                    }
+                }
+                case StateKey.UserDisplayName: return StateKey.UserDisplayName;
+                case StateKey.Logger: return { logClientSdkTelemetryEvent: logClientSdkTelemetryEventSpy};
+                case StateKey.ChatId: return "1234";
+                default: return null
+            }
+        }
+
+        const fakeIngress = jest.fn();
+        const originalIsStillSending = sendingMessageClass.isStillSending;
+        sendingMessageClass.isStillSending = (messageId) => {console.log("still sending returning false"); return false};
+        await createEgressMessageActivityMiddleware()({getState: fakeGetState, ingress: fakeIngress})(next)(activity);
+        expect(fakeIngress).not.toHaveBeenCalled();
+        sendingMessageClass.clearAll();
+        sendingMessageClass.isStillSending = originalIsStillSending;
     });
 
     it('should send correct file message', async () => {
