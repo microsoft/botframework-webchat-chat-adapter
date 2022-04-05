@@ -2,6 +2,7 @@ import { ActivityType } from './../../../../src/types/DirectLineTypes';
 import { StateKey } from './../../../../src/types/ic3/IC3AdapterState';
 import { TelemetryEvents } from './../../../../src/types/ic3/TelemetryEvents';
 import createEgressTypingActivityMiddleware from './../../../../src/ic3/enhancers/egress/createEgressTypingActivityMiddleware';
+import { MessageTag } from './../../../../src/types/ic3/MessageTag';
 
 describe('createEgressTypingActivityMiddleware test', () => {
     let globalMicrosoftBefore;
@@ -65,8 +66,30 @@ describe('createEgressTypingActivityMiddleware test', () => {
         }
         createEgressTypingActivityMiddleware()({getState: mockGetState})(next)(activity);
         expect(indicateTypingStatusMock).toHaveBeenCalledWith('Typing', {
-            imdisplayname: StateKey.UserDisplayName
+            imdisplayname: StateKey.UserDisplayName,
+            tag: "public"
         });
+        expect(sendMessageToBotMock).toHaveBeenCalledWith(StateKey.BotId, {
+            payload: '{"isTyping":true}'
+        });
+        expect(logClientSdkTelemetryEventSpy).toHaveBeenCalledWith('DEBUG', {
+            Event: TelemetryEvents.SEND_TYPING_SUCCESS,
+            Description: `Adapter: Successfully sent a typing indication`,
+            CustomProperties: expect.anything()
+        });
+    });
+
+    test('should indicate typing status, and pass tag', () => {
+        const activity = {
+            type: ActivityType.Typing,
+            channelData: { tags: ['private'] }
+        }
+        createEgressTypingActivityMiddleware()({getState: mockGetState})(next)(activity);
+        expect(indicateTypingStatusMock).toHaveBeenCalledWith('Typing', {
+            imdisplayname: StateKey.UserDisplayName,
+            tag: 'private'
+        });
+
         expect(sendMessageToBotMock).toHaveBeenCalledWith(StateKey.BotId, {
             payload: '{"isTyping":true}'
         });

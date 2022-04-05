@@ -12,7 +12,7 @@ export default function createPatchFromRoleAndNameMiddleware(): IngressMiddlewar
 > {
   return ({ getState }) => next => (activity: IC3DirectLineActivity) => {
     const {
-      from: { id, name, role }
+      from: { id, name, role, tag }
     } = activity;
 
     const userId = getState(StateKey.UserId);
@@ -26,7 +26,8 @@ export default function createPatchFromRoleAndNameMiddleware(): IngressMiddlewar
       from: {
         id,
         role: patchedRole,
-        name: (patchedRole === Role.User && getState(StateKey.UserDisplayName)) || name
+        name: (patchedRole === Role.User && getState(StateKey.UserDisplayName)) || name,
+        tag
       }
     }
     return next(patchedActivity);

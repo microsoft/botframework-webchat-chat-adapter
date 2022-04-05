@@ -15,6 +15,16 @@ function isInternalActivity(activity: IC3DirectLineActivity): boolean {
   return activity.channelData && activity.channelData.tags && activity.channelData.tags.includes(MessageTag.Private);
 }
 
+function getTags(isInternalActivity: boolean): string {
+  if (isInternalActivity)
+  {
+    return MessageTag.Private;
+  }
+  else {
+    return "public";
+  }
+}
+
 export default function createEgressTypingActivityMiddleware(): EgressMiddleware<
   IC3DirectLineActivity,
   IC3AdapterState
@@ -32,7 +42,8 @@ export default function createEgressTypingActivityMiddleware(): EgressMiddleware
     }
 
     conversation.indicateTypingStatus(Microsoft.CRM.Omnichannel.IC3Client.Model.TypingStatus.Typing, {
-      imdisplayname: getState(StateKey.UserDisplayName) || activity.from.name || ''
+      imdisplayname: getState(StateKey.UserDisplayName) || activity.from.name || '',
+      tag: getTags(isInternalActivity(activity))
     });
 
     const botIds = getState(StateKey.BotId);
