@@ -70,4 +70,26 @@ describe('createTypingMessageToDirectLineActivityMapper test', () => {
         }
         expect(result).toEqual(expectedResult);
     });
+
+    test('should pass tag with sender', async () => {
+        spyOn(Date.prototype, 'toISOString').and.returnValue('dateString');
+        spyOn(uniqueId, 'default').and.returnValue('uniqueId');
+        const conversation = { id: 'tesConvId' };
+        const getState = () => conversation;
+        const message = {
+            messageType: 'Typing',
+            timestamp: new Date(),
+            sender: { displayName: 'displayName', id: 'senderId', tag: 'private' }
+        };
+        const result = await createTypingMessageToDirectLineActivityMapper({ getState })()(message);
+        const expectedResult = {
+            channelId: IC3_CHANNEL_ID,
+            conversation,
+            from: { id: message.sender.id, name: message.sender.displayName, tag: message.sender.tag },
+            id: 'uniqueId',
+            timestamp: 'dateString',
+            type: ActivityType.Typing
+        }
+        expect(result).toEqual(expectedResult);
+    });
 });

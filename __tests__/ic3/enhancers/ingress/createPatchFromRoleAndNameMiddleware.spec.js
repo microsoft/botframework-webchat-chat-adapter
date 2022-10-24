@@ -57,4 +57,19 @@ describe('createPatchFromRoleAndNameMiddleware test', () => {
         expect(result).toBe('next');
         expect(next).toHaveBeenCalledWith({...activity});
     });
+
+    test('should call next with correct params and include tag', () => {
+        const getState = (key) => key === StateKey.UserId ? 'userId' : key === StateKey.UserDisplayName ? 'userName' : null;
+        const activity = {
+            from: {
+                id: 'userIdActivity',
+                name: 'activityName',
+                role: Role.Channel,
+                tag: 'private'
+            }
+        }
+        const result = createPatchFromRoleAndNameMiddleware()({ getState })(next)(activity);
+        expect(result).toBe('next');
+        expect(next).toHaveBeenCalledWith({...activity});
+    });
 });

@@ -42,6 +42,7 @@ interface IDirectLineActivity {
     id: string;
     name?: string;
     role?: Role;
+    tag?: string;
   };
   id?: string;
   suggestedActions?: SuggestedActions;

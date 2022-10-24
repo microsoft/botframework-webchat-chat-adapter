@@ -34,7 +34,7 @@ export default function createTypingMessageToDirectLineActivityMapper({
     }
 
     const {
-      sender: { displayName: name, id },
+      sender: { displayName: name, id, tag },
       timestamp
     } = message;
 
@@ -43,7 +43,8 @@ export default function createTypingMessageToDirectLineActivityMapper({
       conversation: { id: conversation.id },
       from: {
         id,
-        name
+        name,
+        tag
       },
       id: uniqueId(),
       timestamp: timestamp.toISOString(),

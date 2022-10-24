@@ -227,6 +227,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     displayName: string;
     id: string;
     type: PersonType;
+    tag?: string;
   }
 }
 
