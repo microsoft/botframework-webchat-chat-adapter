@@ -282,6 +282,7 @@ declare namespace Microsoft.CRM.Omnichannel.IC3Client.Model {
     protocolType: ProtocolType;
     logger?: ILogger;
     documentbody?: string;
+    isVoicemailConversation?: boolean;
   }
 }
 
