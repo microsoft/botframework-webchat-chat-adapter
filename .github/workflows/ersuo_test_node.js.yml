@@ -38,6 +38,8 @@ jobs:
       - run: npm ci
 
       - run: npm run build --if-present
+        env:
+          NODE_ENV: production
 
       - run: node_modules/.bin/jest
 
